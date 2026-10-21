@@ -1,0 +1,105 @@
+[
+  {
+    "id": "case_01",
+    "caseNumber": "CASE-2026-001",
+    "title": "西門町連鎖咖啡店拿鐵中毒案",
+    "category": "突發案件",
+    "difficulty": 2,
+    "horrorLevel": 2,
+    "location": {
+      "sector": "萬華特區",
+      "name": "西門町成都路連鎖咖啡館",
+      "coords": [25.0425, 121.5072]
+    },
+    "summary": "知名實況主在西門町成都路咖啡店包廂飲用拿鐵後突發呼吸急促與發疳送醫。初步化驗非細菌性腐敗，疑似遭投入微量生物鹼或強鹼性清潔劑。",
+    "scienceField": "自然科學・酸鹼中和與溶質檢驗",
+    "requiredTools": ["tool_ph_paper", "tool_uv_torch"],
+    "suspects": ["suspect_01_barista", "suspect_02_rival", "suspect_03_cleaner"],
+    "evidenceChain": [
+      {
+        "id": "ev_01_coffee_cup",
+        "name": "殘留冰塊的雙層外帶咖啡杯",
+        "description": "杯緣有微量白色粉末結晶，杯底殘液呈現異常淡藍色。",
+        "scienceCheck": {
+          "tool": "tool_ph_paper",
+          "expectedResult": "pH 11.2 (強鹼反應，正常拿鐵為微酸 pH 6.0~6.5)",
+          "clueUnlocked": "確認非咖啡豆變質，而是杯底被混入未稀釋濃縮管路清洗鹼劑！"
+        }
+      },
+      {
+        "id": "ev_02_trash_receipt",
+        "name": "後巷垃圾桶撕毀的清潔劑調配單",
+        "description": "印有西門店早班特定時段的調配紀錄，字跡殘缺。",
+        "scienceCheck": {
+          "tool": "tool_uv_torch",
+          "expectedResult": "365nm UV 光下顯現螢光防偽章與調配員代號 B-04",
+          "clueUnlocked": "調配員 B-04 在案發前 15 分鐘曾違規將管路鹼劑分裝至量杯。"
+        }
+      }
+    ],
+    "correctCulpritId": "suspect_01_barista",
+    "solutionRationale": "咖啡師因近期考核失誤企圖製造管路瑕疵嫁禍店長，卻因誤拿未標籤的濃縮鹼劑調配出問題拿鐵。"
+  },
+  {
+    "id": "case_02",
+    "caseNumber": "CASE-2026-002",
+    "title": "台北車站三鐵連通長廊水力延時案",
+    "category": "主線案件",
+    "difficulty": 3,
+    "horrorLevel": 1,
+    "location": {
+      "sector": "中正特區",
+      "name": "台北車站地下一樓三鐵轉乘連通長廊",
+      "coords": [25.0465, 121.5170]
+    },
+    "summary": "尖峰時段台北車站高鐵轉乘捷運閘門前地面突然爆發大面積漫水，導致三千多名通勤旅客受阻。現場未見管線爆裂，水流來自高處通風天井。",
+    "scienceField": "自然科學・虹吸原理與流體力學連通管",
+    "requiredTools": ["tool_magnifier"],
+    "suspects": ["suspect_04_plumber", "suspect_05_guard"],
+    "evidenceChain": [
+      {
+        "id": "ev_03_siphon_hose",
+        "name": "隱蔽在維修梯內側的矽膠軟管",
+        "description": "軟管一端浸泡於頂樓冷卻水塔，另一端延伸至長廊進氣風口。",
+        "scienceCheck": {
+          "tool": "tool_magnifier",
+          "expectedResult": "軟管出口截面有特殊單向水閥與水力計時重錘",
+          "clueUnlocked": "利用虹吸原理與水滴累積重量，在特定時間觸發閥門自動傾洩！"
+        }
+      }
+    ],
+    "correctCulpritId": "suspect_04_plumber",
+    "solutionRationale": "水電承包人員欲藉緊急搶修合約獲取高額加班費，利用流體虹吸裝置定時製造假性溢水事故。"
+  },
+  {
+    "id": "case_03",
+    "caseNumber": "CASE-2026-003",
+    "title": "淡水海關碼頭跳舞小人航海磚案",
+    "category": "主線案件",
+    "difficulty": 4,
+    "horrorLevel": 1,
+    "location": {
+      "sector": "淡水特區",
+      "name": "淡水海關碼頭古蹟紅磚倉庫",
+      "coords": [25.1725, 121.4342]
+    },
+    "summary": "百年紅磚倉庫外牆出土一塊刻有神秘旗語幾何符號的清代航海磚，牽涉百年前淡水開港茶葉外銷的加密航道圖。",
+    "scienceField": "社會人文與密碼學・旗語光學傳播與潮汐時相",
+    "requiredTools": ["tool_magnifier"],
+    "suspects": ["suspect_06_historian", "suspect_07_collector"],
+    "evidenceChain": [
+      {
+        "id": "ev_04_brick_cipher",
+        "name": "淡水紅毛城出土航海代碼磚",
+        "description": "磚面刻有 12 組八卦與跳舞旗語線條。",
+        "scienceCheck": {
+          "tool": "tool_magnifier",
+          "expectedResult": "微觀刻痕對應淡水河口滿潮退潮差 2.8 公尺的水深暗礁航路",
+          "clueUnlocked": "破解出航向必須沿淡水紅樹林邊緣航道方能避開退潮觸礁！"
+        }
+      }
+    ],
+    "correctCulpritId": "suspect_07_collector",
+    "solutionRationale": "古董收藏家企圖偽造假磚掉包真品，卻因計算錯淡水河口潮汐公式而在磚底留下現代雕刻刀微量鋼屑痕跡。"
+  }
+]

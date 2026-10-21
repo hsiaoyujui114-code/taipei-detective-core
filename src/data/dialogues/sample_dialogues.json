@@ -1,0 +1,69 @@
+{
+  "suspect_01_barista": {
+    "root": {
+      "npcText": "調查員你好，請問有什麼事嗎？我們店裡剛才出了意外，現在暫停營業配合調查...",
+      "options": [
+        {
+          "text": "能請教案發時那杯拿鐵是誰調配的嗎？",
+          "next": "node_coffee_prep"
+        },
+        {
+          "text": "店裡的管路清潔劑平時放在哪裡？",
+          "next": "node_cleaning_agent"
+        },
+        {
+          "text": "出示【殘留冰塊的雙層外帶咖啡杯】（pH 11.2 強鹼檢驗結果）",
+          "requiredEvidence": "ev_01_coffee_cup",
+          "next": "node_present_cup"
+        }
+      ]
+    },
+    "node_coffee_prep": {
+      "npcText": "那杯拿鐵是我親手拉花的...但我保證牛奶和濃縮咖啡絕對沒問題！每天早晨我們都有杯測！",
+      "options": [
+        {
+          "text": "拉花前牛奶加熱杯有檢查過嗎？",
+          "next": "root"
+        }
+      ]
+    },
+    "node_cleaning_agent": {
+      "npcText": "清潔劑平時鎖在後台水槽下方的防腐蝕櫃裡，只有早晚班交接清潔才會拿出來稀釋使用。",
+      "options": [
+        {
+          "text": "後巷垃圾桶撕毀的調配單上有你的代號 B-04，這該怎麼解釋？",
+          "requiredEvidence": "ev_02_trash_receipt",
+          "next": "node_confront_receipt"
+        },
+        {
+          "text": "我知道了，我再去周遭看看。",
+          "next": "root"
+        }
+      ]
+    },
+    "node_present_cup": {
+      "npcText": "（臉色瞬間慘白，雙手微顫）強...強鹼？！不可能...我只是把洗機器的藥劑倒在量杯裡忘了倒掉...難道剛才順手拿那個量杯倒了熱水？！",
+      "clueAwarded": "林哲瑋承認案發前曾違規使用飲料量杯盛裝高濃度管路洗劑，涉案重大！",
+      "options": [
+        {
+          "text": "你的粗心與違規操作已構成重大涉案事實，請隨我們回事務所做筆錄！",
+          "next": "node_confession"
+        }
+      ]
+    },
+    "node_confront_receipt": {
+      "npcText": "那張單子...是早上店長要求我預先分裝管路清潔液的紀錄，我真的不是故意害人的！",
+      "options": [
+        {
+          "text": "證據鏈已經閉環，請坦承全情。",
+          "next": "node_present_cup"
+        }
+      ]
+    },
+    "node_confession": {
+      "npcText": "我承認...最近考核沒過被扣了獎金，我想讓店長在食安稽查時被記過，才在管路裡加重洗劑，沒想到會直接喝進客人口中...我願意全額賠償受害者！",
+      "caseClosed": true,
+      "options": []
+    }
+  }
+}

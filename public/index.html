@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>雙北都會調查員・偵探核心測試台 (Detective Core Workbench)</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: rgba(15, 23, 42, 0.95);
+      --border: rgba(56, 189, 248, 0.35);
+      --cyan: #38bdf8;
+      --emerald: #34d399;
+      --amber: #fbbf24;
+      --rose: #fb7185;
+      --text: #f8fafc;
+      --text-dim: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      padding: 18px;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 18px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-bottom: 16px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: bold;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 320px 1fr 340px;
+      gap: 16px;
+    }
+    .panel {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .panel-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--cyan);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    button {
+      background: #0284c7;
+      color: #fff;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: bold;
+      transition: all 0.2s;
+    }
+    button:hover { background: #0369a1; }
+    .card {
+      background: rgba(30, 41, 59, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 12px;
+    }
+    .dialogue-box {
+      background: #020617;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 12px;
+      min-height: 140px;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .options-wrap { display: flex; flex-direction: column; gap: 6px; }
+    .opt-btn {
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid #38bdf8;
+      text-align: left;
+      padding: 8px 10px;
+    }
+    .opt-btn:hover { background: rgba(56, 189, 248, 0.2); }
+    .log-box {
+      font-family: monospace;
+      font-size: 11px;
+      color: #38bdf8;
+      max-height: 220px;
+      overflow-y: auto;
+      background: #020617;
+      padding: 8px;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div>
+      <h1 style="font-size:18px; color:var(--cyan); margin-bottom:4px;">🕵️ 雙北都會調查員・偵探核心獨立測試台</h1>
+      <div style="font-size:12px; color:var(--text-dim);">專題核心：非寫死劇情架構 ✕ 自然科學物證鑑識 ✕ 地圖系統雙向協同</div>
+    </div>
+    <div id="investigatorStatus" style="display:flex; gap:12px; font-size:12px;">
+      <!-- JS 載入 -->
+    </div>
+  </header>
+
+  <div class="grid">
+    <!-- 左欄：案件清單與背包 -->
+    <div class="panel">
+      <div class="panel-title">
+        <span>📋 企劃書示範案件庫</span>
+        <button onclick="loadCases()">重整</button>
+      </div>
+      <div id="caseList" style="display:flex; flex-direction:column; gap:8px;"></div>
+
+      <div class="panel-title" style="margin-top:10px;">
+        <span>🎒 三軌物證道具背包</span>
+      </div>
+      <div id="inventoryList" style="display:flex; flex-direction:column; gap:6px;"></div>
+    </div>
+
+    <!-- 中欄：科學鑑識與多輪對話詰問 -->
+    <div class="panel">
+      <div class="panel-title">
+        <span>🔬 自然科學物證鑑識台 (pH / 紫外光 / 放大鏡)</span>
+      </div>
+      <div id="activeEvidenceWrap" class="card">
+        <div style="color:var(--amber); font-weight:bold; margin-bottom:6px;">選取背包物證進行科學化驗：</div>
+        <div style="display:flex; gap:8px; margin-bottom:8px;">
+          <select id="selEvidence" style="padding:6px; background:#1e293b; color:#fff; border:1px solid #38bdf8; border-radius:4px; flex:1;"></select>
+          <select id="selTool" style="padding:6px; background:#1e293b; color:#fff; border:1px solid #38bdf8; border-radius:4px;">
+            <option value="tool_ph_paper">廣用 pH 酸鹼試紙</option>
+            <option value="tool_uv_torch">365nm 紫外光手電筒</option>
+            <option value="tool_magnifier">多倍率光學放大鏡</option>
+          </select>
+          <button onclick="examineSelectedEvidence()">執行化驗</button>
+        </div>
+        <div id="examineResult" style="font-size:12px; color:var(--emerald);"></div>
+      </div>
+
+      <div class="panel-title" style="margin-top:6px;">
+        <span>👥 多輪 NPC 對話詰問樹 (出示證物破案)</span>
+        <select id="selNpc" onchange="startNpcDialogue(this.value)" style="padding:4px; background:#1e293b; color:#fff; border:1px solid #38bdf8; border-radius:4px;">
+          <option value="suspect_01_barista">嫌疑人：林哲瑋 (咖啡師)</option>
+        </select>
+      </div>
+      <div class="dialogue-box" id="dialogueBox">請點擊上方嫌疑人開啟對話...</div>
+      <div class="options-wrap" id="optionsWrap"></div>
+
+      <!-- 結案指控區 -->
+      <div class="panel-title" style="margin-top:10px;">
+        <span>⚖️ 提交結案指控 (Accusation)</span>
+        <button onclick="submitAccusation()" style="background:#e11d48;">確認指控結案</button>
+      </div>
+      <div id="resolutionResult" class="card" style="display:none;"></div>
+    </div>
+
+    <!-- 右欄：地圖系統事件橋樑與筆記本 -->
+    <div class="panel">
+      <div class="panel-title">
+        <span>🌐 地圖系統協同事件橋樑 (MapBridge)</span>
+      </div>
+      <div style="font-size:11px; color:var(--text-dim);">模擬地圖傳來事件：</div>
+      <div style="display:flex; gap:6px;">
+        <button onclick="simulateMapMove()" style="flex:1;">模擬玩家移動</button>
+        <button onclick="simulateStoreEnter()" style="flex:1;">走入門市</button>
+      </div>
+      <div class="log-box" id="bridgeLog"></div>
+
+      <div class="panel-title" style="margin-top:10px;">
+        <span>📓 調查員筆記本</span>
+      </div>
+      <div id="notebookList" style="display:flex; flex-direction:column; gap:6px; max-height:240px; overflow-y:auto;"></div>
+    </div>
+  </div>
+
+  <script>
+    let currentCaseId = 'case_01';
+    let currentNpcId = 'suspect_01_barista';
+
+    async function loadStatus() {
+      const res = await fetch('/api/detective/status');
+      const data = await res.json();
+      if (!data.success) return;
+
+      const inv = data.investigator;
+      document.getElementById('investigatorStatus').innerHTML = `
+        <span class="badge" style="background:#0284c7;">稱謂：${inv.roleTitle}</span>
+        <span class="badge" style="background:#059669;">悠遊卡：${inv.easyCard}</span>
+        <span class="badge" style="background:#10b981;">綠色積分：${inv.ecoPoints} pt</span>
+        <span class="badge" style="background:#8b5cf6;">已破案：${inv.solvedCount} 件</span>
+      `;
+
+      // 背包物證選單
+      const selEv = document.getElementById('selEvidence');
+      selEv.innerHTML = '';
+      (data.inventory.evidences || []).forEach(e => {
+        selEv.innerHTML += `<option value="${e.id}">${e.name}</option>`;
+      });
+
+      // 背包列表
+      const invList = document.getElementById('inventoryList');
+      invList.innerHTML = '';
+      (data.inventory.evidences || []).forEach(e => {
+        invList.innerHTML += `<div class="card">🔍 <b>${e.name}</b><br><span style="color:#94a3b8; font-size:11px;">${e.desc}</span></div>`;
+      });
+    }
+
+    async function loadCases() {
+      const res = await fetch('/api/detective/cases');
+      const data = await res.json();
+      const wrap = document.getElementById('caseList');
+      wrap.innerHTML = '';
+      (data.cases || []).forEach(c => {
+        wrap.innerHTML += `
+          <div class="card" style="border-left:3px solid #38bdf8;">
+            <div style="font-weight:bold; color:#38bdf8;">${c.title}</div>
+            <div style="font-size:11px; color:#cbd5e1; margin:4px 0;">📍 ${c.location.name}</div>
+            <div style="font-size:10px; color:#94a3b8;">領域：${c.scienceField}</div>
+            <button onclick="acceptCase('${c.id}')" style="margin-top:6px; width:100%;">接取調查</button>
+          </div>
+        `;
+      });
+    }
+
+    async function acceptCase(id) {
+      currentCaseId = id;
+      const res = await fetch('/api/detective/case/accept', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ caseId: id })
+      });
+      const data = await res.json();
+      alert(data.message || '案件已接取！');
+      loadStatus();
+      loadBridgeEvents();
+    }
+
+    async function examineSelectedEvidence() {
+      const evId = document.getElementById('selEvidence').value;
+      const toolId = document.getElementById('selTool').value;
+      const res = await fetch('/api/detective/evidence/examine', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ evidenceId: evId, toolId })
+      });
+      const data = await res.json();
+      const out = document.getElementById('examineResult');
+      if (data.success) {
+        out.style.color = '#34d399';
+        out.innerHTML = `<b>🧪 化驗成功：</b>${data.result}<br><b>💡 解鎖線索：</b>${data.clueUnlocked}`;
+      } else {
+        out.style.color = '#fb7185';
+        out.innerText = data.message || data.error;
+      }
+      loadStatus();
+    }
+
+    async function startNpcDialogue(npcId) {
+      currentNpcId = npcId;
+      const res = await fetch('/api/detective/dialogue/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ npcId })
+      });
+      const data = await res.json();
+      renderDialogue(data);
+    }
+
+    function renderDialogue(data) {
+      document.getElementById('dialogueBox').innerHTML = `<b>💬 說法：</b><br>${data.npcText}`;
+      const optWrap = document.getElementById('optionsWrap');
+      optWrap.innerHTML = '';
+      (data.options || []).forEach(opt => {
+        optWrap.innerHTML += `<button class="opt-btn" onclick="selectDialogueOption(${opt.index})">👉 ${opt.text}</button>`;
+      });
+      if (data.clueUnlocked) {
+        alert('🎉 獲得重大供詞線索：' + data.clueUnlocked);
+      }
+    }
+
+    async function selectDialogueOption(idx) {
+      const res = await fetch('/api/detective/dialogue/select', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ optionIndex: idx })
+      });
+      const data = await res.json();
+      if (data.success) {
+        renderDialogue(data);
+      } else {
+        alert(data.error);
+      }
+    }
+
+    async function submitAccusation() {
+      const res = await fetch('/api/detective/deduction/solve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          caseId: currentCaseId,
+          suspectId: currentNpcId,
+          evidenceIds: ['ev_01_coffee_cup', 'ev_02_trash_receipt']
+        })
+      });
+      const data = await res.json();
+      const card = document.getElementById('resolutionResult');
+      card.style.display = 'block';
+      if (data.success) {
+        card.style.borderColor = '#34d399';
+        card.innerHTML = `<h3 style="color:#34d399;">🏆 破案成功！評等：${data.grade}</h3><p style="margin-top:4px;">${data.feedback}</p><p style="color:#94a3b8; font-size:11px; margin-top:6px;">案情全貌：${data.rationale}</p>`;
+      } else {
+        card.style.borderColor = '#fb7185';
+        card.innerHTML = `<h3 style="color:#fb7185;">❌ 指控未獲支持 (得分: ${data.score})</h3><p>${data.feedback}</p>`;
+      }
+      loadStatus();
+      loadBridgeEvents();
+    }
+
+    async function loadBridgeEvents() {
+      const res = await fetch('/api/detective/bridge/events');
+      const data = await res.json();
+      const box = document.getElementById('bridgeLog');
+      box.innerHTML = (data.events || []).map(e => `[${e.timestamp.slice(11,19)}] 📡 ${e.event}`).join('<br>');
+    }
+
+    async function simulateMapMove() {
+      await fetch('/api/detective/bridge/event', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ event: 'map:player_moved', payload: { lat: 25.0425, lon: 121.5072, sectorName: '萬華特區' } })
+      });
+      loadBridgeEvents();
+    }
+
+    async function simulateStoreEnter() {
+      await fetch('/api/detective/bridge/event', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ event: 'map:store_entered', payload: { name: '西門町成都路咖啡館', storeId: 'store_cafe_01' } })
+      });
+      loadBridgeEvents();
+    }
+
+    window.onload = () => {
+      loadStatus();
+      loadCases();
+      loadBridgeEvents();
+      startNpcDialogue('suspect_01_barista');
+    };
+  </script>
+</body>
+</html>

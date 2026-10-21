@@ -1,0 +1,57 @@
+[
+  {
+    "id": "suspect_01_barista",
+    "name": "林哲瑋",
+    "occupation": "連鎖咖啡館資深咖啡師",
+    "sector": "萬華特區",
+    "locationDesc": "西門町成都路門市櫃檯",
+    "alibi": "案發時正在操作半自動義式咖啡機，聲稱完全未接觸清潔藥劑。",
+    "relationship": "被投毒實況主當日之點單服務員",
+    "trustLevel": 1,
+    "motive": "與店長考核糾紛，企圖藉機嫁禍"
+  },
+  {
+    "id": "suspect_02_rival",
+    "name": "陳思涵",
+    "occupation": "同平台同類型美食實況主",
+    "sector": "中正特區",
+    "locationDesc": "西門町紅樓廣場商圈",
+    "alibi": "案發時正在紅樓徒步區進行戶外街訪直播。",
+    "relationship": "受害者之網路競爭對手",
+    "trustLevel": 2,
+    "motive": "受害者搶走其連鎖咖啡年度代言約"
+  },
+  {
+    "id": "suspect_03_cleaner",
+    "name": "張建國",
+    "occupation": "捷運商圈特約環境清潔員",
+    "sector": "萬華特區",
+    "locationDesc": "西門捷運站 6 號出口外環通道",
+    "alibi": "案發前 30 分鐘在後巷垃圾分類站整理空瓶。",
+    "relationship": "定期負責咖啡店廢油水管路清洗",
+    "trustLevel": 3,
+    "motive": "清潔公司與咖啡店承包爭議"
+  },
+  {
+    "id": "suspect_04_plumber",
+    "name": "黃銘修",
+    "occupation": "台北車站機電養護工程人員",
+    "sector": "中正特區",
+    "locationDesc": "北車地下連通層機房走廊",
+    "alibi": "聲稱一直在監控儀表室填寫日誌。",
+    "relationship": "掌握全站流體管線與風口維修圖紙",
+    "trustLevel": 1,
+    "motive": "緊急搶修預算承包"
+  },
+  {
+    "id": "suspect_05_guard",
+    "name": "吳文祥",
+    "occupation": "三鐵共構安檢巡查組員",
+    "sector": "中正特區",
+    "locationDesc": "台北車站高鐵剪票閘口旁",
+    "alibi": "當時在處理乘客悠遊卡感應不良問題。",
+    "relationship": "第一時間通報漫水現場人員",
+    "trustLevel": 2,
+    "motive": "無直接動機，關鍵目擊證人"
+  }
+]

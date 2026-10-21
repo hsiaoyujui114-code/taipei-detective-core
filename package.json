@@ -1,0 +1,20 @@
+{
+  "name": "taipei-detective-core",
+  "version": "1.0.0",
+  "description": "雙北漫遊：都會行蹤 - 獨立調查員偵探系統核心 (Detective System Core for Claude)",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test/detective.test.js"
+  },
+  "keywords": [
+    "detective",
+    "rpg",
+    "deduction",
+    "evidence-chain",
+    "dialogue-tree",
+    "taipei-metro"
+  ],
+  "author": "Taipei Metro Detective RPG Team",
+  "license": "MIT"
+}

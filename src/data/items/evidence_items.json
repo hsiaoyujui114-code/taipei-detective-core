@@ -1,0 +1,29 @@
+[
+  {
+    "id": "ev_01_coffee_cup",
+    "name": "殘留冰塊的雙層外帶咖啡杯",
+    "type": "evidence",
+    "caseId": "case_01",
+    "description": "西門町咖啡店案發現場桌面證物，內有半融化冰塊與微藍色殘留液體。",
+    "scienceAspect": "酸鹼化學性質",
+    "status": "unexamined"
+  },
+  {
+    "id": "ev_02_trash_receipt",
+    "name": "後巷垃圾桶撕毀的清潔劑調配單",
+    "type": "evidence",
+    "caseId": "case_01",
+    "description": "後巷垃圾桶碎紙片，上面有化學洗劑稀釋比例與模糊的簽名戳印。",
+    "scienceAspect": "螢光防偽與印痕檢驗",
+    "status": "unexamined"
+  },
+  {
+    "id": "ev_03_siphon_hose",
+    "name": "隱蔽在維修梯內側的矽膠軟管",
+    "type": "evidence",
+    "caseId": "case_02",
+    "description": "透明矽膠材質，管徑約 12mm，連通屋頂水塔與通風百葉窗。",
+    "scienceAspect": "虹吸流體力學",
+    "status": "unexamined"
+  }
+]
