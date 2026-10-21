@@ -282,6 +282,35 @@ const server = http.createServer(async (req, res) => {
     return sendJson(res, 200, { success: true, dispatched: entry });
   }
 
+  // ─── 7B. 地圖協同調度與地理圖層 API (Map Pairing & Geo Overlays) ───
+
+  if (pathname === '/api/detective/map/pairing-status' && req.method === 'GET') {
+    const caseId = urlObj.searchParams.get('caseId');
+    return sendJson(res, 200, engine.mapCoordinator.getCaseMapOverlays(caseId));
+  }
+
+  if (pathname === '/api/detective/map/geojson' && req.method === 'GET') {
+    const caseId = urlObj.searchParams.get('caseId');
+    return sendJson(res, 200, engine.mapCoordinator.exportGeoJson(caseId));
+  }
+
+  if (pathname === '/api/detective/map/sync-location' && req.method === 'POST') {
+    const body = await parseBody(req);
+    const coords = body.coords || [body.lat, body.lon];
+    const result = engine.mapCoordinator.syncLocationFromMap(
+      coords,
+      body.locationName || '雙北街區',
+      body.isWalk !== false
+    );
+    return sendJson(res, result.success ? 200 : (result.isForbidden ? 403 : 400), result);
+  }
+
+  if (pathname === '/api/detective/map/mode' && req.method === 'POST') {
+    const body = await parseBody(req);
+    const result = engine.mapCoordinator.setPairingMode(body.mode);
+    return sendJson(res, result.success ? 200 : 400, result);
+  }
+
   // ─── 8. 靜態可視化工作台檔案路由 ───
 
   let filePath = path.join(__dirname, 'public', pathname === '/' ? 'index.html' : pathname);

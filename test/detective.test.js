@@ -185,12 +185,37 @@ assert.strictEqual(sectorUp.newPoints, 65);
 assert(sectorUp.isPerkUnlocked, '聲譽達 60 分解鎖特區在地禮遇');
 console.log(`✅ [8] 社區信賴度晉升至 ${trustUp.tierTitle}，萬華特區聲譽達 ${sectorUp.newPoints} 分`);
 
-// ─── 階段 9：地圖協同事件協議 (MapBridge) ───
+// ─── 階段 9：地圖協同事件協議與地圖搭配調度器 (MapBridge & MapPairingCoordinator) ───
 let receivedMapEvent = null;
 engine.bridge.on(MapDetectiveEvents.MAP.PLAYER_MOVED, (p) => { receivedMapEvent = p; });
 engine.bridge.simulateMapPlayerMoved(25.0425, 121.5072, 'WHA', '萬華特區');
 assert(receivedMapEvent && receivedMapEvent.sectorName === '萬華特區');
-console.log('✅ [9] 地圖系統 (Antigravity) 雙向 Pub/Sub 事件協議通訊 100% 正常');
+
+// 9.2 地圖圖層規範 (Case Map Overlays & GeoJSON)
+const overlays = engine.mapCoordinator.getCaseMapOverlays('case_01');
+assert(overlays.success && overlays.perimeter.radiusMeters === 80, '西門案搜查半徑應為 80 公尺');
+assert(overlays.suspects.length >= 3, '應包含至少 3 名涉案關係人地圖點位');
+assert(overlays.evidenceMarkers.length >= 2, '應包含現場物證地圖標記');
+
+const geojson = engine.mapCoordinator.exportGeoJson('case_01');
+assert.strictEqual(geojson.type, 'FeatureCollection', '必須輸出合法 GeoJSON FeatureCollection');
+assert(geojson.features.length >= 5, 'GeoJSON 應包含中心點、調查員、嫌犯與物證標記');
+
+// 9.3 學校模式 vs 家中模式切換
+const schoolMode = engine.mapCoordinator.setPairingMode('school');
+assert.strictEqual(schoolMode.mode, 'school', '應支援切換至學校地圖獨立模式');
+const homeMode = engine.mapCoordinator.setPairingMode('home');
+assert.strictEqual(homeMode.mode, 'home', '應支援切換至家中雙軌聯調模式');
+
+// 9.4 地圖調查員位置同步與搜查圈觸發
+const syncIn = engine.mapCoordinator.syncLocationFromMap([25.0426, 121.5073], '西門町咖啡館門口', true);
+assert(syncIn.success && syncIn.enteredCrimeScene, '抵達案發中心 80m 內應判定進入警戒圈');
+
+// 9.5 地圖位置超距防瞬移防護
+const syncTeleport = engine.mapCoordinator.syncLocationFromMap([25.1724, 121.4371], '瞬間跳至淡水', true);
+assert(!syncTeleport.success && syncTeleport.isForbidden, '單次步行超距 2500m 必須攔截瞬移！');
+
+console.log('✅ [9] 地圖系統 (Antigravity) 雙向 Pub/Sub 事件協議與 MapPairingCoordinator 協同調度 100% 正常');
 
 // ─── 階段 10：三大憲法級絕對禁忌全域靜態掃描稽核 ───
 console.log('\n🔒 正在執行全專案三大最高憲法級禁忌代碼稽核...');

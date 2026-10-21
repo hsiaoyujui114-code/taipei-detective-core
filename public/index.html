@@ -314,8 +314,43 @@
         <span style="color:var(--text-dim);">破獲雙北各區案件可解鎖地方微型木雕特產擺設。</span>
       </div>
 
+      <!-- 🗺️ 地圖系統搭配與情勢雷達專區 (Map Pairing & Tactical Radar) -->
+      <div class="panel-title" style="margin-top:10px; border-top:1px dashed var(--border); padding-top:10px;">
+        <span>🗺️ 地圖即時搭配與情勢雷達 (Map Pairing Radar)</span>
+      </div>
+      
+      <!-- 學校模式 vs 家中模式狀態條 -->
+      <div style="display:flex; justify-content:space-between; align-items:center; background:#0b1329; padding:8px 10px; border-radius:8px; border:1px solid #1e293b; margin-bottom:8px;">
+        <div>
+          <span style="font-size:11px; color:#94a3b8;">運行模式：</span>
+          <span id="pairingModeBadge" class="badge" style="background:#059669;">🏠 家中雙軌聯調模式</span>
+        </div>
+        <div style="display:flex; gap:4px;">
+          <button onclick="togglePairingMode()" style="font-size:10px; padding:3px 6px; background:#334155;">切換模式</button>
+          <a href="http://localhost:3000" target="_blank" style="font-size:10px; padding:3px 6px; background:#0284c7; color:#fff; text-decoration:none; border-radius:4px; font-weight:bold;">🌐 開啟主地圖</a>
+        </div>
+      </div>
+      
+      <!-- 雷達可視化畫布 -->
+      <div style="position:relative; background:#030712; border:1px solid #1e293b; border-radius:8px; overflow:hidden; text-align:center;">
+        <canvas id="mapRadarCanvas" width="340" height="200" style="width:100%; height:200px; display:block;"></canvas>
+        <div id="radarHudOverlay" style="position:absolute; bottom:6px; left:8px; right:8px; display:flex; justify-content:space-between; font-size:10px; background:rgba(15,23,42,0.85); padding:4px 8px; border-radius:4px; border:1px solid rgba(56,189,248,0.2);">
+          <span id="radarDistanceText" style="color:#38bdf8;">距離案發：-- m</span>
+          <span id="radarZoneText" style="color:#fbbf24;">搜查圈：未在範圍內</span>
+        </div>
+      </div>
+
+      <!-- 地圖搭配操作快捷鍵 -->
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:8px;">
+        <button onclick="syncLocationToScene()" style="background:#2563eb; font-size:11px;">📍 調查員移至案發現場</button>
+        <button onclick="stepCloserWalk(50)" style="background:#0284c7; font-size:11px;">🚶 步行逼近 50m (耗體力)</button>
+        <button onclick="transitRideToNearestMrt()" style="background:#059669; font-size:11px;">🚇 搭捷運至最近站 (TPASS)</button>
+        <button onclick="exportGeoJsonView()" style="background:#7c3aed; font-size:11px;">📡 匯出地圖 GeoJSON</button>
+      </div>
+      <div id="mapPairingFeedback" style="font-size:11px; color:#cbd5e1; min-height:18px; margin-top:4px;"></div>
+
       <!-- 地圖協同事件日誌 -->
-      <div class="panel-title" style="margin-top:6px;">
+      <div class="panel-title" style="margin-top:8px;">
         <span>🌐 地圖系統 (Antigravity) 協同總線日誌</span>
       </div>
       <div class="log-box" id="bridgeLog"></div>
@@ -777,13 +812,259 @@
       });
     }
 
+    // ─── 🗺️ 地圖系統專屬搭配調度模組 (Map Pairing Subsystem Client) ───
+    let currentPairingMode = 'home';
+    let currentMapOverlays = null;
+
+    async function loadMapPairingStatus() {
+      try {
+        const res = await fetch(`/api/detective/map/pairing-status?caseId=${currentCaseId}`);
+        const data = await res.json();
+        if (!data.success) return;
+
+        currentMapOverlays = data;
+        currentPairingMode = data.pairingMode || 'home';
+
+        // 更新模式徽章
+        const badge = document.getElementById('pairingModeBadge');
+        if (currentPairingMode === 'home') {
+          badge.style.background = '#059669';
+          badge.innerText = '🏠 家中雙軌聯調模式';
+        } else {
+          badge.style.background = '#0284c7';
+          badge.innerText = '🏫 學校地圖獨立模式';
+        }
+
+        // 更新雷達 HUD 文字
+        const dist = data.investigatorLocation.distanceToCrimeSceneMeters;
+        const inside = data.investigatorLocation.isInsidePerimeter;
+        document.getElementById('radarDistanceText').innerText = `距離案發：${dist} m`;
+        const zoneText = document.getElementById('radarZoneText');
+        if (inside) {
+          zoneText.style.color = '#34d399';
+          zoneText.innerText = `🚨 搜查圈內 (半徑 ${data.perimeter.radiusMeters}m)`;
+        } else {
+          zoneText.style.color = '#fbbf24';
+          zoneText.innerText = `🚶 搜查圈外 (距邊緣 ${dist - data.perimeter.radiusMeters}m)`;
+        }
+
+        drawMapRadar(data);
+      } catch (err) {
+        console.error('loadMapPairingStatus error:', err);
+      }
+    }
+
+    function drawMapRadar(data) {
+      const canvas = document.getElementById('mapRadarCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width;
+      const h = canvas.height;
+      const cx = w / 2;
+      const cy = h / 2;
+
+      ctx.clearRect(0, 0, w, h);
+
+      // 背景深色網格
+      ctx.fillStyle = '#050914';
+      ctx.fillRect(0, 0, w, h);
+
+      ctx.strokeStyle = '#1e293b';
+      ctx.lineWidth = 1;
+      for (let x = 0; x < w; x += 30) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+      }
+      for (let y = 0; y < h; y += 30) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+      }
+
+      // 距離同心圓
+      [40, 80, 120].forEach((r, idx) => {
+        ctx.strokeStyle = idx === 1 ? 'rgba(56, 189, 248, 0.4)' : 'rgba(56, 189, 248, 0.15)';
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.fillStyle = 'rgba(148, 163, 184, 0.6)';
+        ctx.font = '9px monospace';
+        ctx.fillText(`${(idx + 1) * 50}m`, cx + r - 18, cy - 3);
+      });
+
+      // 案發中心與搜查警戒圈
+      const p = data.perimeter;
+      const pRadiusPx = Math.max(25, Math.min(85, p.radiusMeters * 0.7));
+
+      // 繪製搜查圈
+      ctx.fillStyle = 'rgba(251, 113, 133, 0.12)';
+      ctx.beginPath();
+      ctx.arc(cx, cy, pRadiusPx, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = '#fb7185';
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.arc(cx, cy, pRadiusPx, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // 案發中心標記
+      ctx.fillStyle = '#f43f5e';
+      ctx.beginPath();
+      ctx.arc(cx, cy, 6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 10px sans-serif';
+      ctx.fillText(`🚨 ${p.title.slice(0, 8)}...`, cx + 8, cy - 8);
+
+      // 調查員位置 (依距離偏置)
+      const dist = data.investigatorLocation.distanceToCrimeSceneMeters;
+      const angle = -Math.PI / 4; // 西南方靠近
+      const invOffsetPx = Math.min(130, dist * 0.65);
+      const invX = cx + Math.cos(angle) * invOffsetPx;
+      const invY = cy + Math.sin(angle) * invOffsetPx;
+
+      // 調查員光環
+      ctx.fillStyle = 'rgba(56, 189, 248, 0.25)';
+      ctx.beginPath();
+      ctx.arc(invX, invY, 12, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#38bdf8';
+      ctx.beginPath();
+      ctx.arc(invX, invY, 5, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#38bdf8';
+      ctx.font = 'bold 10px sans-serif';
+      ctx.fillText('🕵️ 調查員', invX + 8, invY + 4);
+
+      // 繪製關係人點位 (分佈在四周)
+      (data.suspects || []).slice(0, 3).forEach((s, idx) => {
+        const sAngle = (idx * (2 * Math.PI / 3)) + Math.PI / 6;
+        const sDist = pRadiusPx * 0.75;
+        const sx = cx + Math.cos(sAngle) * sDist;
+        const sy = cy + Math.sin(sAngle) * sDist;
+
+        ctx.fillStyle = '#fbbf24';
+        ctx.beginPath();
+        ctx.arc(sx, sy, 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.font = '9px sans-serif';
+        ctx.fillText(s.name, sx + 5, sy + 3);
+      });
+
+      // 繪製最近捷運站標示
+      ctx.fillStyle = '#34d399';
+      ctx.font = '9px sans-serif';
+      ctx.fillText(`🚇 ${p.nearestMrt}`, 10, 16);
+    }
+
+    async function togglePairingMode() {
+      const nextMode = currentPairingMode === 'home' ? 'school' : 'home';
+      const res = await fetch('/api/detective/map/mode', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode: nextMode })
+      });
+      const data = await res.json();
+      if (data.success) {
+        currentPairingMode = nextMode;
+        const fb = document.getElementById('mapPairingFeedback');
+        fb.style.color = '#38bdf8';
+        fb.innerText = data.description;
+        loadMapPairingStatus();
+      }
+    }
+
+    async function syncLocationToScene() {
+      if (!currentMapOverlays) return;
+      const center = currentMapOverlays.perimeter.center;
+      // 稍微偏置 25 公尺模擬抵達現場門口
+      const targetCoords = [center[0] + 0.00018, center[1] + 0.00015];
+      const res = await fetch('/api/detective/map/sync-location', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          coords: targetCoords,
+          locationName: `${currentMapOverlays.perimeter.title}現場搜查警戒圈`,
+          isWalk: false
+        })
+      });
+      const data = await res.json();
+      const fb = document.getElementById('mapPairingFeedback');
+      fb.style.color = data.success ? '#34d399' : '#fb7185';
+      fb.innerText = data.message || data.error;
+      loadStatus();
+      loadMapPairingStatus();
+      loadBridgeEvents();
+    }
+
+    async function stepCloserWalk(meters = 50) {
+      if (!currentMapOverlays) return;
+      const center = currentMapOverlays.perimeter.center;
+      const invCoords = currentMapOverlays.investigatorLocation.coords;
+      
+      // 朝案發中心方向前進
+      const dLat = (center[0] - invCoords[0]) * 0.35;
+      const dLon = (center[1] - invCoords[1]) * 0.35;
+      const targetCoords = [invCoords[0] + dLat, invCoords[1] + dLon];
+
+      const res = await fetch('/api/detective/map/sync-location', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          coords: targetCoords,
+          locationName: '案發周邊街區步道',
+          isWalk: true
+        })
+      });
+      const data = await res.json();
+      const fb = document.getElementById('mapPairingFeedback');
+      fb.style.color = data.success ? '#34d399' : '#fb7185';
+      fb.innerText = data.message || data.error;
+      loadStatus();
+      loadMapPairingStatus();
+      loadBridgeEvents();
+    }
+
+    async function transitRideToNearestMrt() {
+      if (!currentMapOverlays) return;
+      const p = currentMapOverlays.perimeter;
+      const res = await fetch('/api/detective/move/transit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          targetCoords: p.center,
+          destinationStation: p.nearestMrt,
+          transportType: 'mrt'
+        })
+      });
+      const data = await res.json();
+      const fb = document.getElementById('mapPairingFeedback');
+      fb.style.color = data.success ? '#34d399' : '#fb7185';
+      fb.innerText = data.message || data.error;
+      loadStatus();
+      loadMapPairingStatus();
+      loadBridgeEvents();
+    }
+
+    async function exportGeoJsonView() {
+      const res = await fetch(`/api/detective/map/geojson?caseId=${currentCaseId}`);
+      const data = await res.json();
+      const fb = document.getElementById('mapPairingFeedback');
+      fb.style.color = '#c084fc';
+      fb.innerText = `📡 已產生地圖 GeoJSON（共 ${data.features.length} 個圖層圖元，相容 Leaflet / Canvas 渲染）`;
+      console.log('GeoJSON Data:', data);
+    }
+
     // 初始化啟動
     window.onload = () => {
       loadStatus();
       loadCases();
       loadColdCases();
       loadBridgeEvents();
+      loadMapPairingStatus();
       setInterval(loadBridgeEvents, 8000);
+      setInterval(loadMapPairingStatus, 10000);
     };
   </script>
 </body>

@@ -24,6 +24,7 @@ const { DeductionBoard } = require('./core/DeductionBoard');
 const { TrustSystem } = require('./core/TrustSystem');
 const { CaseManager } = require('./core/CaseManager');
 const { MapBridge, defaultBridge, MapDetectiveEvents } = require('./bridge/MapBridge');
+const { MapPairingCoordinator } = require('./bridge/MapPairingCoordinator');
 
 function createDetectiveEngine(customDataDir = null) {
   const loader = new StoryLoader(customDataDir);
@@ -35,6 +36,7 @@ function createDetectiveEngine(customDataDir = null) {
   const deductionBoard = new DeductionBoard(loader, evidenceEngine);
   const trustSystem = new TrustSystem();
   const caseManager = new CaseManager(loader, evidenceEngine, dialogueEngine, deductionBoard, bridge);
+  const mapCoordinator = new MapPairingCoordinator(loader, caseManager, investigator, bridge);
 
   // ─── 自動掛載雙向協同事件監聽 (Map ⇄ Detective 自動聯動) ───
   bridge.on(MapDetectiveEvents.MAP.PLAYER_MOVED, (payload) => {
@@ -73,6 +75,7 @@ function createDetectiveEngine(customDataDir = null) {
     deductionBoard,
     trustSystem,
     caseManager,
+    mapCoordinator,
     events: MapDetectiveEvents,
     utils: {
       calculateDistanceMeters
@@ -92,6 +95,7 @@ module.exports = {
   TrustSystem,
   CaseManager,
   MapBridge,
+  MapPairingCoordinator,
   defaultBridge,
   MapDetectiveEvents,
   calculateDistanceMeters
