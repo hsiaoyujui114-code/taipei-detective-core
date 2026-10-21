@@ -2,10 +2,14 @@
  * ============================================================================
  * EVIDENCE ENGINE (生活科學物證鑑識引擎)
  * ============================================================================
- * 嚴格依照企劃書 01A、04 節「108 課綱跨領域自然科學鑑識」實裝：
- * 1. 物理光學：光學放大鏡微痕觀察、紫外光螢光激發。
- * 2. 化學檢驗：廣用 pH 試紙酸鹼中和判定。
- * 3. 鑑識結果自動串聯至「證據鏈結案判定」，杜絕猜測，強調運算思維與實徵數據。
+ * 嚴格依照企劃書 01A、04 節「108 課綱跨領域自然科學與生活鑑識」實裝：
+ * 1. 物質酸鹼性質（廣用試紙、pH 比色色帶分析）
+ * 2. 熱學與氣態變化（熱對流、檸檬酸弱有機酸受熱脫水炭化 75~85°C 顯影）
+ * 3. 光學與透鏡成像（365nm UV 螢光激發、多倍率光學微痕、日影相似三角形幾何）
+ * 4. 沉浮與密度測量（阿基米德浮力定律、量筒排水法、密度計算 D = M / V）
+ * 5. 聲學與傳播速率（常溫聲速 340m/s、長廊回音時差演算）
+ * 6. 力學與運動定律（牛頓第一運動定律慣性力矩、轉彎向心加速度向量、壓強公式 P = F / A）
+ * 7. 凝結與光學散射（低溫玻璃遇熱水汽露點凝結顯影油脂指紋）
  */
 
 class EvidenceEngine {
@@ -15,7 +19,7 @@ class EvidenceEngine {
   }
 
   /**
-   * 使用鑑識工具檢驗物證
+   * 調查員使用指定鑑識器材化驗物證 (標準調用主入口)
    */
   examineEvidence(evidenceId, toolId, investigator) {
     const caseList = this.loader.listCases();
@@ -32,14 +36,17 @@ class EvidenceEngine {
     }
 
     if (!targetEvidenceDef) {
-      return { success: false, error: `未在任何案件中找到證物 ${evidenceId} 的鑑識規格。` };
+      return { success: false, error: `未在任何案件中找到物證 [${evidenceId}] 的鑑識規格。` };
     }
 
-    // 檢查調查員是否持有此工具
+    // 檢查調查員背包是否攜帶此工具
     if (investigator) {
-      const hasTool = investigator.inventory.tools.find(t => t.id === toolId);
+      const hasTool = investigator.inventory.hasTool(toolId);
       if (!hasTool) {
-        return { success: false, error: `調查員尚未攜帶指定鑑識器材 [${toolId}]！` };
+        return {
+          success: false,
+          error: `調查員尚未攜帶指定鑑識器材 [${toolId}]！請至超商購買或赴科教館借用。`
+        };
       }
     }
 
@@ -48,11 +55,24 @@ class EvidenceEngine {
       return { success: false, error: '該物證未配置科學化驗參數。' };
     }
 
+    // 器材不符時，提供科學提示引導
     if (checkSpec.tool !== toolId) {
+      const hints = {
+        tool_ph_paper: '此物證需檢測酸鹼水溶液性質，請使用廣用 pH 試紙組！',
+        tool_uv_torch: '此物證含有微量螢光防偽劑或生物鹼，需使用 365nm 紫外燈激發！',
+        tool_magnifier: '此物證細微處有刮痕或纖維斷裂，請使用光學放大鏡進行微痕觀察！',
+        tool_thermal_oven: '此物證需受熱脫水顯影，請使用溫泉蒸氣顯影烘箱！',
+        tool_water_cylinder: '此物證需測定體積與密度，請使用精密排水量筒！',
+        tool_inertia_gauge: '此物證需分析緊急煞車之受力向量，請使用慣性力矩向量儀！',
+        tool_accel_sensor: '此物證涉及公車轉彎向心加速度，請使用向心力加速度感測計！',
+        tool_metal_detector: '此物證內部可能暗藏金屬貴重物，請使用便攜金屬探測器！',
+        tool_pressure_plate: '此物證涉及草坪受力面積，請使用壓強測定計算板！',
+        tool_vapor_spray: '此物證需藉由熱水微霧凝結顯影，請使用微霧水蒸氣罐！'
+      };
       return {
         success: false,
         isMismatch: true,
-        message: `鑑識工具無效：使用 ${toolId} 無法對 ${targetEvidenceDef.name} 產生明確化驗反應，請嘗試更換化學試紙、紫外光燈或光學放大鏡！`
+        message: `鑑識器材不符：使用 ${toolId} 無法對【${targetEvidenceDef.name}】產生明確化驗反應。${hints[checkSpec.tool] || '請更換對應的科普鑑識工具！'}`
       };
     }
 
@@ -62,6 +82,7 @@ class EvidenceEngine {
       evidenceName: targetEvidenceDef.name,
       caseId: parentCase.id,
       toolId,
+      method: checkSpec.method || 'standard_science_check',
       result: checkSpec.expectedResult,
       clueUnlocked: checkSpec.clueUnlocked,
       examinedAt: new Date().toISOString()
@@ -69,9 +90,10 @@ class EvidenceEngine {
     this.examinedHistory.set(evidenceId, record);
 
     if (investigator) {
+      investigator.inventory.updateEvidenceStatus(evidenceId, checkSpec.expectedResult);
       investigator.addNotebookNote(
         `【鑑識報告】${targetEvidenceDef.name}`,
-        `工具：${toolId}\n化驗數據：${checkSpec.expectedResult}\n科學推論：${checkSpec.clueUnlocked}`,
+        `器材：${toolId}\n化驗數據：${checkSpec.expectedResult}\n科學推論：${checkSpec.clueUnlocked}`,
         ['物證化驗', '自然科學', parentCase.title]
       );
     }
@@ -92,6 +114,125 @@ class EvidenceEngine {
 
   getExaminedRecord(evidenceId) {
     return this.examinedHistory.get(evidenceId) || null;
+  }
+
+  // ─── 專題自然科學實驗演算模組 (108 課綱自然科學深入對齊) ───
+
+  /**
+   * 1. 廣用 pH 酸鹼滴定實驗
+   */
+  runPhTitration(pHValue) {
+    let color = '綠色 (中性)';
+    let nature = '中性';
+    if (pHValue < 3) { color = '深紅色 (強酸)'; nature = '強酸性'; }
+    else if (pHValue < 6.5) { color = '橙黃色 (弱酸)'; nature = '弱酸性'; }
+    else if (pHValue <= 7.5) { color = '鮮綠色 (中性)'; nature = '中性'; }
+    else if (pHValue <= 10) { color = '藍綠色 (弱鹼)'; nature = '弱鹼性'; }
+    else { color = '深紫藍色 (強鹼)'; nature = '強鹼性'; }
+
+    return {
+      pH: Number(pHValue.toFixed(1)),
+      colorBand: color,
+      chemicalNature: nature,
+      scientificPrinciple: '氫離子濃度指數 pH = -log[H+]，廣用指示劑隨氫離子濃度改變分子結構並顯現不同吸收光譜。'
+    };
+  }
+
+  /**
+   * 2. 阿基米德浮力與密度測定 D = M / V
+   */
+  runArchimedesDensity(massGrams, volumeMl) {
+    if (volumeMl <= 0) return { error: '排水體積必須大於 0' };
+    const density = Number((massGrams / volumeMl).toFixed(2));
+
+    // 比對純金屬標準密度表
+    const metalStandards = {
+      '純金': 19.3,
+      '純銀': 10.5,
+      '純銅': 8.9,
+      '黃銅': 8.5,
+      '鐵': 7.9,
+      '鋅合金': 6.7
+    };
+
+    let matchedMetal = '未知或中空複合材料';
+    let isHollowSuspected = false;
+
+    if (Math.abs(density - 8.9) <= 0.3) {
+      matchedMetal = '純銅 (8.9 g/cm³)';
+    } else if (density < 7.5 && massGrams >= 45) {
+      matchedMetal = '密度異常偏低 (中空掏空或輕合金摻假)';
+      isHollowSuspected = true;
+    }
+
+    return {
+      massGrams,
+      displacedVolumeMl: volumeMl,
+      calculatedDensity: `${density} g/cm³`,
+      matchedMetal,
+      isHollowSuspected,
+      formula: 'D = M / V (密度 = 質量 ÷ 體積)',
+      scientificPrinciple: '阿基米德浮力定律：浸入液體之固體所受浮力等於其排開同體積液體之重量，利用排水量精準測定固體真實體積。'
+    };
+  }
+
+  /**
+   * 3. 物理壓強計算 P = F / A
+   */
+  runPressureCalculation(massKg, areaCm2) {
+    if (areaCm2 <= 0) return { error: '受力面積必須大於 0' };
+    const forceN = massKg * 9.8; // 重力 F = m * g
+    const areaM2 = areaCm2 / 10000;
+    const pressurePa = forceN / areaM2;
+    const pressureKPa = Number((pressurePa / 1000).toFixed(2));
+
+    const soilYieldLimitKPa = 6.0; // 飽和爛泥剪切屈服極限約 6 kPa
+    const willMudSink = pressureKPa >= soilYieldLimitKPa;
+
+    return {
+      massKg,
+      contactAreaCm2: areaCm2,
+      forceNewtons: Number(forceN.toFixed(1)),
+      pressureKPa,
+      soilLimitKPa: soilYieldLimitKPa,
+      willMudSink,
+      phenomenon: willMudSink
+        ? `壓強 ${pressureKPa} kPa ≥ 剪切極限 ${soilYieldLimitKPa} kPa，草地必下陷踩出明顯鞋印！`
+        : `壓強 ${pressureKPa} kPa < 剪切極限 ${soilYieldLimitKPa} kPa，草葉只受彈性彎折而不陷入泥中，形成無腳印現象！`,
+      formula: 'P = F / A (壓強 = 作用力 ÷ 受力面積)'
+    };
+  }
+
+  /**
+   * 4. 牛頓第一運動定律與煞車慣性向量
+   */
+  runInertiaVectorAnalysis(vehicleDirectionDeg, decelerationMs2, personPosture) {
+    // 當車輛沿 vehicleDirectionDeg 減速煞車時，加速度向量相反，慣性力向量則同向於前進方向
+    const inertiaForceDirectionDeg = (vehicleDirectionDeg) % 360;
+    return {
+      vehicleHeading: `${vehicleDirectionDeg}°`,
+      deceleration: `${decelerationMs2} m/s²`,
+      inertiaVectorHeading: `${inertiaForceDirectionDeg}° (沿行進方向向前撲倒)`,
+      personPostureObserved: personPosture,
+      isNaturalReaction: personPosture.includes('前傾') || personPosture.includes('向前撲倒'),
+      scientificPrinciple: '牛頓第一運動定律：物體在無外力作用下維持原有運動狀態；車輛緊急制軔時，車廂減速，人體因慣性繼續向前運動，受力方向必朝前。'
+    };
+  }
+
+  /**
+   * 5. 常溫聲速時差計算
+   */
+  runAcousticDelayCalculation(distanceMeters, temperatureC = 20) {
+    const soundSpeed = 331.5 + 0.6 * temperatureC; // 聲速公式 v = 331.5 + 0.6*T
+    const travelTimeSeconds = Number((distanceMeters / soundSpeed).toFixed(3));
+
+    return {
+      distanceMeters,
+      temperatureC,
+      soundSpeedMs: Number(soundSpeed.toFixed(1)),
+      travelTimeSeconds,
+      scientificPrinciple: `在 ${temperatureC}°C 常溫空氣中，聲波傳播 ${distanceMeters} 公尺僅需 ${travelTimeSeconds} 秒，絕不可能延遲數十分鐘！`
+    };
   }
 }
 

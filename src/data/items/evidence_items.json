@@ -1,29 +1,422 @@
 [
   {
+    "id": "supply_easycard",
+    "name": "雙北紀念悠遊卡 (基北北桃 TPASS 1200 暢行版)",
+    "track": "supply",
+    "type": "transit",
+    "description": "雙北市民與都會調查員必備交通卡，已綁定基北北桃 1200 通勤月票，大眾捷運、市區公車吃到飽。",
+    "ecoValue": "搭乘大眾運輸節能減碳"
+  },
+  {
+    "id": "supply_eco_bag",
+    "name": "純棉加厚折疊環保購物袋",
+    "track": "supply",
+    "type": "eco",
+    "description": "自備購物袋，外帶購買超商或中藥行耗材時減少塑膠袋使用，每次累計 +10 點綠色積分。",
+    "ecoValue": "自備購物袋 +10 積分"
+  },
+  {
+    "id": "supply_tumbler",
+    "name": "雙層不鏽鋼保溫隨行杯 (500ml)",
+    "track": "supply",
+    "type": "eco",
+    "description": "自備隨行杯至飲料店或連鎖咖啡館現折 5 元，每次累計 +15 點綠色積分。",
+    "ecoValue": "自備飲料杯折5元 +15 積分"
+  },
+  {
+    "id": "supply_notebook",
+    "name": "都會調查員防水便攜筆記本",
+    "track": "supply",
+    "type": "record",
+    "description": "紀錄案件涉案關係人筆錄、時間戳記與自然科學化驗矛盾點。",
+    "ecoValue": "無"
+  },
+  {
+    "id": "supply_umbrella",
+    "name": "抗強風晴雨兩用摺疊傘",
+    "track": "supply",
+    "type": "daily",
+    "description": "台北午後雷陣雨不可或缺的隨身裝備。",
+    "ecoValue": "慢活步行必備"
+  },
+  {
+    "id": "tool_magnifier",
+    "name": "多倍率手持光學放大鏡 (10x/30x)",
+    "track": "tool",
+    "type": "optical",
+    "description": "國小科普必備，觀察指紋脊線、纖維走向、金屬微痕與斷裂面。"
+  },
+  {
+    "id": "tool_ph_paper",
+    "name": "廣用 pH 酸鹼試紙組 (pH 1~14 色卡)",
+    "track": "tool",
+    "type": "chemical",
+    "description": "快速檢驗水溶液酸鹼度，以標準比色卡判定酸性、中性或強鹼。"
+  },
+  {
+    "id": "tool_uv_torch",
+    "name": "365nm 專業紫外光鑑識手電筒",
+    "track": "tool",
+    "type": "fluorescence",
+    "description": "激發隱形防偽螢光油墨、微量生物鹼色帶與螢光纖維反應。"
+  },
+  {
+    "id": "tool_tlc_scanner",
+    "name": "薄層色層分析展開鏡 (TLC)",
+    "track": "tool",
+    "type": "chemical",
+    "description": "利用毛細管現象與展開劑分離有機生物鹼，精準測量 Rf 滯留值。"
+  },
+  {
+    "id": "tool_sound_timer",
+    "name": "數位聲學時差音波分析儀",
+    "track": "tool",
+    "type": "acoustic",
+    "description": "以常溫聲速 340m/s 計算長廊音波反射時間差，戳破偽造聲學延時。"
+  },
+  {
+    "id": "tool_water_gauge",
+    "name": "微型虹吸管徑流速測定計",
+    "track": "tool",
+    "type": "fluid",
+    "description": "測量流體力學虹吸軟管管徑、水位落差與注水溢流時間。"
+  },
+  {
+    "id": "tool_cipher_table",
+    "name": "十九世紀英文旗語頻率對照表",
+    "track": "tool",
+    "type": "cipher",
+    "description": "單表替換式密碼解碼專用，依英文字母出現頻率（E, T, A）統計解密。"
+  },
+  {
+    "id": "tool_tide_gauge",
+    "name": "淡水河口潮汐深度對照儀",
+    "track": "tool",
+    "type": "geography",
+    "description": "計算淡水河口滿潮與乾潮水位差（2.8 公尺），驗證航道水深暗礁。"
+  },
+  {
+    "id": "tool_thermal_oven",
+    "name": "溫泉蒸氣微溫安全顯影烘箱",
+    "track": "tool",
+    "type": "thermal",
+    "description": "提供 75°C~85°C 溫泉蒸氣微溫烘烤環境，促使弱有機酸脫水炭化。"
+  },
+  {
+    "id": "tool_bamboo_tongs",
+    "name": "加長防燙竹夾與隔熱鑷子",
+    "track": "tool",
+    "type": "apparatus",
+    "description": "安全夾持紙張證物置於蒸氣上方，避免手部燙傷或污染紙質。"
+  },
+  {
+    "id": "tool_shadow_rod",
+    "name": "工部營造日影幾何測定標竿",
+    "track": "tool",
+    "type": "geometry",
+    "description": "依相似三角形原理（物高/影長比）演算太陽方位角與投影焦點。"
+  },
+  {
+    "id": "tool_angle_meter",
+    "name": "精密太陽高度角傾角儀",
+    "track": "tool",
+    "type": "geometry",
+    "description": "量測秋分當天太陽直射高度角（66.5°），計算光線幾何直線投射點。"
+  },
+  {
+    "id": "tool_vapor_spray",
+    "name": "便攜微霧熱水蒸氣罐",
+    "track": "tool",
+    "type": "physical",
+    "description": "噴灑細微熱水霧，在低溫玻璃表面遇冷凝結成微露珠顯現指紋油脂。"
+  },
+  {
+    "id": "tool_inertia_gauge",
+    "name": "三軸慣性力矩向量儀",
+    "track": "tool",
+    "type": "mechanics",
+    "description": "分析車輛緊急煞車時之加速度向量與人體慣性撲倒方向。"
+  },
+  {
+    "id": "tool_accel_sensor",
+    "name": "高精度加速度與轉彎向心力計",
+    "track": "tool",
+    "type": "mechanics",
+    "description": "記錄捷運及公車轉彎時的向心加速度與靜摩擦係數。"
+  },
+  {
+    "id": "tool_equal_balance",
+    "name": "傳統中藥等臂天平與標準砝碼組",
+    "track": "tool",
+    "type": "measurement",
+    "description": "利用力矩平衡槓桿原理精密秤量微克藥材與金屬配重。"
+  },
+  {
+    "id": "tool_water_cylinder",
+    "name": "精密玻璃排水量筒 (100ml)",
+    "track": "tool",
+    "type": "measurement",
+    "description": "阿基米德排水法測量不規則固體體積，換算精確密度 D=M/V。"
+  },
+  {
+    "id": "tool_metal_detector",
+    "name": "便攜型高靈敏金屬探測棒",
+    "track": "tool",
+    "type": "electronic",
+    "description": "探測隱蔽在衣物與鞋底內之黃金、首飾與金屬貴重物證。"
+  },
+  {
+    "id": "tool_pressure_plate",
+    "name": "受力面積與壓強測定計算板",
+    "track": "tool",
+    "type": "mechanics",
+    "description": "依物理壓強公式 P=F/A 計算接地面積、重量與土壤飽和剪切屈服值。"
+  },
+  {
+    "id": "tool_soil_sampler",
+    "name": "土壤飽和度與草葉折痕光學取樣儀",
+    "track": "tool",
+    "type": "botanical",
+    "description": "微觀分析泥土含水飽和度及草葉受壓細胞壁彎折方向與步幅。"
+  },
+  {
     "id": "ev_01_coffee_cup",
-    "name": "殘留冰塊的雙層外帶咖啡杯",
-    "type": "evidence",
+    "name": "翻倒的雙層熱拿鐵咖啡杯",
+    "track": "evidence",
     "caseId": "case_01",
-    "description": "西門町咖啡店案發現場桌面證物，內有半融化冰塊與微藍色殘留液體。",
-    "scienceAspect": "酸鹼化學性質",
-    "status": "unexamined"
+    "description": "西門町咖啡館 4 號桌翻倒的咖啡杯，杯底有未化開的泡沫與苦杏仁氣息。",
+    "scienceAspect": "酸鹼滴定與水溶液性質"
   },
   {
-    "id": "ev_02_trash_receipt",
-    "name": "後巷垃圾桶撕毀的清潔劑調配單",
-    "type": "evidence",
+    "id": "ev_01_cup_lid",
+    "name": "4 號桌專用外帶杯蓋",
+    "track": "evidence",
     "caseId": "case_01",
-    "description": "後巷垃圾桶碎紙片，上面有化學洗劑稀釋比例與模糊的簽名戳印。",
-    "scienceAspect": "螢光防偽與印痕檢驗",
-    "status": "unexamined"
+    "description": "黑色耐熱杯蓋，飲用口內緣有微量白色反光油脂與乾涸液滴。",
+    "scienceAspect": "365nm UV 螢光激發與微量汗液指紋"
   },
   {
-    "id": "ev_03_siphon_hose",
-    "name": "隱蔽在維修梯內側的矽膠軟管",
-    "type": "evidence",
+    "id": "ev_01_tlc_strip",
+    "name": "杯蓋刮取物薄層色層分析片 (TLC)",
+    "track": "evidence",
+    "caseId": "case_01",
+    "description": "矽膠薄層層析片，顯示有機生物鹼在展開劑中的毛細分離。",
+    "scienceAspect": "薄層層析毛細分離"
+  },
+  {
+    "id": "ev_02_siphon_tube",
+    "name": "天花板排風管上方隱蔽虹吸軟管",
+    "track": "evidence",
     "caseId": "case_02",
-    "description": "透明矽膠材質，管徑約 12mm，連通屋頂水塔與通風百葉窗。",
-    "scienceAspect": "虹吸流體力學",
-    "status": "unexamined"
+    "description": "連通冷卻水塔與重錘的矽膠軟管，附有微型注水閥。",
+    "scienceAspect": "虹吸原理與流體延時"
+  },
+  {
+    "id": "ev_02_acoustic_log",
+    "name": "長廊音波感測器反射紀錄",
+    "track": "evidence",
+    "caseId": "case_02",
+    "description": "台北車站地下街 300 公尺長廊的聲波震動時間圖譜。",
+    "scienceAspect": "常溫聲速傳播計算"
+  },
+  {
+    "id": "ev_02_pulley_cable",
+    "name": "重錘滑輪鋼索高溫摩擦痕",
+    "track": "evidence",
+    "caseId": "case_02",
+    "description": "滑輪軸心殘留微量石墨潤滑油與尼龍纖維碎屑。",
+    "scienceAspect": "光學微痕比對"
+  },
+  {
+    "id": "ev_03_cipher_brick",
+    "name": "淡水紅毛城航海旗語代碼磚",
+    "track": "evidence",
+    "caseId": "case_03",
+    "description": "燒製黏土磚面上刻有 26 尊跳舞旗語小人。",
+    "scienceAspect": "替換式密碼頻率分析"
+  },
+  {
+    "id": "ev_03_tide_chart",
+    "name": "江語晨手寫潮汐差計算便箋",
+    "track": "evidence",
+    "caseId": "case_03",
+    "description": "計算淡水河口乾潮與滿潮落差 2.8 公尺的水位記錄，散發玫瑰香氣。",
+    "scienceAspect": "淡水河口潮汐深度計算"
+  },
+  {
+    "id": "ev_03_pocket_watch",
+    "name": "保溫杯底座暗格搜出之純銀懷錶",
+    "track": "evidence",
+    "caseId": "case_03",
+    "description": "清代開港英國純銀雕花懷錶，旋鈕帶有玫瑰護手霜精油微痕。",
+    "scienceAspect": "光學微痕與精油光譜比對"
+  },
+  {
+    "id": "ev_04_blank_will",
+    "name": "紅木書桌上的空白宣紙遺書",
+    "track": "evidence",
+    "caseId": "case_04",
+    "description": "看似空白的宣紙，局部纖維有微量弱有機酸硬化。",
+    "scienceAspect": "弱有機酸熱脫水炭化顯影"
+  },
+  {
+    "id": "ev_04_steam_tray",
+    "name": "庭院溫泉天然蒸氣出風口",
+    "track": "evidence",
+    "caseId": "case_04",
+    "description": "北投青磺泉 85°C 天然蒸氣，帶有微量硫磺味。",
+    "scienceAspect": "蒸氣熱對流溫度控制"
+  },
+  {
+    "id": "ev_04_secret_contract",
+    "name": "謝秘書公事包暗夾收賄協議",
+    "track": "evidence",
+    "caseId": "case_04",
+    "description": "長子承諾分予謝秘書兩千萬元之私簽本票。",
+    "scienceAspect": "墨水光譜與微痕印鑑比對"
+  },
+  {
+    "id": "ev_05_lattice_shadow",
+    "name": "方鑑齋八角漏窗日影投影焦點",
+    "track": "evidence",
+    "caseId": "case_05",
+    "description": "秋分日光穿透八角漏窗在假山壁上的直角光斑焦點。",
+    "scienceAspect": "相似三角形日影幾何"
+  },
+  {
+    "id": "ev_05_measuring_rod",
+    "name": "假山石縫起獲之折斷標竿探針頭",
+    "track": "evidence",
+    "caseId": "case_05",
+    "description": "高強度鋁合金刻度探針，帶有折斷截面。",
+    "scienceAspect": "金屬斷裂面幾何吻合"
+  },
+  {
+    "id": "ev_05_copper_key",
+    "name": "郭副教授大衣內襯起獲之辟邪銅印與金鑰匙",
+    "track": "evidence",
+    "caseId": "case_05",
+    "description": "清代安平家藏銅印，帶有假山青苔微痕。",
+    "scienceAspect": "苔蘚孢子植物微痕鑑識"
+  },
+  {
+    "id": "ev_06_cold_glass_print",
+    "name": "冷藏櫃低溫玻璃門水汽散射指紋",
+    "track": "evidence",
+    "caseId": "case_06",
+    "description": "4°C 玻璃遇外界熱水汽凝結成微細露珠顯影的指紋痕跡。",
+    "scienceAspect": "露點水汽凝結光學散射"
+  },
+  {
+    "id": "ev_06_uv_glove",
+    "name": "孫韻婷黑色薄羊皮手套破損處",
+    "track": "evidence",
+    "caseId": "case_06",
+    "description": "右手食指指腹有 2mm 磨損開口與壓克力樹脂刮痕。",
+    "scienceAspect": "光學微痕纖維檢驗"
+  },
+  {
+    "id": "ev_06_gold_card",
+    "name": "孫韻婷大衣袖口內襯起獲之特典金卡",
+    "track": "evidence",
+    "caseId": "case_06",
+    "description": "限量動漫特典金卡，印有螢光防偽印章。",
+    "scienceAspect": "365nm UV 螢光激發"
+  },
+  {
+    "id": "ev_07_wrist_strain",
+    "name": "彭曉嵐右腕逆向抗加速度深紅勒痕",
+    "track": "evidence",
+    "caseId": "case_07",
+    "description": "右腕由前向後反向抓握立柱產生的逆向摩擦挫傷。",
+    "scienceAspect": "牛頓第一運動定律慣性力矩"
+  },
+  {
+    "id": "ev_07_anti_slip_shoes",
+    "name": "彭曉嵐特殊高摩擦力防滑登山鞋底",
+    "track": "evidence",
+    "caseId": "case_07",
+    "description": "深齒輪吸盤橡膠，靜摩擦係數高達 0.85。",
+    "scienceAspect": "摩擦力與加速度平衡"
+  },
+  {
+    "id": "ev_07_chip_briefcase",
+    "name": "彭曉嵐大號手提袋暗格內的兩奈米晶片",
+    "track": "evidence",
+    "caseId": "case_07",
+    "description": "刻有專利科技雷射標籤之防靜電封裝晶圓盒。",
+    "scienceAspect": "光學微標雷射防偽比對"
+  },
+  {
+    "id": "ev_08_hollow_weight",
+    "name": "天平右盤配套之 50g 銅砝碼",
+    "track": "evidence",
+    "caseId": "case_08",
+    "description": "外表完好但內部被車床掏空的黃銅砝碼。",
+    "scienceAspect": "排水量筒測量體積換算密度 D=M/V"
+  },
+  {
+    "id": "ev_08_graduated_cylinder",
+    "name": "調包假山蔘內部注鉛痕跡",
+    "track": "evidence",
+    "caseId": "case_08",
+    "description": "曬乾山蘿蔔根中心鑽孔注入金屬鉛補重。",
+    "scienceAspect": "工具微痕與植物組織切片"
+  },
+  {
+    "id": "ev_08_wild_ginseng",
+    "name": "吳俊凱研磨機底座暗格搜出之真野山蔘",
+    "track": "evidence",
+    "caseId": "case_08",
+    "description": "德濟堂鎮店之寶百年長白山老野山蔘。",
+    "scienceAspect": "本草植物學微特徵驗證"
+  },
+  {
+    "id": "ev_09_bus_turn_vector",
+    "name": "307 公車右轉向心加速度運動軌跡圖",
+    "track": "evidence",
+    "caseId": "case_09",
+    "description": "陀螺儀記錄右轉彎離心力必指向左側，馬致遠反向朝右跨步。",
+    "scienceAspect": "向心力與轉彎慣性向量"
+  },
+  {
+    "id": "ev_09_heel_hidden_slot",
+    "name": "馬致遠右腳特製加厚皮鞋鞋跟",
+    "track": "evidence",
+    "caseId": "case_09",
+    "description": "厚度 4.5 公分的皮鞋鞋跟，暗藏旋轉卡榫暗槽。",
+    "scienceAspect": "高靈敏金屬探測感應"
+  },
+  {
+    "id": "ev_09_grandma_wallet",
+    "name": "椅墊縫隙塞入之老花布皮夾",
+    "track": "evidence",
+    "caseId": "case_09",
+    "description": "手縫碎花布夾，拉鍊頭有馬致遠右手拇指微痕。",
+    "scienceAspect": "光學微痕指紋鑑識"
+  },
+  {
+    "id": "ev_10_cork_snowshoe",
+    "name": "排水大管隱蔽起獲之特製超大受力面積軟木套鞋",
+    "track": "evidence",
+    "caseId": "case_10",
+    "description": "長 55cm、寬 36cm，接地面積達 2000cm² 之軟木底板。",
+    "scienceAspect": "物理壓強 P=F/A 與剪切強度"
+  },
+  {
+    "id": "ev_10_soil_pressure_gauge",
+    "name": "草坪微痕步幅幾何測定報告",
+    "track": "evidence",
+    "caseId": "case_10",
+    "description": "草葉倒伏光學掃描，顯示 85 公分規律步態折痕。",
+    "scienceAspect": "土壤力學與草葉彈性變形"
+  },
+  {
+    "id": "ev_10_stolen_telescope",
+    "name": "孫耀輝景觀修剪小貨車防水帆布底起獲之望遠鏡筒",
+    "track": "evidence",
+    "caseId": "case_10",
+    "description": "德國頂級消色差天文望遠鏡筒，帶有專用手套麻纖維。",
+    "scienceAspect": "光學微痕比對"
   }
 ]

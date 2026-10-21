@@ -1,67 +1,374 @@
 {
-  "suspect_01_barista": {
+  "suspect_01_wu": {
     "root": {
       "npcText": "調查員你好，請問有什麼事嗎？我們店裡剛才出了意外，現在暫停營業配合調查...",
       "options": [
         {
-          "text": "能請教案發時那杯拿鐵是誰調配的嗎？",
+          "text": "能請教案發時那杯熱拿鐵是誰調配的嗎？",
           "next": "node_coffee_prep"
         },
         {
-          "text": "店裡的管路清潔劑平時放在哪裡？",
-          "next": "node_cleaning_agent"
+          "text": "你端咖啡給 4 號桌時，杯蓋是密封的嗎？",
+          "next": "node_cup_lid_inquiry"
         },
         {
-          "text": "出示【殘留冰塊的雙層外帶咖啡杯】（pH 11.2 強鹼檢驗結果）",
-          "requiredEvidence": "ev_01_coffee_cup",
-          "next": "node_present_cup"
+          "text": "出示【4 號桌專用外帶杯蓋】（365nm UV 光下飲用口苦杏仁苷與食指破損汗液痕）",
+          "requiredEvidence": "ev_01_cup_lid",
+          "next": "node_confront_lid"
         }
       ]
     },
     "node_coffee_prep": {
-      "npcText": "那杯拿鐵是我親手拉花的...但我保證牛奶和濃縮咖啡絕對沒問題！每天早晨我們都有杯測！",
+      "npcText": "那杯焦糖瑪奇朵是我親手拉花出餐的...但我保證牛奶和咖啡豆絕對沒問題！我全程都戴著店裡的食品手套！",
       "options": [
         {
-          "text": "拉花前牛奶加熱杯有檢查過嗎？",
+          "text": "你手上的手套是什麼時候戴上的？",
           "next": "root"
         }
       ]
     },
-    "node_cleaning_agent": {
-      "npcText": "清潔劑平時鎖在後台水槽下方的防腐蝕櫃裡，只有早晚班交接清潔才會拿出來稀釋使用。",
+    "node_cup_lid_inquiry": {
+      "npcText": "我都是從密封櫃拿全新的杯蓋直接蓋上，完全符合衛生標準，我根本沒理由害客人！",
       "options": [
         {
-          "text": "後巷垃圾桶撕毀的調配單上有你的代號 B-04，這該怎麼解釋？",
-          "requiredEvidence": "ev_02_trash_receipt",
-          "next": "node_confront_receipt"
-        },
-        {
-          "text": "我知道了，我再去周遭看看。",
+          "text": "我知道了，我再去周遭搜查一下。",
           "next": "root"
         }
       ]
     },
-    "node_present_cup": {
-      "npcText": "（臉色瞬間慘白，雙手微顫）強...強鹼？！不可能...我只是把洗機器的藥劑倒在量杯裡忘了倒掉...難道剛才順手拿那個量杯倒了熱水？！",
-      "clueAwarded": "林哲瑋承認案發前曾違規使用飲料量杯盛裝高濃度管路洗劑，涉案重大！",
+    "node_confront_lid": {
+      "npcText": "（臉色瞬間慘白，手指不自覺發抖）這...這不可能！我明明戴了手套...難道指尖破了洞滲出來了？！",
+      "clueAwarded": "吳冠宇心理防線崩潰，承認食指手套破損處滲漏汗液印在杯蓋飲用口！",
       "options": [
         {
-          "text": "你的粗心與違規操作已構成重大涉案事實，請隨我們回事務所做筆錄！",
+          "text": "出示【薄層色層分析片 TLC】（Rf=0.42 苦杏仁苷標準品完全重合）！",
+          "requiredEvidence": "ev_01_tlc_strip",
           "next": "node_confession"
         }
       ]
     },
-    "node_confront_receipt": {
-      "npcText": "那張單子...是早上店長要求我預先分裝管路清潔液的紀錄，我真的不是故意害人的！",
+    "node_confession": {
+      "npcText": "我認了...林建宏惡意扣留我弟弟包商的醫藥費工程款，害我弟在醫院等不到手術過世！我才特地來這裡應徵，用杯蓋內緣塗抹微量苦杏仁苷...我願意接受司法制裁！",
+      "caseClosed": true,
+      "options": []
+    }
+  },
+  "suspect_02_zhou": {
+    "root": {
+      "npcText": "你們調查員找我幹什麼？案發 23:45 巨響時我正在 300 公尺外的超商結帳，發票時間寫得清清楚楚！難道我能分身瞬移嗎？",
       "options": [
         {
-          "text": "證據鏈已經閉環，請坦承全情。",
-          "next": "node_present_cup"
+          "text": "你怎麼解釋你買關東煮的時間跟長廊巨響完全同一秒？",
+          "next": "node_alibi_claim"
+        },
+        {
+          "text": "出示【長廊音波感測器反射紀錄】（常溫聲速 340m/s，300 米僅需 0.88 秒）",
+          "requiredEvidence": "ev_02_acoustic_log",
+          "next": "node_confront_sound"
+        }
+      ]
+    },
+    "node_alibi_claim": {
+      "npcText": "因為長廊有 300 公尺長啊！回音在封閉隧道裡反射延遲，聲音傳過來當然要幾十分鐘，這是物理常識！",
+      "options": [
+        {
+          "text": "幾十分鐘？你確定這是常溫空氣的聲速？",
+          "next": "root"
+        }
+      ]
+    },
+    "node_confront_sound": {
+      "npcText": "（額頭冒冷汗）0.88 秒又怎樣？我當時人在超商是事實，保險櫃自己倒下來關我什麼事！",
+      "options": [
+        {
+          "text": "出示【天花板排風管隱蔽虹吸軟管】（管徑計算滿水注流恰需 20 分鐘）！",
+          "requiredEvidence": "ev_02_siphon_tube",
+          "next": "node_confession"
         }
       ]
     },
     "node_confession": {
-      "npcText": "我承認...最近考核沒過被扣了獎金，我想讓店長在食安稽查時被記過，才在管路裡加重洗劑，沒想到會直接喝進客人口中...我願意全額賠償受害者！",
+      "npcText": "可惡...連虹吸水閥都被你們拆出來了...實驗室憑什麼奪走我的量子專利？我花 20 分鐘注水延時就是為了搶回屬於我的研究！我認輸了...",
+      "caseClosed": true,
+      "options": []
+    }
+  },
+  "suspect_04_xie": {
+    "root": {
+      "npcText": "我是老董事長二十年的機要秘書！老董走得很平靜，桌上那張空白紙我也看過，根本沒立字據，依法就該由長子和次女均分資產！",
+      "options": [
+        {
+          "text": "老董平時寫信喜歡用什麼筆墨？",
+          "next": "node_ink_query"
+        },
+        {
+          "text": "出示【空白宣紙遺書】（經北投 85°C 溫泉蒸氣脫水炭化浮現棕褐色字跡）",
+          "requiredEvidence": "ev_04_blank_will",
+          "next": "node_confront_will"
+        }
+      ]
+    },
+    "node_ink_query": {
+      "npcText": "老董常在書桌擺弄一些小瓶水溶液，我看就是老人家打發時間的茶水罷了。",
+      "options": [
+        {
+          "text": "那不是普通茶水，是弱有機酸防偽顯影液。",
+          "next": "root"
+        }
+      ]
+    },
+    "node_confront_will": {
+      "npcText": "（雙眼發直）字...字居然浮出來了？！「全交次女美玲，長子分文不得」...怎麼會這樣？！",
+      "options": [
+        {
+          "text": "出示【公事包暗夾兩千萬收賄本票】！",
+          "requiredEvidence": "ev_04_secret_contract",
+          "next": "node_confession"
+        }
+      ]
+    },
+    "node_confession": {
+      "npcText": "我...我一時鬼迷心竅！大少爺答應給我兩千萬，我以為只要當作沒這張紙就能平分...老董事長連過世都在考驗我...我認罪！",
+      "caseClosed": true,
+      "options": []
+    }
+  },
+  "suspect_05_guo": {
+    "root": {
+      "npcText": "我是國立大學古建築學副教授！我手持標竿只是在方鑑齋進行秋分日照折射率學術觀測，你們休想把古印失竊賴在我頭上！",
+      "options": [
+        {
+          "text": "副教授，八角漏窗的光線在空氣中傳播是折射還是直射？",
+          "next": "node_refraction_query"
+        },
+        {
+          "text": "出示【八角漏窗日影幾何投影焦點】（秋分高度角 66.5° 相似三角形直線投影）",
+          "requiredEvidence": "ev_05_lattice_shadow",
+          "next": "node_confront_shadow"
+        }
+      ]
+    },
+    "node_refraction_query": {
+      "npcText": "空氣密度不均當然會有微折射！我是在做精密的微折射光路計算！",
+      "options": [
+        {
+          "text": "十米庭院的日光完全是純幾何直線投影，你的藉口站不住腳。",
+          "next": "root"
+        }
+      ]
+    },
+    "node_confront_shadow": {
+      "npcText": "就算幾何焦點在假山石縫又怎樣？你有證據證明我打開過暗格嗎？",
+      "options": [
+        {
+          "text": "出示【折斷標竿探針頭】（斷裂金屬截面與副教授測量箱截面 100% 吻合）！",
+          "requiredEvidence": "ev_05_measuring_rod",
+          "next": "node_confession"
+        }
+      ]
+    },
+    "node_confession": {
+      "npcText": "別說了...那根合金探針果然斷在裡面了...我的研究室虧損千萬，我只是想借清代古印度過難關...幾何日影算得再準，終究算不過法網恢恢。",
+      "caseClosed": true,
+      "options": []
+    }
+  },
+  "suspect_06_sun": {
+    "root": {
+      "npcText": "超商店長你們好笑耶！我整天雙手都戴著頂級薄羊皮手套，連門把都沒用指尖碰，展示盒上絕不可能有我的生物痕跡！",
+      "options": [
+        {
+          "text": "你的右手食指手套摸起來有點磨損開口喔？",
+          "next": "node_glove_query"
+        },
+        {
+          "text": "出示【冷藏櫃低溫玻璃門水汽散射指紋】（4°C 低溫遇熱水汽凝結成露珠顯影箕形指紋）",
+          "requiredEvidence": "ev_06_cold_glass_print",
+          "next": "node_confront_condensation"
+        }
+      ]
+    },
+    "node_glove_query": {
+      "npcText": "就算有點磨損，也不代表我會留在玻璃上啊！你們別想套我話！",
+      "options": [
+        {
+          "text": "讓我們用物理學來看看真相。",
+          "next": "root"
+        }
+      ]
+    },
+    "node_confront_condensation": {
+      "npcText": "（看著水霧下浮現的清晰指紋）怎麼可能？！冷水氣居然把汗液油脂照出來了？！",
+      "options": [
+        {
+          "text": "出示【365nm UV 照射下大衣袖口亮綠色防偽螢光特典金卡】！",
+          "requiredEvidence": "ev_06_gold_card",
+          "next": "node_confession"
+        }
+      ]
+    },
+    "node_confession": {
+      "npcText": "嗚...我以為羊皮手套能瞞過所有人，沒想到低溫冰箱一噴水蒸氣就把指紋給現形了...這張特典金卡我交出來就是了！",
+      "caseClosed": true,
+      "options": []
+    }
+  },
+  "suspect_07_peng": {
+    "root": {
+      "npcText": "捷運剛才緊急煞車那麼猛，大家都往前撲倒，我一個弱女子也被摔得手忙腳亂，公事包被調包跟我有什麼關係？",
+      "options": [
+        {
+          "text": "彭老師平時不是教物理的嗎？牛頓第一運動定律你應該很熟吧？",
+          "next": "node_physics_query"
+        },
+        {
+          "text": "出示【右腕逆向抗加速度深紅勒痕】（全車向前傾倒，唯獨手臂向後對抗慣性拉扯立柱）",
+          "requiredEvidence": "ev_07_wrist_strain",
+          "next": "node_confront_inertia"
+        }
+      ]
+    },
+    "node_physics_query": {
+      "npcText": "我是教物理沒錯，但人在慌亂中身體怎麼倒，誰能控制啊？",
+      "options": [
+        {
+          "text": "物理定律是客觀的，受力加速度絕對無法造假。",
+          "next": "root"
+        }
+      ]
+    },
+    "node_confront_inertia": {
+      "npcText": "（慌張縮回右手）這...這只是我不小心撞到的挫傷，能證明什麼？！",
+      "options": [
+        {
+          "text": "出示【特殊防滑登山鞋底】＋【手袋暗層起獲之兩奈米晶片】！",
+          "requiredEvidence": "ev_07_chip_briefcase",
+          "next": "node_confession"
+        }
+      ]
+    },
+    "node_confession": {
+      "npcText": "我認栽了...我算準了煞車加速度的秒數，甚至穿了防滑鞋預先反向拉住立柱調包，卻沒想到手腕上的反向拉力瘀痕成了出賣我的鐵證...！",
+      "caseClosed": true,
+      "options": []
+    }
+  },
+  "suspect_08_wu": {
+    "root": {
+      "npcText": "調查員，展示櫃鑰匙只有三把，但我昨晚很早就回房睡了，看門黑狗昨晚一聲都沒叫！而且今早秤重明明就是 150g 分毫不差啊！",
+      "options": [
+        {
+          "text": "黑狗為什麼沒叫，因為進去的是天天餵它的熟人吧？",
+          "next": "node_dog_query"
+        },
+        {
+          "text": "出示【50g 銅砝碼排水量筒密度測量】（體積 7.58cm³，密度僅 6.6 g/cm³，純銅應為 8.9 g/cm³）",
+          "requiredEvidence": "ev_08_hollow_weight",
+          "next": "node_confront_density"
+        }
+      ]
+    },
+    "node_dog_query": {
+      "npcText": "大師兄也是熟人啊！憑什麼懷疑我？",
+      "options": [
+        {
+          "text": "因為砝碼動過手腳。",
+          "next": "root"
+        }
+      ]
+    },
+    "node_confront_density": {
+      "npcText": "（撲通跪倒在地）阿基米德排水法...你們居然連砝碼的密度都量出來了？！",
+      "options": [
+        {
+          "text": "出示【研磨機暗格搜出之長白山百年真野山蔘】！",
+          "requiredEvidence": "ev_08_wild_ginseng",
+          "next": "node_confession"
+        }
+      ]
+    },
+    "node_confession": {
+      "npcText": "師父...徒兒對不起您！我玩地下期貨欠了四百萬，走投無路才用車床把砝碼掏空、把蘿蔔注鉛補重調包...我愧對德濟堂列祖列宗！",
+      "caseClosed": true,
+      "options": []
+    }
+  },
+  "suspect_09_ma": {
+    "root": {
+      "npcText": "我是外商資深理財顧問，年薪數百萬！剛才 307 公車右轉那麼急，我被離心力甩到左邊差點跌倒，怎麼可能偷老太太的錢包？",
+      "options": [
+        {
+          "text": "馬先生，公車向右轉彎時，車內的離心力方向到底朝哪裡？",
+          "next": "node_centrifugal_query"
+        },
+        {
+          "text": "出示【307 公車右轉向心加速度運動軌跡圖】（右轉離心力必指向左側，馬致遠反向朝右跨步）",
+          "requiredEvidence": "ev_09_bus_turn_vector",
+          "next": "node_confront_vector"
+        }
+      ]
+    },
+    "node_centrifugal_query": {
+      "npcText": "轉彎向右，人當然往左倒啊！我就是往左倒摔到推車上的！",
+      "options": [
+        {
+          "text": "但李老太太的推車是在你的右側！",
+          "next": "root"
+        }
+      ]
+    },
+    "node_confront_vector": {
+      "npcText": "（臉色發白）我...我記錯方向不行嗎？反正是被甩過去的！我又沒拿她皮夾！",
+      "options": [
+        {
+          "text": "出示【金屬探測器在右腳加厚鞋跟高頻蜂鳴反應】＋旋開鞋跟起獲黃金戒指！",
+          "requiredEvidence": "ev_09_heel_hidden_slot",
+          "next": "node_confession"
+        }
+      ]
+    },
+    "node_confession": {
+      "npcText": "別逼我了...我因為炒虛擬幣慘賠破產，欠了上千萬卡債...我才特製這雙鞋跟暗槽在公車上扒竊...沒想到離心力的物理向量把我給出賣了...",
+      "caseClosed": true,
+      "options": []
+    }
+  },
+  "suspect_10_sun": {
+    "root": {
+      "npcText": "這場暴雨把生態池周圍三十公尺草地全泡成爛泥巴了！只要有人踩過去至少陷下去五公分！草地上一枚鞋印都沒有，我怎麼可能偷走望遠鏡？",
+      "options": [
+        {
+          "text": "草地上沒有人腳的深凹坑，但真的什麼痕跡都沒留下嗎？",
+          "next": "node_mud_query"
+        },
+        {
+          "text": "出示【物理壓強 P=F/A 測定報告】（穿戴 2000cm² 軟木套鞋壓強僅 3.5 kPa 低於土壤屈服極限 6 kPa）",
+          "requiredEvidence": "ev_10_cork_snowshoe",
+          "next": "node_confront_pressure"
+        }
+      ]
+    },
+    "node_mud_query": {
+      "npcText": "爛泥巴哪有不陷下去的道理？你們別想故弄玄虛！",
+      "options": [
+        {
+          "text": "只要受力面積足夠大，壓強就能降低到草地不陷坑的程度。",
+          "next": "root"
+        }
+      ]
+    },
+    "node_confront_pressure": {
+      "npcText": "（冷汗直流）你們...居然連大排水管裡的軟木底雪鞋都搜出來了？！",
+      "options": [
+        {
+          "text": "出示【草葉 85cm 規律倒伏折痕】＋【小貨車帆布底起獲之天文望遠鏡筒】！",
+          "requiredEvidence": "ev_10_stolen_telescope",
+          "next": "node_confession"
+        }
+      ]
+    },
+    "node_confession": {
+      "npcText": "我花了整整一個月研製那個軟木底板...算準了壓強能讓草只彎不陷...沒想到草葉的微觀倒伏折痕還是留下了步幅！我認罪，請不要為難我的工班兄弟...",
       "caseClosed": true,
       "options": []
     }

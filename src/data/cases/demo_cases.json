@@ -8,68 +8,225 @@
     "horrorLevel": 2,
     "location": {
       "sector": "萬華特區",
-      "name": "西門町成都路連鎖咖啡館",
-      "coords": [25.0425, 121.5072]
+      "name": "西門町成都路連鎖咖啡館二樓",
+      "coords": [
+        25.0425,
+        121.5072
+      ]
     },
-    "summary": "知名實況主在西門町成都路咖啡店包廂飲用拿鐵後突發呼吸急促與發疳送醫。初步化驗非細菌性腐敗，疑似遭投入微量生物鹼或強鹼性清潔劑。",
-    "scienceField": "自然科學・酸鹼中和與溶質檢驗",
-    "requiredTools": ["tool_ph_paper", "tool_uv_torch"],
-    "suspects": ["suspect_01_barista", "suspect_02_rival", "suspect_03_cleaner"],
+    "briefingMode": "模式 B：現場帶隊警官親身簡報",
+    "briefingOfficer": "漢中街治安巡邏小隊長 陳正男（遊戲虛構角色）",
+    "briefingContent": "西門町徒步區午後，咖啡店外拉起黃色封鎖線。陳隊長手持平板電腦向趕到的都會調查員說明：大約 15 分鐘前（14:20），二樓靠窗座位一名 38 歲科技業務林建宏突然劇烈抽搐陷入昏迷，經送台大醫院搶救中。杯中剩餘的焦糖熱拿鐵散發出淡淡苦杏仁味。店家已即時拉下鐵捲門封鎖現場。現場共有 4 名涉案關係人，每個人都堅稱自己沒碰過林建宏的咖啡！",
+    "backgroundStory": "被害人林建宏為科技公司專案採購經理，近期因百萬標案利益分配與外包商、業務同事關係極度惡化。案發當天他相約外包工程師張世傑與同事許雅筑在西門町連鎖咖啡店洽談，桌底下暗流湧動。",
+    "relationshipNetwork": "【被害人】林建宏（採購經理） ➔ 業務競爭：許雅筑（資深業務，升遷競爭） ➔ 欠款糾紛：張世傑（外包廠商，遭林惡意扣款 150 萬） ➔ 服務端：吳冠宇（咖啡店服務生，弟因欠款延誤就醫病逝） ➔ 旁觀者：王大偉（外送員，等餐目擊）。",
+    "transitStrategy": "調閱西門町成都路口與漢中街路口 CCTV 監視器，回溯外送員機車抵達秒數；比對捷運西門站 13:30~14:20 悠遊卡刷卡數據，精確掌握在場人員進站時序！",
+    "safeViewingNotice": "商務客突發抽搐痛苦倒地之衝擊畫面（微驚悚），預設像素模糊保護。",
+    "timeline": [
+      {
+        "time": "13:45",
+        "stage": "入座點餐",
+        "event": "林建宏先抵達二樓窗邊 4 號桌，點了一杯熱焦糖瑪奇朵拿鐵。張世傑與許雅筑陸續抵達入座。"
+      },
+      {
+        "time": "14:02",
+        "stage": "咖啡送達",
+        "event": "服務生吳冠宇端上熱咖啡與水杯，林建宏接聽了一通長達 8 分鐘的激烈爭執電話。"
+      },
+      {
+        "time": "14:15",
+        "stage": "方糖撕開",
+        "event": "林建宏向服務生多要了兩包方糖，張世傑順手幫忙撕開一包倒入杯中攪拌。"
+      },
+      {
+        "time": "14:18",
+        "stage": "飲用發病",
+        "event": "林建宏喝下大半杯拿鐵，隨即臉色發青、呼吸急促並緊抓喉嚨痛苦呻吟。"
+      },
+      {
+        "time": "14:20",
+        "stage": "倒地封鎖",
+        "event": "林建宏翻倒咖啡杯倒地，店長立即報警並按下警報器關閉門禁，陳隊長帶隊封鎖現場。"
+      }
+    ],
+    "scienceField": "自然科學・物質酸鹼性與有機生物鹼薄層層析檢驗",
+    "requiredTools": [
+      "tool_ph_paper",
+      "tool_uv_torch",
+      "tool_tlc_scanner"
+    ],
+    "threeTrackAcquisition": {
+      "buy": {
+        "store": "漢中街便利商店",
+        "cost": 25,
+        "itemName": "化學廣用試紙補充包"
+      },
+      "borrow": {
+        "venue": "士林國立臺灣科學教育館微型實驗台",
+        "cost": 0,
+        "itemName": "便攜型有機生物鹼比色分光鏡"
+      },
+      "easterEgg": {
+        "location": "案發咖啡店後方 45 公尺峨嵋街塗鴉暗巷",
+        "radius": 45,
+        "itemName": "未開封微量取樣滴管與對照色卡"
+      }
+    },
+    "suspects": [
+      "suspect_01_zhang",
+      "suspect_01_xu",
+      "suspect_01_wu",
+      "suspect_01_wang"
+    ],
     "evidenceChain": [
       {
         "id": "ev_01_coffee_cup",
-        "name": "殘留冰塊的雙層外帶咖啡杯",
-        "description": "杯緣有微量白色粉末結晶，杯底殘液呈現異常淡藍色。",
+        "name": "翻倒的雙層熱拿鐵咖啡杯",
+        "description": "杯底殘留半融化焦糖奶泡，散發微弱苦杏仁味。",
         "scienceCheck": {
           "tool": "tool_ph_paper",
-          "expectedResult": "pH 11.2 (強鹼反應，正常拿鐵為微酸 pH 6.0~6.5)",
-          "clueUnlocked": "確認非咖啡豆變質，而是杯底被混入未稀釋濃縮管路清洗鹼劑！"
+          "method": "ph_titration",
+          "expectedResult": "pH 5.2 (弱酸性反應，咖啡豆天然微酸，但混合了微量有機生物鹼)",
+          "clueUnlocked": "咖啡液體本身酸鹼值正常，毒物極可能是局部塗抹而非均勻溶解！"
         }
       },
       {
-        "id": "ev_02_trash_receipt",
-        "name": "後巷垃圾桶撕毀的清潔劑調配單",
-        "description": "印有西門店早班特定時段的調配紀錄，字跡殘缺。",
+        "id": "ev_01_cup_lid",
+        "name": "4 號桌專用外帶杯蓋",
+        "description": "黑色耐熱塑膠杯蓋，飲用口內緣有微量白色反光油脂與乾涸液滴。",
         "scienceCheck": {
           "tool": "tool_uv_torch",
-          "expectedResult": "365nm UV 光下顯現螢光防偽章與調配員代號 B-04",
-          "clueUnlocked": "調配員 B-04 在案發前 15 分鐘曾違規將管路鹼劑分裝至量杯。"
+          "method": "uv_fluorescence",
+          "expectedResult": "365nm 紫外光下，飲用口內緣呈現亮黃綠色苦杏仁苷螢光反應，且顯露右食指破損手套滲漏汗液印痕！",
+          "clueUnlocked": "毒物並非倒在咖啡中，而是由端茶人員預先塗抹在杯蓋飲用孔內側！"
+        }
+      },
+      {
+        "id": "ev_01_tlc_strip",
+        "name": "杯蓋刮取物薄層色層分析片 (TLC)",
+        "description": "矽膠層析薄片，以展開劑進行毛細分離。",
+        "scienceCheck": {
+          "tool": "tool_tlc_scanner",
+          "method": "chromatography",
+          "expectedResult": "展開比 Rf = 0.42，與有機苦杏仁苷標準品完全重合，證實含有劇毒生物鹼。",
+          "clueUnlocked": "徹底證實涉案物質為高純度苦杏仁苷，且吳冠宇口袋中搜出同款藥瓶！"
         }
       }
     ],
-    "correctCulpritId": "suspect_01_barista",
-    "solutionRationale": "咖啡師因近期考核失誤企圖製造管路瑕疵嫁禍店長，卻因誤拿未標籤的濃縮鹼劑調配出問題拿鐵。"
+    "correctCulpritId": "suspect_01_wu",
+    "solutionRationale": "咖啡店服務生吳冠宇因弟弟病逝對林建宏懷恨在心，利用林建宏必用杯蓋飲用熱拿鐵的習慣，預先在杯蓋飲用孔內緣塗抹苦杏仁苷生物鹼，其破損手套留下致命汗液印痕。",
+    "coldCaseName": "西門町 0901 咖啡懸案"
   },
   {
     "id": "case_02",
     "caseNumber": "CASE-2026-002",
     "title": "台北車站三鐵連通長廊水力延時案",
-    "category": "主線案件",
+    "category": "共享競速",
     "difficulty": 3,
     "horrorLevel": 1,
     "location": {
       "sector": "中正特區",
       "name": "台北車站地下一樓三鐵轉乘連通長廊",
-      "coords": [25.0465, 121.5170]
+      "coords": [
+        25.0465,
+        121.517
+      ]
     },
-    "summary": "尖峰時段台北車站高鐵轉乘捷運閘門前地面突然爆發大面積漫水，導致三千多名通勤旅客受阻。現場未見管線爆裂，水流來自高處通風天井。",
-    "scienceField": "自然科學・虹吸原理與流體力學連通管",
-    "requiredTools": ["tool_magnifier"],
-    "suspects": ["suspect_04_plumber", "suspect_05_guard"],
+    "briefingMode": "模式 A：事發重現動態短片",
+    "briefingOfficer": "台北捷運警務段行控通報（遊戲虛構紀錄）",
+    "briefingContent": "深夜 23:45 台北車站長廊警報大作。地下通道盡頭突然傳來一聲轟然巨響，巨型防盜保險櫃外殼被砸凹、內部機密伺服器硬碟失竊。而主要嫌犯宣稱當時自己在 300 公尺外的超商購物，發票時間戳清晰顯示 23:45:02！",
+    "backgroundStory": "北車地下街進行深夜三鐵管線修繕工程，某跨國資訊安全公司租用長廊盡頭的臨時防空避難室存放即將測試的最高機密量子加密硬碟。兩家競爭團隊為爭奪核心專利陷入死鬥。",
+    "relationshipNetwork": "【受害機構】量子安防實驗室 ➔ 專利仇怨：周宏儒（前任首席工程師） ➔ 門禁管理：高振東（保全隊長） ➔ 施工包商：陳阿貴（外包清潔工） ➔ 超商店員：林雨涵（開立發票證人）。",
+    "transitStrategy": "遠端協調站務鎖定高鐵轉乘匝道旋轉閘門，並調派巡邏人員於地下街 M8 出口佈設路障攔阻！",
+    "safeViewingNotice": "深夜地下街金屬重擊警報場景（溫和），無血腥畫面。",
+    "timeline": [
+      {
+        "time": "23:15",
+        "stage": "管線檢修",
+        "event": "陳阿貴推著清潔工具車經過長廊，更換集水槽濾網。"
+      },
+      {
+        "time": "23:25",
+        "stage": "工程師進入",
+        "event": "周宏儒持特約通行證進入機房維修天花板通風管路。"
+      },
+      {
+        "time": "23:44",
+        "stage": "超商結帳",
+        "event": "周宏儒出現在 300 公尺外地下街便利商店，購買關東煮並刷悠遊卡。"
+      },
+      {
+        "time": "23:45",
+        "stage": "巨響撞擊",
+        "event": "長廊盡頭水箱連動重錘墜落砸毀保險櫃，警報狂鳴。"
+      }
+    ],
+    "scienceField": "自然科學・虹吸原理、流體力學與常溫聲速計算",
+    "requiredTools": [
+      "tool_magnifier",
+      "tool_sound_timer",
+      "tool_water_gauge"
+    ],
+    "threeTrackAcquisition": {
+      "buy": {
+        "store": "台北車站地下街五金行",
+        "cost": 30,
+        "itemName": "管線流速與聲學延遲對照手冊"
+      },
+      "borrow": {
+        "venue": "台北市立圖書館總館科技諮詢台",
+        "cost": 0,
+        "itemName": "數位聲學時差音波分析儀"
+      },
+      "easterEgg": {
+        "location": "北車長廊自動販賣機退幣孔後方",
+        "radius": 50,
+        "itemName": "精密矽膠管徑游標卡尺"
+      }
+    },
+    "suspects": [
+      "suspect_02_gao",
+      "suspect_02_chen",
+      "suspect_02_zhou",
+      "suspect_02_lin"
+    ],
     "evidenceChain": [
       {
-        "id": "ev_03_siphon_hose",
-        "name": "隱蔽在維修梯內側的矽膠軟管",
-        "description": "軟管一端浸泡於頂樓冷卻水塔，另一端延伸至長廊進氣風口。",
+        "id": "ev_02_siphon_tube",
+        "name": "天花板排風管上方隱蔽虹吸軟管",
+        "description": "連通冷卻水塔與懸吊重錘的矽膠軟管，附有微型注水閥。",
+        "scienceCheck": {
+          "tool": "tool_water_gauge",
+          "method": "fluid_siphon",
+          "expectedResult": "軟管截面積與注水流速換算滿水溢流恰需 20 分鐘，為人為設定的流體延時機關！",
+          "clueUnlocked": "嫌犯在 23:25 啟動虹吸，自己有 20 分鐘充裕時間慢走到超商製造不在場證明！"
+        }
+      },
+      {
+        "id": "ev_02_acoustic_log",
+        "name": "長廊音波感測器反射紀錄",
+        "description": "台北車站地下街 300 公尺長廊的聲波震動時間圖譜。",
+        "scienceCheck": {
+          "tool": "tool_sound_timer",
+          "method": "acoustic_delay",
+          "expectedResult": "常溫 20°C 聲速 343 m/s，300 公尺傳播僅需 0.88 秒，根本無法形成 20 分鐘延遲！",
+          "clueUnlocked": "嫌犯聲稱的「聲波在長廊回音反射延遲」完全是偽科學謊言！"
+        }
+      },
+      {
+        "id": "ev_02_pulley_cable",
+        "name": "重錘滑輪鋼索高溫摩擦痕",
+        "description": "滑輪軸心殘留微量石墨潤滑油與尼龍纖維繩索碎屑。",
         "scienceCheck": {
           "tool": "tool_magnifier",
-          "expectedResult": "軟管出口截面有特殊單向水閥與水力計時重錘",
-          "clueUnlocked": "利用虹吸原理與水滴累積重量，在特定時間觸發閥門自動傾洩！"
+          "method": "microscopic_trace",
+          "expectedResult": "滑輪摩擦碎屑帶有周宏儒專用工程手套特殊防滑膠質，起獲量子硬碟！",
+          "clueUnlocked": "周宏儒工程手套特有成分鎖定其親手安裝此機關！"
         }
       }
     ],
-    "correctCulpritId": "suspect_04_plumber",
-    "solutionRationale": "水電承包人員欲藉緊急搶修合約獲取高額加班費，利用流體虹吸裝置定時製造假性溢水事故。"
+    "correctCulpritId": "suspect_02_zhou",
+    "solutionRationale": "周宏儒利用虹吸原理與水重力延時機關，在 23:25 啟動注水，悠閒走到 300 公尺外超商結帳，企圖用聲速回音偽造 20 分鐘不在場證明，但物理學無情戳破了偽證。",
+    "coldCaseName": "北車長廊水力延時懸案"
   },
   {
     "id": "case_03",
@@ -80,26 +237,871 @@
     "horrorLevel": 1,
     "location": {
       "sector": "淡水特區",
-      "name": "淡水海關碼頭古蹟紅磚倉庫",
-      "coords": [25.1725, 121.4342]
+      "name": "淡水海關碼頭古蹟紅磚倉庫區",
+      "coords": [
+        25.1725,
+        121.4342
+      ]
     },
-    "summary": "百年紅磚倉庫外牆出土一塊刻有神秘旗語幾何符號的清代航海磚，牽涉百年前淡水開港茶葉外銷的加密航道圖。",
-    "scienceField": "社會人文與密碼學・旗語光學傳播與潮汐時相",
-    "requiredTools": ["tool_magnifier"],
-    "suspects": ["suspect_06_historian", "suspect_07_collector"],
+    "briefingMode": "模式 B：現場帶隊警官親身簡報",
+    "briefingOfficer": "淡水河巡防隊員 柯志豪（遊戲虛構角色）",
+    "briefingContent": "淡水海關碼頭百年紅磚倉庫修復工程中，外牆暗格出土一塊刻有 26 組跳舞小人旗語的清代航海磚。倉庫保管的 1860 年代開港純銀懷錶隨後不翼而飛，現場只留下拓印紙碎片與潮汐深度對照筆記。",
+    "backgroundStory": "淡水古蹟園區正策劃開港通商 160 週年特展，展出珍貴航海文物。磚文記錄著百年前避開淡水河口暗礁的加密航線密碼。",
+    "relationshipNetwork": "【主辦機構】淡水海關故事館 ➔ 展覽考據：何宗翰（文史理事） ➔ 現場修復：趙坤元（泥水修復匠師） ➔ 文獻研究：江語晨（文獻翻譯助理） ➔ 售票服務：孫佩芬（海關園區售票員）。",
+    "transitStrategy": "調閱淡水輕軌藍海線台北海洋大學至漁人碼頭各站悠遊卡搭乘記錄，鎖定攜帶金屬密碼盒乘客動向！",
+    "safeViewingNotice": "古蹟暗格破壞現場（溫和），全場日常文史探索氣氛。",
+    "timeline": [
+      {
+        "time": "09:30",
+        "stage": "磚文出土",
+        "event": "趙坤元修復磚牆時發現暗格取出航海磚，江語晨負責拍照拓印。"
+      },
+      {
+        "time": "11:15",
+        "stage": "文獻比對",
+        "event": "江語晨藉口借用歷史日誌，在館內研究室停留 45 分鐘。"
+      },
+      {
+        "time": "12:00",
+        "stage": "懷錶失竊",
+        "event": "午休換班，策展人員發現展櫃中清代開港純銀懷錶失蹤。"
+      }
+    ],
+    "scienceField": "社會人文與資訊密碼學・單表替換式密碼頻率分析與淡水潮汐時相",
+    "requiredTools": [
+      "tool_magnifier",
+      "tool_cipher_table",
+      "tool_tide_gauge"
+    ],
+    "threeTrackAcquisition": {
+      "buy": {
+        "store": "淡水老街文具雜貨店",
+        "cost": 20,
+        "itemName": "淡水河口潮汐深度與航道圖冊"
+      },
+      "borrow": {
+        "venue": "淡水海關故事館文史考據微型站",
+        "cost": 0,
+        "itemName": "十九世紀英文旗語頻率對照表"
+      },
+      "easterEgg": {
+        "location": "海關碼頭岸邊繫船石柱凹洞（距倉庫 60 公尺）",
+        "radius": 60,
+        "itemName": "精密放大拓印專用炭筆"
+      }
+    },
+    "suspects": [
+      "suspect_03_he",
+      "suspect_03_zhao",
+      "suspect_03_jiang",
+      "suspect_03_sun"
+    ],
     "evidenceChain": [
       {
-        "id": "ev_04_brick_cipher",
-        "name": "淡水紅毛城出土航海代碼磚",
-        "description": "磚面刻有 12 組八卦與跳舞旗語線條。",
+        "id": "ev_03_cipher_brick",
+        "name": "淡水紅毛城航海旗語代碼磚",
+        "description": "燒製黏土磚面上刻有 26 尊不同姿態的小人旗語符號。",
+        "scienceCheck": {
+          "tool": "tool_cipher_table",
+          "method": "cipher_substitution",
+          "expectedResult": "依字母出現頻率統計（E, T, A 最高），成功破譯出英文字母暗號「TIDE 2.8M WATCH HEIRLOOM」！",
+          "clueUnlocked": "密碼指向只有掌握字母頻率者才能解開暗格開啟懷錶！"
+        }
+      },
+      {
+        "id": "ev_03_tide_chart",
+        "name": "江語晨手寫潮汐差計算便箋",
+        "description": "計算淡水河口乾潮與滿潮落差 2.8 公尺的水位記錄，紙緣有玫瑰護手霜精油香氣。",
+        "scienceCheck": {
+          "tool": "tool_tide_gauge",
+          "method": "tide_depth",
+          "expectedResult": "淡水河口滿潮退潮差精確為 2.8 公尺，與暗格開啟條件高度重合。",
+          "clueUnlocked": "便箋證實江語晨早於案發前即已解鎖暗格機關！"
+        }
+      },
+      {
+        "id": "ev_03_pocket_watch",
+        "name": "保溫杯底座暗格搜出之純銀懷錶",
+        "description": "1860 年代英國製造純銀雕花懷錶，背蓋刻有海關通商官印。",
         "scienceCheck": {
           "tool": "tool_magnifier",
-          "expectedResult": "微觀刻痕對應淡水河口滿潮退潮差 2.8 公尺的水深暗礁航路",
-          "clueUnlocked": "破解出航向必須沿淡水紅樹林邊緣航道方能避開退潮觸礁！"
+          "method": "microscopic_trace",
+          "expectedResult": "懷錶旋鈕殘留微量玫瑰精油分子，與江語晨隨身護手霜 100% 吻合！",
+          "clueUnlocked": "人贓俱獲，江語晨企圖將懷錶藏入保溫杯底座夾層帶離出境！"
         }
       }
     ],
-    "correctCulpritId": "suspect_07_collector",
-    "solutionRationale": "古董收藏家企圖偽造假磚掉包真品，卻因計算錯淡水河口潮汐公式而在磚底留下現代雕刻刀微量鋼屑痕跡。"
+    "correctCulpritId": "suspect_03_jiang",
+    "solutionRationale": "文獻翻譯助理江語晨利用自身英文專長與頻率分析破解磚文密碼，在中午趁隙取走純銀懷錶藏入保溫杯底座，但旋鈕上的玫瑰護手霜精油微痕成為鐵證。",
+    "coldCaseName": "淡水海關跳舞小人航海懸案"
+  },
+  {
+    "id": "case_04",
+    "caseNumber": "CASE-2026-004",
+    "title": "北投溫泉老旅店空白遺書熱敏案",
+    "category": "主線案件",
+    "difficulty": 3,
+    "horrorLevel": 1,
+    "location": {
+      "sector": "北投特區",
+      "name": "北投溫泉博物館旁老溫泉旅店",
+      "coords": [
+        25.1368,
+        121.5065
+      ]
+    },
+    "briefingMode": "模式 B：現場帶隊警官親身簡報",
+    "briefingOfficer": "光明路派出所巡查員 莊啟祥（遊戲虛構角色）",
+    "briefingContent": "北投百年溫泉老旅店老董事長在私人湯屋病逝，現場紅木書桌上留有一張完好無損卻一片空白的信紙！老董長子堅持這是空白廢紙應予平分家產，次女則堅稱父親生前親筆立下交代。在場私人秘書神情慌張，催促立刻火化結案。",
+    "backgroundStory": "老董事長年逾九旬，坐擁北投數億溫泉資產。長子揮霍無度，次女常年悉心照護旅店。老董事長深諳理化知識，為防秘書長子串通篡改遺囑，特意以無色弱有機酸水溶液書寫。",
+    "relationshipNetwork": "【老董事長】林清溪 ➔ 貪婪長子：林振華 ➔ 孝順次女：林美玲 ➔ 私通長子之秘書：謝明宏（真兇） ➔ 資深管家：何福壽（何伯）。",
+    "transitStrategy": "調閱新北投捷運支線 14:00~15:00 刷卡進站名單，查出秘書謝明宏已預購當晚飛往海外機票！",
+    "safeViewingNotice": "老旅店湯屋安詳過世現場（溫和），無任何驚悚血腥元素。",
+    "timeline": [
+      {
+        "time": "10:00",
+        "stage": "最後書寫",
+        "event": "老董事長在書房泡茶獨處，使用毛筆在高級宣紙上沾水書寫。"
+      },
+      {
+        "time": "11:30",
+        "stage": "秘書進入",
+        "event": "謝明宏送入財務報表，發現桌上空白紙張，暗中拍下照片傳給長子。"
+      },
+      {
+        "time": "13:00",
+        "stage": "安詳辭世",
+        "event": "管家何伯送午餐時發現老董已在湯屋躺椅上安詳安息。"
+      }
+    ],
+    "scienceField": "自然科學・弱有機酸熱脫水炭化與熱敏顯影原理",
+    "requiredTools": [
+      "tool_thermal_oven",
+      "tool_bamboo_tongs",
+      "tool_magnifier"
+    ],
+    "threeTrackAcquisition": {
+      "buy": {
+        "store": "北投光明路五金雜貨店",
+        "cost": 15,
+        "itemName": "防燙長竹夾與安全隔熱手套"
+      },
+      "borrow": {
+        "venue": "北投溫泉博物館導覽科普角",
+        "cost": 0,
+        "itemName": "溫泉蒸氣微溫安全烘箱"
+      },
+      "easterEgg": {
+        "location": "老旅店庭院溫泉出水口青磺石縫旁（距書房 35 公尺）",
+        "radius": 35,
+        "itemName": "老董遺落的特製檸檬酸結晶水瓶"
+      }
+    },
+    "suspects": [
+      "suspect_04_lin_son",
+      "suspect_04_lin_dau",
+      "suspect_04_xie",
+      "suspect_04_he"
+    ],
+    "evidenceChain": [
+      {
+        "id": "ev_04_blank_will",
+        "name": "紅木書桌上的空白宣紙遺書",
+        "description": "紙質厚實，肉眼觀察無任何墨水痕跡，但纖維微有局部微縮。",
+        "scienceCheck": {
+          "tool": "tool_bamboo_tongs",
+          "method": "thermal_development",
+          "expectedResult": "以竹夾夾持置於 85°C 溫泉蒸氣上方烘烤 5 秒，弱有機酸（檸檬酸）受熱脫水炭化，瞬間浮現清晰褐色毛筆字跡！",
+          "clueUnlocked": "紙面浮現老董字跡：「全部旅店產權與股權交由次女美玲繼承，振華屢教不改分文不得！」"
+        }
+      },
+      {
+        "id": "ev_04_steam_tray",
+        "name": "庭院溫泉天然蒸氣出風口",
+        "description": "青磺泉 85°C 天然蒸氣，帶有微量硫磺味，溫度穩定。",
+        "scienceCheck": {
+          "tool": "tool_thermal_oven",
+          "method": "thermal_temperature",
+          "expectedResult": "蒸氣溫度恰好達到纖維脫水炭化臨界點（75°C~90°C），無明火完全不損傷宣紙古董紙質。",
+          "clueUnlocked": "證實老董生前正是利用溫泉蒸氣作為天然防偽解密機關！"
+        }
+      },
+      {
+        "id": "ev_04_secret_contract",
+        "name": "謝秘書公事包暗夾收賄協議",
+        "description": "長子承諾事成後分予謝秘書兩千萬元之私簽本票。",
+        "scienceCheck": {
+          "tool": "tool_magnifier",
+          "method": "microscopic_trace",
+          "expectedResult": "本票墨水與長子隨身鋼筆完全一致，謝秘書受賄湮滅遺囑罪證確鑿！",
+          "clueUnlocked": "謝秘書承認企圖趁老董辭世將空白紙調包燒毀，使長子依法均分遺產。"
+        }
+      }
+    ],
+    "correctCulpritId": "suspect_04_xie",
+    "solutionRationale": "謝秘書收受長子賄賂，誤以為桌上是空白廢紙企圖藏匿銷毀；都會調查員利用溫泉天然蒸氣熱對流使弱有機酸脫水炭化，顯現真實遺囑真相大白。",
+    "coldCaseName": "北投老旅店空白遺書懸案"
+  },
+  {
+    "id": "case_05",
+    "caseNumber": "CASE-2026-005",
+    "title": "板橋林家花園秋分漏窗日影幾何案",
+    "category": "主線案件",
+    "difficulty": 4,
+    "horrorLevel": 2,
+    "location": {
+      "sector": "板橋特區",
+      "name": "國定古蹟板橋林本源園邸方鑑齋",
+      "coords": [
+        25.0112,
+        121.4548
+      ]
+    },
+    "briefingMode": "模式 B：現場帶隊警官親身簡報",
+    "briefingOfficer": "板橋古蹟修護監理巡查員 謝國棟（遊戲虛構角色）",
+    "briefingContent": "板橋林本源園邸方鑑齋內，清代藏於假山夾壁中的建園「辟邪銅印與金鑰匙」傳出被盜！古詩碑文暗示只有在秋分正午，陽光穿透八角漏窗投射之光斑焦點才能找到暗格。而涉案的古建築副教授堅稱自己只是在做光線折射學術研究。",
+    "backgroundStory": "秋分節氣，林家花園舉辦古建築日影測量研討會。涉案副教授因研究經費虧空，勾結文物掮客，企圖藉秋分當天唯一日影交會點盜掘百年古物。",
+    "relationshipNetwork": "【古蹟管理處】林崇德理事 ➔ 文物掮客：白莉莉 ➔ 園藝技師：廖阿松 ➔ 掠奪學術：郭富城（古建築學副教授 - 真兇） ➔ 現場志工：謝淑慧。",
+    "transitStrategy": "調閱板橋府中捷運站 CCTV 與公車 264、310 刷卡時間軸，鎖定郭副教授手提工程測量箱去向！",
+    "safeViewingNotice": "古蹟假山暗格微痕與古印失竊現場（微驚悚），無暴力畫面。",
+    "timeline": [
+      {
+        "time": "11:45",
+        "stage": "遊客清場",
+        "event": "志工引導遊客至前院用餐，方鑑齋庭院暫時無人。"
+      },
+      {
+        "time": "12:00",
+        "stage": "秋分焦點",
+        "event": "太陽升至真太陽時角正頂點，八角漏窗投影投向假山一處暗縫。"
+      },
+      {
+        "time": "12:18",
+        "stage": "盜取銅印",
+        "event": "郭副教授手持測量竿迅速撬動假山暗磚取走銅印。"
+      }
+    ],
+    "scienceField": "自然科學與數學幾何・相似三角形影長物高比與日影方位角計算",
+    "requiredTools": [
+      "tool_shadow_rod",
+      "tool_angle_meter",
+      "tool_magnifier"
+    ],
+    "threeTrackAcquisition": {
+      "buy": {
+        "store": "板橋府中商圈工程量具店",
+        "cost": 35,
+        "itemName": "精密太陽高度角傾角儀"
+      },
+      "borrow": {
+        "venue": "新北市立圖書館總館文史閱覽室",
+        "cost": 0,
+        "itemName": "清代工部營造尺與日影算表"
+      },
+      "easterEgg": {
+        "location": "方鑑齋水池假山後方八角漏窗下（距案發點 20 公尺）",
+        "radius": 20,
+        "itemName": "折斷的工程標竿金屬探針頭"
+      }
+    },
+    "suspects": [
+      "suspect_05_bai",
+      "suspect_05_liao",
+      "suspect_05_guo",
+      "suspect_05_xie"
+    ],
+    "evidenceChain": [
+      {
+        "id": "ev_05_lattice_shadow",
+        "name": "方鑑齋八角漏窗日影投影焦點",
+        "description": "日光穿透鏤空八角窗在對面假山石壁上投下的直角幾何光斑。",
+        "scienceCheck": {
+          "tool": "tool_angle_meter",
+          "method": "shadow_geometry",
+          "expectedResult": "秋分日正午太陽高度角 66.5°，由物高影長比（H/L = tan 66.5°）精確鎖定假山第三層東北角石縫！",
+          "clueUnlocked": "光線直線傳播幾何計算證明，暗格位置只有精通日影測量者能瞬間命中！"
+        }
+      },
+      {
+        "id": "ev_05_measuring_rod",
+        "name": "假山石縫起獲之折斷標竿探針頭",
+        "description": "高強度鋁合金探針，帶有刻度與刮痕。",
+        "scienceCheck": {
+          "tool": "tool_shadow_rod",
+          "method": "trace_matching",
+          "expectedResult": "探針金屬斷面與郭副教授隨身測量箱內的標竿截面 100% 吻合！",
+          "clueUnlocked": "郭副教授測量竿上的斷裂面證實是他親手撬動假山石！"
+        }
+      },
+      {
+        "id": "ev_05_copper_key",
+        "name": "郭副教授大衣內襯起獲之辟邪銅印與金鑰匙",
+        "description": "清代鎏金花紋銅印，底部刻有「林本源安平家藏」篆體文。",
+        "scienceCheck": {
+          "tool": "tool_magnifier",
+          "method": "microscopic_trace",
+          "expectedResult": "銅印表面帶有方鑑齋假山特殊綠色地衣苔蘚孢子反應，當場破案！",
+          "clueUnlocked": "郭副教授企圖以研究折射為幌子盜竊國家級文物，伏法認罪！"
+        }
+      }
+    ],
+    "correctCulpritId": "suspect_05_guo",
+    "solutionRationale": "郭副教授精通日影幾何方程式，精算秋分日光透過漏窗焦點定位假山暗格，利用探針撬開暗磚盜取銅印，但折斷的標竿金屬斷痕與地衣微痕使其無法狡辯。",
+    "coldCaseName": "林家花園秋分漏窗日影懸案"
+  },
+  {
+    "id": "case_06",
+    "caseNumber": "CASE-2026-006",
+    "title": "西門町超商冷藏櫃隱形指紋竊案",
+    "category": "突發案件",
+    "difficulty": 1,
+    "horrorLevel": 1,
+    "location": {
+      "sector": "萬華特區",
+      "name": "西門町漢中街便利超商",
+      "coords": [
+        25.0438,
+        121.5078
+      ]
+    },
+    "briefingMode": "模式 B：現場帶隊警官親身簡報",
+    "briefingOfficer": "漢中街超商店長 阿信（遊戲虛構角色）",
+    "briefingContent": "超商冷藏飲料櫃鎖著限量版動漫紀念特典金卡（價值兩萬元），店員交接 5 分鐘內鎖被挑開、金卡憑空失竊！店內三名顧客堅持要結帳離開，現場無人承認碰過冷藏櫃。",
+    "backgroundStory": "超商配合動漫節舉辦滿額抽獎，展出全台唯一編號 001 特典金卡。卡牌二手買手聞訊趕來，全程佩戴羊皮手套自認天衣無縫。",
+    "relationshipNetwork": "【超商門市】店長阿信、店員李志豪 ➔ 動漫社長：周子翔 ➔ 急躁商務：趙博文 ➔ 精品卡買手：孫韻婷（真兇）。",
+    "transitStrategy": "調閱門口 CCTV，發現一輛停在漢中街黃線之排班計程車正等候孫韻婷前往台北車站！",
+    "safeViewingNotice": "超商冷藏櫃失竊現場（溫和），日常科普歡樂氛圍。",
+    "timeline": [
+      {
+        "time": "16:10",
+        "stage": "巡視清點",
+        "event": "早班店員李志豪確認展示鎖盒完好，金卡安在。"
+      },
+      {
+        "time": "16:22",
+        "stage": "顧客選購",
+        "event": "三名顧客陸續走近鮮食冷藏櫃挑選飲料。"
+      },
+      {
+        "time": "16:25",
+        "stage": "水氣遮掩",
+        "event": "孫韻婷打開 4°C 冰箱門借冷熱交替之水汽挑開鎖扣。"
+      },
+      {
+        "time": "16:28",
+        "stage": "警報響起",
+        "event": "李志豪發現卡片失竊，立刻請店長拉下門禁。"
+      }
+    ],
+    "scienceField": "自然科學・低溫凝結露點水汽光學散射與 365nm UV 防偽螢光反應",
+    "requiredTools": [
+      "tool_vapor_spray",
+      "tool_uv_torch",
+      "tool_magnifier"
+    ],
+    "threeTrackAcquisition": {
+      "buy": {
+        "store": "超商收銀台貨架",
+        "cost": 15,
+        "itemName": "微型熱水蒸氣罐與簡易驗鈔筆"
+      },
+      "borrow": {
+        "venue": "萬華青年公園科普教室",
+        "cost": 0,
+        "itemName": "法醫指紋冷凝散射鑑識模組"
+      },
+      "easterEgg": {
+        "location": "超商門口轉角扭蛋機夾縫（距大門 30 公尺）",
+        "radius": 30,
+        "itemName": "前顧客遺落之 365nm 紫外燈手電筒"
+      }
+    },
+    "suspects": [
+      "suspect_06_zhou",
+      "suspect_06_zhao",
+      "suspect_06_sun",
+      "suspect_06_li"
+    ],
+    "evidenceChain": [
+      {
+        "id": "ev_06_cold_glass_print",
+        "name": "冷藏櫃低溫玻璃門水汽散射指紋",
+        "description": "4°C 玻璃表面遇外界熱水汽凝結成微細露珠，顯現清晰油脂指紋。",
+        "scienceCheck": {
+          "tool": "tool_vapor_spray",
+          "method": "vapor_condensation",
+          "expectedResult": "噴灑熱水微霧後，露點水珠在油脂外圍形成鏡面散射，顯露清晰右手食指箕形指紋！",
+          "clueUnlocked": "指紋破除手套無痕謊言，證實手套食指處破損滲漏汗液！"
+        }
+      },
+      {
+        "id": "ev_06_uv_glove",
+        "name": "孫韻婷黑色薄羊皮手套破損處",
+        "description": "右手食指指腹有 2mm 磨損開口。",
+        "scienceCheck": {
+          "tool": "tool_magnifier",
+          "method": "microscopic_trace",
+          "expectedResult": "手套指尖殘留冷藏櫃壓克力樹脂刮痕，微痕完全吻合。",
+          "clueUnlocked": "直接鎖定孫韻婷親手觸碰展示盒！"
+        }
+      },
+      {
+        "id": "ev_06_gold_card",
+        "name": "孫韻婷大衣袖口內襯起獲之特典金卡",
+        "description": "全彩燙金限定版紀念卡，表面印有隱形防偽章。",
+        "scienceCheck": {
+          "tool": "tool_uv_torch",
+          "method": "uv_fluorescence",
+          "expectedResult": "365nm 紫外光下，卡片與孫韻婷手腕均顯現亮綠色防偽螢光反應！",
+          "clueUnlocked": "人贓俱獲，起獲失竊特典金卡！"
+        }
+      }
+    ],
+    "correctCulpritId": "suspect_06_sun",
+    "solutionRationale": "二手買手孫韻婷誤以為羊皮手套能掩蓋一切，不知 4°C 低溫冷藏櫃遇熱水汽凝結成露珠的物理現象，將食指破損處留下的汗液微痕清晰顯影，當場伏法。",
+    "coldCaseName": "西門町超商冷藏櫃隱形指紋懸案"
+  },
+  {
+    "id": "case_07",
+    "caseNumber": "CASE-2026-007",
+    "title": "捷運板南線末班車急煞調包案",
+    "category": "主線案件",
+    "difficulty": 3,
+    "horrorLevel": 2,
+    "location": {
+      "sector": "中正特區",
+      "name": "捷運板南線台北車站往忠孝復興列車車廂",
+      "coords": [
+        25.0441,
+        121.528
+      ]
+    },
+    "briefingMode": "模式 A：事發重現動態短片",
+    "briefingOfficer": "台北捷運忠孝復興站務組長 莊志強（遊戲虛構角色）",
+    "briefingContent": "深夜 00:15 板南線末班車由台北車站駛向善導寺途中突發緊急制軔！全車乘客猛烈向前摔倒，科技主管公事包內裝有兩奈米先進製程專利晶片離奇遭調包成一模一樣外觀的廢舊主機板！",
+    "backgroundStory": "科技大廠研發副總攜帶最新晶片搭捷運末班車進行實測，商業間諜買通補習班女講師，在列車減速急煞的混亂瞬間以相同規格公事包掉包。",
+    "relationshipNetwork": "【受害科技公司】陳副總 ➔ 體能田徑生：劉俊傑 ➔ 慣犯智謀講師：彭曉嵐（真兇） ➔ 捷運列車調度員：崔立國。",
+    "transitStrategy": "調閱板南線行控中心 ATS 自動列車號誌與車載加速度計數據，回溯煞車加速度峰值向量（569X1.8 m/s^2$）！",
+    "safeViewingNotice": "捷運急煞車廂乘客傾倒混亂場面（微驚悚），無流血受傷。",
+    "timeline": [
+      {
+        "time": "00:10",
+        "stage": "列車出發",
+        "event": "末班車緩緩駛離台北車站地下月台，車廂乘客稀少。"
+      },
+      {
+        "time": "00:14",
+        "stage": "軌道異物急煞",
+        "event": "前置感應器偵測假警報觸發緊軔，車廂猛烈向前傾斜減速。"
+      },
+      {
+        "time": "00:15",
+        "stage": "混亂調包",
+        "event": "乘客向前撲跌，彭曉嵐利用逆向重心站位迅速交換公事包。"
+      },
+      {
+        "time": "00:18",
+        "stage": "到站攔檢",
+        "event": "列車停靠忠孝復興站，陳副總發現晶片被掉包，站長封鎖出站閘門。"
+      }
+    ],
+    "scienceField": "自然科學・牛頓第一運動定律（慣性）與加速度力學向量分析",
+    "requiredTools": [
+      "tool_inertia_gauge",
+      "tool_accel_sensor",
+      "tool_magnifier"
+    ],
+    "threeTrackAcquisition": {
+      "buy": {
+        "store": "台北車站捷運紀念商品館",
+        "cost": 20,
+        "itemName": "捷運車廂力學加速度圖表"
+      },
+      "borrow": {
+        "venue": "士林科教館物理探索基地",
+        "cost": 0,
+        "itemName": "三軸慣性力矩向量儀"
+      },
+      "easterEgg": {
+        "location": "捷運車廂第 4 節博愛座立柱底座膠條縫隙",
+        "radius": 15,
+        "itemName": "調包遺落的晶片防靜電導電夾"
+      }
+    },
+    "suspects": [
+      "suspect_07_chen_vp",
+      "suspect_07_liu",
+      "suspect_07_peng",
+      "suspect_07_cui"
+    ],
+    "evidenceChain": [
+      {
+        "id": "ev_07_wrist_strain",
+        "name": "彭曉嵐右腕逆向抗加速度深紅勒痕",
+        "description": "右側手腕呈現由前向後反向抓握金屬立柱產生的逆向摩擦挫傷。",
+        "scienceCheck": {
+          "tool": "tool_inertia_gauge",
+          "method": "inertia_vector",
+          "expectedResult": "列車向東急煞加速度為 -1.8 m/s²，正常未警覺乘客慣性向量必朝「東前」撲倒；唯獨彭曉嵐反向向西後拉扯立柱，證實預先知情並抗衡慣性！",
+          "clueUnlocked": "牛頓第一定律鐵證：彭曉嵐的手腕挫傷證實她早預先準備好對抗向前慣性進行調包！"
+        }
+      },
+      {
+        "id": "ev_07_anti_slip_shoes",
+        "name": "彭曉嵐特殊高摩擦力防滑登山鞋底",
+        "description": "鞋底為深齒輪吸盤橡膠，靜摩擦係數高達 0.85。",
+        "scienceCheck": {
+          "tool": "tool_accel_sensor",
+          "method": "friction_coefficient",
+          "expectedResult": "車廂地板靜摩擦係數普通皮鞋僅 0.3，唯有其鞋底能在 -1.8 m/s² 急煞下穩住站姿實施調包。",
+          "clueUnlocked": "裝備專業證實其預謀作案！"
+        }
+      },
+      {
+        "id": "ev_07_chip_briefcase",
+        "name": "彭曉嵐大號手提袋暗格內的兩奈米晶片",
+        "description": "晶圓封裝盒，刻有科技公司防偽雷射標籤。",
+        "scienceCheck": {
+          "tool": "tool_magnifier",
+          "method": "microscopic_trace",
+          "expectedResult": "雷射微標與陳副總報失晶片序號 100% 一致，人贓俱獲！",
+          "clueUnlocked": "彭曉嵐坦承接受海外買家高額佣金實施調包。"
+        }
+      }
+    ],
+    "correctCulpritId": "suspect_07_peng",
+    "solutionRationale": "彭曉嵐藉急煞之機掉包，卻不知牛頓第一定律的物理鐵律：全車乘客受慣性向前摔倒，唯獨她手臂留下預先反向抓握立柱的逆向拉扯勒痕，成為無可辯駁的罪證。",
+    "coldCaseName": "板南線末班車急煞調包懸案"
+  },
+  {
+    "id": "case_08",
+    "caseNumber": "CASE-2026-008",
+    "title": "大稻埕百年中藥鋪消失的人蔘",
+    "category": "主線案件",
+    "difficulty": 3,
+    "horrorLevel": 1,
+    "location": {
+      "sector": "大同特區",
+      "name": "大稻埕迪化街德濟堂百年中藥行",
+      "coords": [
+        25.056,
+        121.5098
+      ]
+    },
+    "briefingMode": "模式 B：現場帶隊警官親身簡報",
+    "briefingOfficer": "迪化街老藥鋪老掌櫃 陳清祥（遊戲虛構角色）",
+    "briefingContent": "德濟堂鎮店之寶價值兩百萬的長白山百年野山蔘鎖在防彈玻璃櫃中，晨間盤點重量剛好 150 公克分毫不差。但老掌櫃細看赫然發現野山蔘竟被換成外型相似、但內部灌鉛的曬乾山蘿蔔根！鑰匙僅掌櫃、大徒弟與二徒弟持有。",
+    "backgroundStory": "百年老藥鋪面臨改建分家，大徒弟與二徒弟爭奪繼承權。二徒弟私下欠下期貨債務，鋌而走險調包鎮店野山蔘。",
+    "relationshipNetwork": "【德濟堂老掌櫃】陳清祥 ➔ 長子：李耀宗 ➔ 大徒弟：陳建邦 ➔ 二徒弟：吳俊凱（真兇） ➔ 抓藥助理：蔡秉憲。",
+    "transitStrategy": "比對大稻埕碼頭水上渡輪與 39 號公車刷卡數據，查獲二徒弟已聯絡好廈門走私貨輪！",
+    "safeViewingNotice": "中藥鋪古董防彈展櫃與藥材調包現場（溫和），中草藥芳香生活氛圍。",
+    "timeline": [
+      {
+        "time": "21:00",
+        "stage": "打烊上鎖",
+        "event": "大徒弟陳建邦確認野山蔘鎖於展示櫃，看門黑狗守在正門。"
+      },
+      {
+        "time": "02:30",
+        "stage": "深夜調包",
+        "event": "二徒弟吳俊凱因熟識黑狗未引起吠叫，使用配用鑰匙打開展櫃。"
+      },
+      {
+        "time": "07:30",
+        "stage": "晨間盤點",
+        "event": "老掌櫃開櫃秤重，發現 150g 乾蘿蔔與中空砝碼破綻。"
+      }
+    ],
+    "scienceField": "自然科學・等臂天平力矩平衡與阿基米德浮力密度測量（D=M/V）",
+    "requiredTools": [
+      "tool_equal_balance",
+      "tool_water_cylinder",
+      "tool_magnifier"
+    ],
+    "threeTrackAcquisition": {
+      "buy": {
+        "store": "迪化街南北貨雜貨行",
+        "cost": 20,
+        "itemName": "標準中藥等臂天平銅砝碼組"
+      },
+      "borrow": {
+        "venue": "國立臺灣博物館中藥常設展廳",
+        "cost": 0,
+        "itemName": "精密玻璃排水量筒與密度計"
+      },
+      "easterEgg": {
+        "location": "德濟堂後院水井旁青石磨盤凹洞（距櫃檯 18 公尺）",
+        "radius": 18,
+        "itemName": "掏空銅砝碼遺留之微量黃銅碎屑"
+      }
+    },
+    "suspects": [
+      "suspect_08_li",
+      "suspect_08_chen",
+      "suspect_08_wu",
+      "suspect_08_cai"
+    ],
+    "evidenceChain": [
+      {
+        "id": "ev_08_hollow_weight",
+        "name": "天平右盤配套之 50g 銅砝碼",
+        "description": "外表色澤均勻，但敲擊聲音清脆偏空心。",
+        "scienceCheck": {
+          "tool": "tool_water_cylinder",
+          "method": "archimedes_density",
+          "expectedResult": "放入排水量筒測得體積 7.58 cm³，質量 50.0g，換算密度 D = 50 / 7.58 = 6.6 g/cm³！純銅密度應為 8.9 g/cm³，證實內部被精密車床掏空！",
+          "clueUnlocked": "阿基米德浮力定律鐵證：50g 砝碼被掏空改裝，使實際配重偏差掩蓋蘿蔔根真實重量！"
+        }
+      },
+      {
+        "id": "ev_08_graduated_cylinder",
+        "name": "調包假山蔘內部注鉛痕跡",
+        "description": "山蘿蔔根部中心被鑽洞注入金屬鉛補重。",
+        "scienceCheck": {
+          "tool": "tool_magnifier",
+          "method": "microscopic_trace",
+          "expectedResult": "蘿蔔根切口有吳俊凱專用切藥鍘刀的微小缺角鋸齒咬痕！",
+          "clueUnlocked": "切藥工具刀痕直指二徒弟吳俊凱！"
+        }
+      },
+      {
+        "id": "ev_08_wild_ginseng",
+        "name": "吳俊凱研磨機底座暗格搜出之真野山蔘",
+        "description": "百年長白山老山蔘，參鬚完整，散發純厚人蔘香氣。",
+        "scienceCheck": {
+          "tool": "tool_magnifier",
+          "method": "botanical_verify",
+          "expectedResult": "參齡紋路與德濟堂百年登記檔案完全吻合，起獲贓物！",
+          "clueUnlocked": "吳俊凱伏地痛哭，坦承因炒期貨虧損才出此下策。"
+        }
+      }
+    ],
+    "correctCulpritId": "suspect_08_wu",
+    "solutionRationale": "二徒弟吳俊凱自作聰明掏空銅砝碼並在山蘿蔔中注鉛，製造 150g 等重假象，但排水法測量密度 D=M/V 揭穿砝碼密度僅 6.6 g/cm³ 的空心事實，百年藥鋪人蔘順利完璧歸趙。",
+    "coldCaseName": "大稻埕藥鋪消失人蔘懸案"
+  },
+  {
+    "id": "case_09",
+    "caseNumber": "CASE-2026-009",
+    "title": "雙北 307 公車急煞皮夾調包案",
+    "category": "突發案件",
+    "difficulty": 2,
+    "horrorLevel": 1,
+    "location": {
+      "sector": "松山特區",
+      "name": "307 公車行經南京東路公車專用道",
+      "coords": [
+        25.0518,
+        121.5492
+      ]
+    },
+    "briefingMode": "模式 B：現場帶隊警官親身簡報",
+    "briefingOfficer": "首都客運 307 路線資深駕駛 老張（遊戲虛構角色）",
+    "briefingContent": "南京東路公車專用道上，一輛 307 公車閃爍雙黃燈靠邊停妥。老張司機向趕到的都會調查員說明：公車剛從敦化北路以時速 35 公里大角度右轉進入南京東路，坐在博愛座的李奶奶大哭，說買菜推車上的老花布皮夾（內有老伴金戒指與三萬養老金）被扒走了！老張已鎖閉全車車門。",
+    "backgroundStory": "雙北 307 號公車為雙北班次最密、載客量最大的「公車之王」。慣竊利用大角度彎道強烈離心力與觸覺遲鈍掩飾手指偷竊動作。",
+    "relationshipNetwork": "【受害乘客】李老奶奶 ➔ 司機：老張 ➔ 外送兼職：周偉 ➔ 棒球隊員：吳冠佑 ➔ 慣犯白領：馬致遠（真兇） ➔ 大學生證人：王崇遠。",
+    "transitStrategy": "調閱 307 公車車載 GPS 陀螺儀數據與前後門悠遊卡刷卡秒數，證實馬致遠上車時刻與異常站位！",
+    "safeViewingNotice": "公車專用道急煞靠邊與老奶奶哭泣場景（溫和），日常都會生活氣氛。",
+    "timeline": [
+      {
+        "time": "15:10",
+        "stage": "乘客上車",
+        "event": "李老奶奶於台北小巨蛋站搭上 307 公車，菜籃推車固定於身側。"
+      },
+      {
+        "time": "15:15",
+        "stage": "右轉彎道",
+        "event": "公車由敦化北路大角度右轉進入南京東路專用道，車身強烈向左傾斜。"
+      },
+      {
+        "time": "15:16",
+        "stage": "觸覺麻痺",
+        "event": "馬致遠利用身體撞碰掩飾手指動作，順手牽羊抽走推車頂層皮夾。"
+      },
+      {
+        "time": "15:18",
+        "stage": "閉門封鎖",
+        "event": "奶奶發覺失竊，老張當機立斷鎖閉前後車門。"
+      }
+    ],
+    "scienceField": "自然科學・車輛轉彎向心加速度、慣性離心錯覺與金屬探測感應",
+    "requiredTools": [
+      "tool_accel_sensor",
+      "tool_metal_detector",
+      "tool_magnifier"
+    ],
+    "threeTrackAcquisition": {
+      "buy": {
+        "store": "南京東路捷運站周邊電子生活館",
+        "cost": 25,
+        "itemName": "便攜型高靈敏金屬探測棒"
+      },
+      "borrow": {
+        "venue": "松山文創園區設計科普中心",
+        "cost": 0,
+        "itemName": "車載向心加速度數據讀取儀"
+      },
+      "easterEgg": {
+        "location": "307 公車後門下車投幣箱側板夾縫（距座位 3 公尺）",
+        "radius": 5,
+        "itemName": "馬致遠掉落的金色領帶夾"
+      }
+    },
+    "suspects": [
+      "suspect_09_zhou",
+      "suspect_09_wu",
+      "suspect_09_ma",
+      "suspect_09_wang"
+    ],
+    "evidenceChain": [
+      {
+        "id": "ev_09_bus_turn_vector",
+        "name": "307 公車右轉向心加速度運動軌跡圖",
+        "description": "車載陀螺儀記錄右轉彎向心加速度向右，車內假想離心力必定指向「左側」。",
+        "scienceCheck": {
+          "tool": "tool_accel_sensor",
+          "method": "centrifugal_vector",
+          "expectedResult": "離心力指向左側，全車乘客均自然向左傾倒；唯獨站在右邊的馬致遠主動向右逆向貼向李奶奶菜籃！",
+          "clueUnlocked": "向心力向量證明：馬致遠聲稱「被車甩向左側摔倒」完全相反，是他主動跨步靠近竊盜！"
+        }
+      },
+      {
+        "id": "ev_09_heel_hidden_slot",
+        "name": "馬致遠右腳特製加厚皮鞋鞋跟",
+        "description": "高檔義大利皮鞋，鞋跟厚度達 4.5 公分，帶有微型旋轉卡榫。",
+        "scienceCheck": {
+          "tool": "tool_metal_detector",
+          "method": "metal_detection",
+          "expectedResult": "探測棒緊貼鞋跟處發出強烈高頻蜂鳴聲，旋開暗槽赫然見到李奶奶的黃金戒指！",
+          "clueUnlocked": "人贓俱獲，旋開鞋跟暗槽取出李奶奶被盜金戒指！"
+        }
+      },
+      {
+        "id": "ev_09_grandma_wallet",
+        "name": "椅墊縫隙塞入之老花布皮夾",
+        "description": "手縫碎花布夾，內有三萬元現金與李老奶奶健保卡。",
+        "scienceCheck": {
+          "tool": "tool_magnifier",
+          "method": "microscopic_trace",
+          "expectedResult": "拉鍊頭檢出馬致遠右手拇指汗液微痕，徹底打臉其「從未觸碰」謊言！",
+          "clueUnlocked": "馬致遠癱軟在座位上，承認趁轉彎假裝摔倒偷竊。"
+        }
+      }
+    ],
+    "correctCulpritId": "suspect_09_ma",
+    "solutionRationale": "馬致遠利用 307 公車轉彎時的身體碰撞作案，但公車向右轉彎之離心力必定迫使人體向左傾，唯獨他逆向朝右跨步；加上金屬探測器在鞋跟暗槽掃出黃金戒指，無所遁形。",
+    "coldCaseName": "307 公車急煞皮夾調包懸案"
+  },
+  {
+    "id": "case_10",
+    "caseNumber": "CASE-2026-010",
+    "title": "大安森林公園雨夜泥地無腳印案",
+    "category": "突發案件",
+    "difficulty": 2,
+    "horrorLevel": 3,
+    "location": {
+      "sector": "大安特區",
+      "name": "大安森林公園生態水池旁泥濘草地",
+      "coords": [
+        25.0305,
+        121.5355
+      ]
+    },
+    "briefingMode": "模式 A：事發重現動態短片",
+    "briefingOfficer": "大安森林公園夜間保全組長 趙清風（遊戲虛構角色）",
+    "briefingContent": "暴雨雷鳴之夜，大安森林公園生態觀測台上架設的德國頂級消色差天文望遠鏡（價值五十萬）不翼而飛！四周直徑 30 公尺草地因暴雨早已爛如稀泥，但整個草坪上「完全找不到任何一枚人類行走的鞋印凹痕」，小偷彷彿憑空飛降！",
+    "backgroundStory": "台北市天文協會在生態池舉辦秋季觀星週，展示鎮會之寶高精度消色差天文望遠鏡。當夜突降暴雨，觀測活動暫停，望遠鏡套上防雨罩鎖在台上。",
+    "relationshipNetwork": "【受害協會】郭建華理事長 ➔ 鳥類攝影師：柯博文 ➔ 慢跑教練：杜明翰 ➔ 景觀包商：孫耀輝（真兇） ➔ 現場巡守：趙清風（老趙）。",
+    "transitStrategy": "調閱大安森林公園周邊信義路與新生南路 CCTV，調派巡邏人員在和平東路口設下路障封截小貨車！",
+    "safeViewingNotice": "暴雨雷電下觀測台空無一人幽靈般無腳印泥地（暗夜懸疑），預設馬賽克保護。",
+    "timeline": [
+      {
+        "time": "20:30",
+        "stage": "覆蓋防雨",
+        "event": "志工覆蓋加厚防雨罩，將望遠鏡三腳架打鋼地釘鎖定。"
+      },
+      {
+        "time": "21:15",
+        "stage": "土壤飽和",
+        "event": "暴雨傾盆，觀測台周邊 30 公尺土壤完全達到飽和塑性泥狀（踩踏必陷 5cm）。"
+      },
+      {
+        "time": "21:40",
+        "stage": "無痕行竊",
+        "event": "孫耀輝穿戴特製超大接地面積軟木套鞋進入泥地盜取鏡筒。"
+      },
+      {
+        "time": "22:00",
+        "stage": "巡守通報",
+        "event": "老趙巡邏發現鏡筒被拆走，草地上無任何腳印，震驚通報。"
+      }
+    ],
+    "scienceField": "自然科學・物理壓強公式（P=F/A）與土壤力學飽和抗剪強度",
+    "requiredTools": [
+      "tool_pressure_plate",
+      "tool_soil_sampler",
+      "tool_magnifier"
+    ],
+    "threeTrackAcquisition": {
+      "buy": {
+        "store": "建國南路五金花卉材料行",
+        "cost": 30,
+        "itemName": "土質飽和壓強測定儀"
+      },
+      "borrow": {
+        "venue": "國立臺灣大學農業生物環境工程館",
+        "cost": 0,
+        "itemName": "精密土壤剪切強度試驗組"
+      },
+      "easterEgg": {
+        "location": "生態水池木棧道排水孔旁（距觀測台 25 公尺）",
+        "radius": 25,
+        "itemName": "被雨水沖出的軟木鞋底微小碎屑"
+      }
+    },
+    "suspects": [
+      "suspect_10_ke",
+      "suspect_10_du",
+      "suspect_10_sun",
+      "suspect_10_zhao"
+    ],
+    "evidenceChain": [
+      {
+        "id": "ev_10_cork_snowshoe",
+        "name": "排水大管隱蔽起獲之特製超大受力面積軟木套鞋",
+        "description": "長 55 公分、寬 36 公分之雪鞋造型底板，表面覆蓋人工假草皮。",
+        "scienceCheck": {
+          "tool": "tool_pressure_plate",
+          "method": "pressure_calculation",
+          "expectedResult": "成人在泥濘草地普通鞋（400 cm²）壓強為 17.5 kPa，草地必下陷 5cm；而穿戴 2000 cm² 軟木底板時壓強僅 3.5 kPa，遠低於土壤剪切屈服極限 6 kPa，草葉只彎不陷！",
+          "clueUnlocked": "壓強公式 P=F/A 鐵證：嫌犯利用五倍受力面積將壓強降至極限以下，製造幽靈無腳印假象！"
+        }
+      },
+      {
+        "id": "ev_10_soil_pressure_gauge",
+        "name": "草坪微痕步幅幾何測定報告",
+        "description": "高精度光學掃描草葉彎折方向，步幅約 85 公分。",
+        "scienceCheck": {
+          "tool": "tool_soil_sampler",
+          "method": "soil_mechanics",
+          "expectedResult": "草葉回彈雖無凹坑，但細胞壁受壓單向倒伏留下規律 85 公分步幅，完全符合孫耀輝身高步態！",
+          "clueUnlocked": "步幅力學鎖定作案行走路徑！"
+        }
+      },
+      {
+        "id": "ev_10_stolen_telescope",
+        "name": "孫耀輝景觀修剪小貨車防水帆布底起獲之望遠鏡筒",
+        "description": "德國頂級光學消色差天文望遠鏡，焦距 1200mm。",
+        "scienceCheck": {
+          "tool": "tool_magnifier",
+          "method": "microscopic_trace",
+          "expectedResult": "三腳架鎖鈕上帶有孫耀輝防滑手套專用黃麻纖維微痕，人贓俱獲！",
+          "clueUnlocked": "孫耀輝坦承企圖將望遠鏡銷往海外天文黑市，伏法認罪！"
+        }
+      }
+    ],
+    "correctCulpritId": "suspect_10_sun",
+    "solutionRationale": "孫耀輝精通園藝材料，利用特製 2000cm² 軟木底板使壓強 P=F/A 降至 3.5 kPa，低於飽和泥地剪切極限製造「無腳印懸案」；但物理學壓強公式與草葉微觀折痕無情戳破了幽靈偷天換日的手法。",
+    "coldCaseName": "大安生態池泥地無腳印懸案"
   }
 ]

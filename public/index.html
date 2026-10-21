@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>雙北都會調查員・偵探核心測試台 (Detective Core Workbench)</title>
+  <title>雙北都會調查員・偵探核心獨立測試台 (Taipei Detective Core Workbench)</title>
   <style>
     :root {
       --bg: #090d16;
@@ -13,6 +13,7 @@
       --emerald: #34d399;
       --amber: #fbbf24;
       --rose: #fb7185;
+      --purple: #c084fc;
       --text: #f8fafc;
       --text-dim: #94a3b8;
     }
@@ -20,8 +21,9 @@
     body {
       background: var(--bg);
       color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      padding: 18px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang TC", "Microsoft JhengHei", sans-serif;
+      padding: 16px;
+      line-height: 1.5;
     }
     header {
       display: flex;
@@ -32,18 +34,25 @@
       border: 1px solid var(--border);
       border-radius: 12px;
       margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 10px;
     }
     .badge {
-      display: inline-block;
-      padding: 2px 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
       border-radius: 6px;
       font-size: 11px;
       font-weight: bold;
     }
-    .grid {
+    .grid-container {
       display: grid;
-      grid-template-columns: 320px 1fr 340px;
+      grid-template-columns: 340px 1fr 380px;
       gap: 16px;
+    }
+    @media (max-width: 1280px) {
+      .grid-container { grid-template-columns: 1fr; }
     }
     .panel {
       background: var(--card-bg);
@@ -88,7 +97,7 @@
       border: 1px solid #334155;
       border-radius: 8px;
       padding: 12px;
-      min-height: 140px;
+      min-height: 120px;
       font-size: 13px;
       line-height: 1.6;
     }
@@ -98,17 +107,54 @@
       border: 1px solid #38bdf8;
       text-align: left;
       padding: 8px 10px;
+      color: #f8fafc;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      line-height: 1.4;
     }
-    .opt-btn:hover { background: rgba(56, 189, 248, 0.2); }
+    .opt-btn:hover { background: rgba(56, 189, 248, 0.25); }
+    .opt-btn.present-clue {
+      border-color: #fbbf24;
+      background: rgba(251, 191, 36, 0.1);
+    }
     .log-box {
-      font-family: monospace;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
       font-size: 11px;
       color: #38bdf8;
-      max-height: 220px;
+      max-height: 180px;
       overflow-y: auto;
       background: #020617;
       padding: 8px;
       border-radius: 6px;
+      line-height: 1.4;
+    }
+    .tabs {
+      display: flex;
+      gap: 6px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 4px;
+    }
+    .tab-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-dim);
+      padding: 4px 8px;
+      font-size: 11px;
+      border-radius: 4px;
+    }
+    .tab-btn.active {
+      background: rgba(56, 189, 248, 0.2);
+      border-color: var(--cyan);
+      color: var(--cyan);
+    }
+    .safe-mosaic {
+      filter: blur(8px);
+      transition: filter 0.3s;
+      user-select: none;
+    }
+    .safe-clear {
+      filter: none;
     }
   </style>
 </head>
@@ -116,114 +162,265 @@
 
   <header>
     <div>
-      <h1 style="font-size:18px; color:var(--cyan); margin-bottom:4px;">🕵️ 雙北都會調查員・偵探核心獨立測試台</h1>
-      <div style="font-size:12px; color:var(--text-dim);">專題核心：非寫死劇情架構 ✕ 自然科學物證鑑識 ✕ 地圖系統雙向協同</div>
+      <h1 style="font-size:18px; color:var(--cyan); margin-bottom:2px;">🕵️ 雙北都會調查員・偵探核心獨立測試台</h1>
+      <div style="font-size:12px; color:var(--text-dim);">
+        《雙北漫遊：都會行蹤》獨立研究專題 ✕ 108 課綱自然科學鑑識 ✕ 大眾運輸通勤脈動 ✕ 三軌背包
+      </div>
     </div>
-    <div id="investigatorStatus" style="display:flex; gap:12px; font-size:12px;">
-      <!-- JS 載入 -->
+    <div id="investigatorStatus" style="display:flex; gap:8px; flex-wrap:wrap; font-size:12px;"></div>
+    <div>
+      <button id="btnSafeMosaic" onclick="toggleSafeMosaic()" style="background:#475569; font-size:11px;">
+        🛡️ 防嚇保護馬賽克：已開啟
+      </button>
     </div>
   </header>
 
-  <div class="grid">
-    <!-- 左欄：案件清單與背包 -->
+  <div class="grid-container">
+    <!-- ─── 左欄：案件檔案庫與特區信賴度 ─── -->
     <div class="panel">
       <div class="panel-title">
-        <span>📋 企劃書示範案件庫</span>
+        <span>📋 企劃書 10 首發示範案</span>
         <button onclick="loadCases()">重整</button>
       </div>
-      <div id="caseList" style="display:flex; flex-direction:column; gap:8px;"></div>
+      <div id="caseList" style="display:flex; flex-direction:column; gap:8px; max-height:480px; overflow-y:auto;"></div>
 
-      <div class="panel-title" style="margin-top:10px;">
-        <span>🎒 三軌物證道具背包</span>
+      <div class="panel-title" style="margin-top:8px;">
+        <span>🏛️ 雙北特區市民聲譽 (Trust System)</span>
       </div>
-      <div id="inventoryList" style="display:flex; flex-direction:column; gap:6px;"></div>
+      <div id="sectorTrustList" style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:11px;"></div>
+
+      <div class="panel-title" style="margin-top:8px;">
+        <span>🔒 雙北歷史懸案檔案庫 (Cold Cases)</span>
+      </div>
+      <div id="coldCaseList" style="font-size:11px; color:var(--text-dim); max-height:120px; overflow-y:auto;">
+        暫無封存之未破懸案。
+      </div>
     </div>
 
-    <!-- 中欄：科學鑑識與多輪對話詰問 -->
+    <!-- ─── 中欄：案情簡報、科學鑑識與多輪筆錄 ─── -->
     <div class="panel">
+      <!-- 案情前情與雙軌交代 -->
       <div class="panel-title">
-        <span>🔬 自然科學物證鑑識台 (pH / 紫外光 / 放大鏡)</span>
+        <span id="activeCaseTitleHeader">🔍 當前案件：尚未接取</span>
+        <span id="caseStateBadge" class="badge" style="background:#475569;">未接案</span>
       </div>
-      <div id="activeEvidenceWrap" class="card">
-        <div style="color:var(--amber); font-weight:bold; margin-bottom:6px;">選取背包物證進行科學化驗：</div>
-        <div style="display:flex; gap:8px; margin-bottom:8px;">
-          <select id="selEvidence" style="padding:6px; background:#1e293b; color:#fff; border:1px solid #38bdf8; border-radius:4px; flex:1;"></select>
-          <select id="selTool" style="padding:6px; background:#1e293b; color:#fff; border:1px solid #38bdf8; border-radius:4px;">
-            <option value="tool_ph_paper">廣用 pH 酸鹼試紙</option>
-            <option value="tool_uv_torch">365nm 紫外光手電筒</option>
-            <option value="tool_magnifier">多倍率光學放大鏡</option>
-          </select>
-          <button onclick="examineSelectedEvidence()">執行化驗</button>
-        </div>
-        <div id="examineResult" style="font-size:12px; color:var(--emerald);"></div>
+      <div id="caseBriefingBox" class="card" style="border-left:3px solid var(--cyan);">
+        <div style="color:var(--amber); font-weight:bold; margin-bottom:4px;" id="briefingOfficerName">模式 B：現場帶隊警官親身簡報</div>
+        <div id="briefingContentText" style="color:#e2e8f0; font-size:12px;">請於左側選擇示範案件接取調查！</div>
       </div>
 
+      <!-- 生活科學物證鑑識台 -->
       <div class="panel-title" style="margin-top:6px;">
-        <span>👥 多輪 NPC 對話詰問樹 (出示證物破案)</span>
-        <select id="selNpc" onchange="startNpcDialogue(this.value)" style="padding:4px; background:#1e293b; color:#fff; border:1px solid #38bdf8; border-radius:4px;">
-          <option value="suspect_01_barista">嫌疑人：林哲瑋 (咖啡師)</option>
+        <span>🔬 生活科學物證鑑識實驗室 (108 課綱自然科學)</span>
+      </div>
+      <div class="card" style="background:rgba(15,23,42,0.85); border:1px solid #0284c7;">
+        <div style="display:grid; grid-template-columns: 1fr 1fr auto; gap:8px; margin-bottom:8px;">
+          <div>
+            <label style="font-size:11px; color:var(--text-dim);">1. 選取案件物證：</label>
+            <select id="selEvidence" style="width:100%; padding:6px; background:#1e293b; color:#fff; border:1px solid #38bdf8; border-radius:4px; font-size:11px;"></select>
+          </div>
+          <div>
+            <label style="font-size:11px; color:var(--text-dim);">2. 配對鑑識器材：</label>
+            <select id="selTool" style="width:100%; padding:6px; background:#1e293b; color:#fff; border:1px solid #38bdf8; border-radius:4px; font-size:11px;">
+              <option value="tool_ph_paper">廣用 pH 酸鹼試紙組</option>
+              <option value="tool_uv_torch">365nm 專業紫外光手電筒</option>
+              <option value="tool_magnifier">多倍率光學放大鏡</option>
+              <option value="tool_tlc_scanner">薄層色層分析展開鏡 (TLC)</option>
+              <option value="tool_sound_timer">數位聲學時差音波儀</option>
+              <option value="tool_water_gauge">微型虹吸管徑流速計</option>
+              <option value="tool_bamboo_tongs">加長防燙竹夾 (溫泉顯影)</option>
+              <option value="tool_thermal_oven">溫泉蒸氣顯影烘箱</option>
+              <option value="tool_shadow_rod">日影幾何測定標竿</option>
+              <option value="tool_angle_meter">太陽高度角傾角儀</option>
+              <option value="tool_vapor_spray">便攜微霧熱水蒸氣罐</option>
+              <option value="tool_inertia_gauge">三軸慣性力矩向量儀</option>
+              <option value="tool_water_cylinder">精密玻璃排水量筒</option>
+              <option value="tool_metal_detector">便攜金屬探測棒</option>
+              <option value="tool_pressure_plate">受力面積壓強測定板</option>
+            </select>
+          </div>
+          <div style="display:flex; align-items:flex-end;">
+            <button onclick="examineSelectedEvidence()" style="height:32px; background:#059669;">執行科學化驗</button>
+          </div>
+        </div>
+        <div id="examineResult" style="font-size:12px; padding:6px; border-radius:4px; background:#020617; min-height:28px;">
+          等待化驗中...
+        </div>
+      </div>
+
+      <!-- 多輪 NPC 詰問樹與物證對質打臉 -->
+      <div class="panel-title" style="margin-top:6px;">
+        <span>👥 多輪虛構筆錄與交叉質詢 (物證對質打臉破案)</span>
+        <select id="selNpc" onchange="startNpcDialogue(this.value)" style="padding:4px; background:#1e293b; color:#fff; border:1px solid #38bdf8; border-radius:4px; font-size:11px;">
+          <option value="suspect_01_wu">吳冠宇 (連鎖咖啡店服務生)</option>
+          <option value="suspect_01_zhang">張世傑 (外包軟體工程師)</option>
+          <option value="suspect_01_xu">許雅筑 (資深業務經理)</option>
+          <option value="suspect_01_wang">王大偉 (外送員)</option>
         </select>
       </div>
-      <div class="dialogue-box" id="dialogueBox">請點擊上方嫌疑人開啟對話...</div>
+      <div class="dialogue-box" id="dialogueBox">請選擇上方涉案關係人展開詢問...</div>
       <div class="options-wrap" id="optionsWrap"></div>
 
-      <!-- 結案指控區 -->
-      <div class="panel-title" style="margin-top:10px;">
-        <span>⚖️ 提交結案指控 (Accusation)</span>
-        <button onclick="submitAccusation()" style="background:#e11d48;">確認指控結案</button>
+      <!-- 結案指控與冷案封存 -->
+      <div class="panel-title" style="margin-top:6px;">
+        <span>⚖️ 思維推理板：指控驗證與冷案封存</span>
+        <div style="display:flex; gap:6px;">
+          <button onclick="archiveCurrentCaseCold()" style="background:#64748b; font-size:11px;">加蓋官印冷案封存</button>
+          <button onclick="submitAccusation()" style="background:#e11d48; font-size:11px;">提出指控結案</button>
+        </div>
       </div>
       <div id="resolutionResult" class="card" style="display:none;"></div>
     </div>
 
-    <!-- 右欄：地圖系統事件橋樑與筆記本 -->
+    <!-- ─── 右欄：三軌背包、通勤移動、動森特產與事件橋樑 ─── -->
     <div class="panel">
+      <!-- 三軌背包 -->
       <div class="panel-title">
-        <span>🌐 地圖系統協同事件橋樑 (MapBridge)</span>
+        <span>🎒 三軌背包 (生活 ✕ 器材 ✕ 物證)</span>
       </div>
-      <div style="font-size:11px; color:var(--text-dim);">模擬地圖傳來事件：</div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTrackTab('supplies')">軌道一：生活道具</button>
+        <button class="tab-btn" onclick="switchTrackTab('tools')">軌道二：鑑識器材</button>
+        <button class="tab-btn" onclick="switchTrackTab('evidences')">軌道三：案件物證</button>
+      </div>
+      <div id="inventoryTrackContent" style="display:flex; flex-direction:column; gap:6px; max-height:160px; overflow-y:auto;"></div>
+
+      <!-- 道具三軌取得測試面板 -->
+      <div class="panel-title" style="margin-top:6px;">
+        <span>🛒 道具三軌取得中心 (購買 ✕ 借用 ✕ 彩蛋)</span>
+      </div>
       <div style="display:flex; gap:6px;">
-        <button onclick="simulateMapMove()" style="flex:1;">模擬玩家移動</button>
-        <button onclick="simulateStoreEnter()" style="flex:1;">走入門市</button>
+        <button onclick="buyToolTest()" style="flex:1; background:#0284c7; font-size:11px;">💰 門市購買 (85折)</button>
+        <button onclick="borrowToolTest()" style="flex:1; background:#059669; font-size:11px;">🏛️ 科教館微借用</button>
+        <button onclick="pickEasterEggTest()" style="flex:1; background:#d97706; font-size:11px;">🥚 案發 45m 彩蛋</button>
+      </div>
+
+      <!-- 物理通勤與防瞬移攔截 -->
+      <div class="panel-title" style="margin-top:6px;">
+        <span>🚶 雙北真實通勤 (實體步行 ✕ 大眾運輸 ✕ 嚴禁瞬移)</span>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px;">
+        <button onclick="walkToLocation()" style="background:#0284c7; font-size:11px;">步行 300m</button>
+        <button onclick="transitRideMrt()" style="background:#059669; font-size:11px;">捷運板南線</button>
+        <button onclick="attemptTeleport()" style="background:#991b1b; font-size:11px;">點圖瞬移 (禁忌)</button>
+      </div>
+      <div id="movementFeedback" style="font-size:11px; color:#cbd5e1; min-height:20px;"></div>
+
+      <!-- 動森感事務所特產收藏 -->
+      <div class="panel-title" style="margin-top:6px;">
+        <span>🏡 事務所特產擺設 (動森收藏)</span>
+      </div>
+      <div id="souvenirDisplay" style="display:flex; flex-wrap:wrap; gap:6px; font-size:11px;">
+        <span style="color:var(--text-dim);">破獲雙北各區案件可解鎖地方微型木雕特產擺設。</span>
+      </div>
+
+      <!-- 地圖協同事件日誌 -->
+      <div class="panel-title" style="margin-top:6px;">
+        <span>🌐 地圖系統 (Antigravity) 協同總線日誌</span>
       </div>
       <div class="log-box" id="bridgeLog"></div>
-
-      <div class="panel-title" style="margin-top:10px;">
-        <span>📓 調查員筆記本</span>
-      </div>
-      <div id="notebookList" style="display:flex; flex-direction:column; gap:6px; max-height:240px; overflow-y:auto;"></div>
     </div>
   </div>
 
   <script>
     let currentCaseId = 'case_01';
-    let currentNpcId = 'suspect_01_barista';
+    let currentNpcId = 'suspect_01_wu';
+    let activeTrackTab = 'supplies';
+    let cachedInventory = null;
+    let safeMosaicEnabled = true;
 
     async function loadStatus() {
-      const res = await fetch('/api/detective/status');
-      const data = await res.json();
-      if (!data.success) return;
+      try {
+        const res = await fetch('/api/detective/status');
+        const data = await res.json();
+        if (!data.success) return;
 
-      const inv = data.investigator;
-      document.getElementById('investigatorStatus').innerHTML = `
-        <span class="badge" style="background:#0284c7;">稱謂：${inv.roleTitle}</span>
-        <span class="badge" style="background:#059669;">悠遊卡：${inv.easyCard}</span>
-        <span class="badge" style="background:#10b981;">綠色積分：${inv.ecoPoints} pt</span>
-        <span class="badge" style="background:#8b5cf6;">已破案：${inv.solvedCount} 件</span>
-      `;
+        const inv = data.investigator;
+        cachedInventory = data.inventory;
 
-      // 背包物證選單
-      const selEv = document.getElementById('selEvidence');
-      selEv.innerHTML = '';
-      (data.inventory.evidences || []).forEach(e => {
-        selEv.innerHTML += `<option value="${e.id}">${e.name}</option>`;
+        document.getElementById('investigatorStatus').innerHTML = `
+          <span class="badge" style="background:#0284c7;">稱謂：${inv.roleTitle}</span>
+          <span class="badge" style="background:#475569;">體力：${inv.stamina}</span>
+          <span class="badge" style="background:#059669;">悠遊卡：${inv.easyCard}</span>
+          <span class="badge" style="background:#10b981;">TPASS：${inv.tpassActive ? '暢行中' : '未開通'}</span>
+          <span class="badge" style="background:#d97706;">綠色積分：${inv.ecoPoints} pt</span>
+          <span class="badge" style="background:#8b5cf6;">特產收藏：${data.souvenirs.length} 件</span>
+        `;
+
+        renderInventoryTrack();
+        renderSouvenirs(data.souvenirs);
+        renderSectorTrust(data.sectorsTrust);
+
+        // 更新物證下拉選單
+        const selEv = document.getElementById('selEvidence');
+        selEv.innerHTML = '';
+        (data.inventory.evidences || []).forEach(e => {
+          selEv.innerHTML += `<option value="${e.id}">${e.name} ${e.examined ? '✅[已化驗]' : '⏳[待驗]'}</option>`;
+        });
+      } catch (err) {
+        console.error('loadStatus error:', err);
+      }
+    }
+
+    function switchTrackTab(tab) {
+      activeTrackTab = tab;
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+      renderInventoryTrack();
+    }
+
+    function renderInventoryTrack() {
+      if (!cachedInventory) return;
+      const wrap = document.getElementById('inventoryTrackContent');
+      wrap.innerHTML = '';
+
+      const items = cachedInventory[activeTrackTab] || [];
+      if (items.length === 0) {
+        wrap.innerHTML = '<div style="font-size:11px; color:#94a3b8;">此軌道目前無道具。</div>';
+        return;
+      }
+
+      items.forEach(item => {
+        let tag = '';
+        if (activeTrackTab === 'evidences') {
+          tag = item.examined ? '<span style="color:#34d399; font-weight:bold;">[✅ 已完成科學化驗]</span>' : '<span style="color:#fbbf24; font-weight:bold;">[⏳ 尚未化驗]</span>';
+        }
+        wrap.innerHTML += `
+          <div class="card">
+            <div style="font-weight:bold; color:#38bdf8;">${item.name} ${tag}</div>
+            <div style="font-size:11px; color:#cbd5e1;">${item.desc || item.description || ''}</div>
+          </div>
+        `;
       });
+    }
 
-      // 背包列表
-      const invList = document.getElementById('inventoryList');
-      invList.innerHTML = '';
-      (data.inventory.evidences || []).forEach(e => {
-        invList.innerHTML += `<div class="card">🔍 <b>${e.name}</b><br><span style="color:#94a3b8; font-size:11px;">${e.desc}</span></div>`;
+    function renderSouvenirs(souvenirs) {
+      const wrap = document.getElementById('souvenirDisplay');
+      if (!souvenirs || souvenirs.length === 0) {
+        wrap.innerHTML = '<span style="color:var(--text-dim); font-size:11px;">破獲雙北各區案件可解鎖地方微型特產擺設。</span>';
+        return;
+      }
+      wrap.innerHTML = '';
+      souvenirs.forEach(s => {
+        wrap.innerHTML += `
+          <span class="badge" style="background:#3b82f6;" title="${s.desc}">
+            🎁 ${s.name}
+          </span>
+        `;
       });
+    }
+
+    function renderSectorTrust(sectors) {
+      const wrap = document.getElementById('sectorTrustList');
+      wrap.innerHTML = '';
+      for (const [sec, val] of Object.entries(sectors || {})) {
+        wrap.innerHTML += `
+          <div class="card" style="padding:6px;">
+            <div style="font-weight:bold; color:#38bdf8;">${sec}</div>
+            <div style="color:#34d399;">聲譽: ${val.reputation} pt</div>
+          </div>
+        `;
+      }
     }
 
     async function loadCases() {
@@ -231,13 +428,21 @@
       const data = await res.json();
       const wrap = document.getElementById('caseList');
       wrap.innerHTML = '';
+
       (data.cases || []).forEach(c => {
+        const stars = '★'.repeat(c.difficulty) + '☆'.repeat(5 - c.difficulty);
+        const ghosts = '👻'.repeat(c.horrorLevel);
         wrap.innerHTML += `
           <div class="card" style="border-left:3px solid #38bdf8;">
-            <div style="font-weight:bold; color:#38bdf8;">${c.title}</div>
-            <div style="font-size:11px; color:#cbd5e1; margin:4px 0;">📍 ${c.location.name}</div>
-            <div style="font-size:10px; color:#94a3b8;">領域：${c.scienceField}</div>
-            <button onclick="acceptCase('${c.id}')" style="margin-top:6px; width:100%;">接取調查</button>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-weight:bold; color:#38bdf8;">${c.caseNumber}</span>
+              <span style="color:#fbbf24; font-size:11px;">難度 ${stars}</span>
+            </div>
+            <div style="font-weight:bold; color:#fff; font-size:13px; margin:2px 0;">${c.title}</div>
+            <div style="font-size:11px; color:#cbd5e1;">📍 ${c.location.name} (${c.location.sector})</div>
+            <div style="font-size:11px; color:#94a3b8;">驚悚指數：${ghosts} (${c.horrorLevel === 1 ? '溫和日常' : c.horrorLevel === 2 ? '微驚悚' : '暗夜懸疑'})</div>
+            <div style="font-size:10px; color:#34d399; margin-top:2px;">科學：${c.scienceField}</div>
+            <button onclick="acceptCase('${c.id}')" style="margin-top:6px; width:100%; font-size:11px;">接取此案調查</button>
           </div>
         `;
       });
@@ -251,29 +456,72 @@
         body: JSON.stringify({ caseId: id })
       });
       const data = await res.json();
-      alert(data.message || '案件已接取！');
+      if (!data.success) {
+        alert(data.error);
+        return;
+      }
+
+      const c = data.case;
+      document.getElementById('activeCaseTitleHeader').innerText = `🔍 當前案件：${c.title}`;
+      document.getElementById('caseStateBadge').innerText = '調查中';
+      document.getElementById('caseStateBadge').style.background = '#0284c7';
+
+      document.getElementById('briefingOfficerName').innerText = `${c.briefingMode} (簡報者：${c.briefingOfficer || '現場負責人'})`;
+      const briefContent = document.getElementById('briefingContentText');
+      briefContent.innerText = c.briefingContent;
+      if (safeMosaicEnabled && c.horrorLevel >= 2) {
+        briefContent.className = 'safe-mosaic';
+      } else {
+        briefContent.className = 'safe-clear';
+      }
+
+      // 載入嫌疑人選單
+      loadSuspectsForCase(id);
       loadStatus();
       loadBridgeEvents();
+    }
+
+    async function loadSuspectsForCase(caseId) {
+      const res = await fetch(`/api/detective/case/${caseId}`);
+      const data = await res.json();
+      if (!data.success) return;
+
+      const selNpc = document.getElementById('selNpc');
+      selNpc.innerHTML = '';
+      (data.suspects || []).forEach(s => {
+        selNpc.innerHTML += `<option value="${s.id}">${s.name} (${s.occupation}) [${s.roleType}]</option>`;
+      });
+
+      if (data.suspects && data.suspects.length > 0) {
+        startNpcDialogue(data.suspects[0].id);
+      }
     }
 
     async function examineSelectedEvidence() {
       const evId = document.getElementById('selEvidence').value;
       const toolId = document.getElementById('selTool').value;
+      if (!evId) {
+        alert('請先在左側接取案件以獲取現場證物！');
+        return;
+      }
+
       const res = await fetch('/api/detective/evidence/examine', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ evidenceId: evId, toolId })
       });
       const data = await res.json();
-      const out = document.getElementById('examineResult');
+
+      const box = document.getElementById('examineResult');
       if (data.success) {
-        out.style.color = '#34d399';
-        out.innerHTML = `<b>🧪 化驗成功：</b>${data.result}<br><b>💡 解鎖線索：</b>${data.clueUnlocked}`;
+        box.style.color = '#34d399';
+        box.innerHTML = `<b>【化驗成功】</b><br>${data.result}<br><span style="color:#fbbf24;">💡 破案線索：${data.clueUnlocked}</span>`;
       } else {
-        out.style.color = '#fb7185';
-        out.innerText = data.message || data.error;
+        box.style.color = '#fb7185';
+        box.innerHTML = `<b>【化驗反饋】</b><br>${data.message || data.error}`;
       }
       loadStatus();
+      loadBridgeEvents();
     }
 
     async function startNpcDialogue(npcId) {
@@ -281,92 +529,261 @@
       const res = await fetch('/api/detective/dialogue/start', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ npcId })
+        body: JSON.stringify({ npcId, sessionId: 'session_web' })
       });
       const data = await res.json();
-      renderDialogue(data);
+      if (!data.success) {
+        document.getElementById('dialogueBox').innerText = data.error;
+        document.getElementById('optionsWrap').innerHTML = '';
+        return;
+      }
+      renderDialogueNode(data);
     }
 
-    function renderDialogue(data) {
-      document.getElementById('dialogueBox').innerHTML = `<b>💬 說法：</b><br>${data.npcText}`;
-      const optWrap = document.getElementById('optionsWrap');
-      optWrap.innerHTML = '';
-      (data.options || []).forEach(opt => {
-        optWrap.innerHTML += `<button class="opt-btn" onclick="selectDialogueOption(${opt.index})">👉 ${opt.text}</button>`;
+    function renderDialogueNode(node) {
+      document.getElementById('dialogueBox').innerHTML = `
+        <div style="color:#38bdf8; font-weight:bold; margin-bottom:4px;">${currentNpcId} 回應：</div>
+        <div>${node.npcText}</div>
+        ${node.clueUnlocked ? `<div style="margin-top:8px; color:#fbbf24; font-weight:bold;">💡 解鎖筆錄矛盾：${node.clueUnlocked}</div>` : ''}
+        ${node.caseClosed ? `<div style="margin-top:8px; color:#34d399; font-weight:bold;">🎉 嫌疑人已坦承關鍵涉案事實！可直接提出結案指控！</div>` : ''}
+      `;
+
+      const wrap = document.getElementById('optionsWrap');
+      wrap.innerHTML = '';
+      (node.options || []).forEach(opt => {
+        const isClue = opt.requiresEvidence;
+        wrap.innerHTML += `
+          <button class="opt-btn ${isClue ? 'present-clue' : ''}" onclick="selectDialogueOption(${opt.index})">
+            ${isClue ? '⚡ [出示物證打臉] ' : '💬 '}${opt.text}
+          </button>
+        `;
       });
-      if (data.clueUnlocked) {
-        alert('🎉 獲得重大供詞線索：' + data.clueUnlocked);
-      }
     }
 
     async function selectDialogueOption(idx) {
       const res = await fetch('/api/detective/dialogue/select', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ optionIndex: idx })
+        body: JSON.stringify({ sessionId: 'session_web', optionIndex: idx })
       });
       const data = await res.json();
-      if (data.success) {
-        renderDialogue(data);
-      } else {
+      if (!data.success) {
         alert(data.error);
+        return;
       }
+      renderDialogueNode(data);
+      loadStatus();
     }
 
     async function submitAccusation() {
+      if (!confirm(`確認對當前嫌疑人 [${currentNpcId}] 正式提出結案指控？`)) return;
+
+      const evIds = (cachedInventory ? cachedInventory.evidences || [] : []).map(e => e.id);
       const res = await fetch('/api/detective/deduction/solve', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           caseId: currentCaseId,
           suspectId: currentNpcId,
-          evidenceIds: ['ev_01_coffee_cup', 'ev_02_trash_receipt']
+          evidenceIds: evIds
         })
       });
       const data = await res.json();
-      const card = document.getElementById('resolutionResult');
-      card.style.display = 'block';
+
+      const box = document.getElementById('resolutionResult');
+      box.style.display = 'block';
       if (data.success) {
-        card.style.borderColor = '#34d399';
-        card.innerHTML = `<h3 style="color:#34d399;">🏆 破案成功！評等：${data.grade}</h3><p style="margin-top:4px;">${data.feedback}</p><p style="color:#94a3b8; font-size:11px; margin-top:6px;">案情全貌：${data.rationale}</p>`;
+        box.style.borderColor = '#34d399';
+        box.innerHTML = `
+          <div style="font-weight:bold; color:#34d399; font-size:14px;">🎉 案件成功告破！</div>
+          <div style="margin:4px 0;">結案評等：<b>${data.grade}</b> (總分：${data.score}分)</div>
+          <div style="color:#cbd5e1; font-size:11px;">案情始末：${data.rationale}</div>
+          ${data.souvenirUnlocked ? `<div style="color:#fbbf24; margin-top:4px;">🎁 解鎖特產收藏：【${data.souvenirUnlocked.name}】！</div>` : ''}
+        `;
+        document.getElementById('caseStateBadge').innerText = '已告破';
+        document.getElementById('caseStateBadge').style.background = '#059669';
       } else {
-        card.style.borderColor = '#fb7185';
-        card.innerHTML = `<h3 style="color:#fb7185;">❌ 指控未獲支持 (得分: ${data.score})</h3><p>${data.feedback}</p>`;
+        box.style.borderColor = '#fb7185';
+        box.innerHTML = `
+          <div style="font-weight:bold; color:#fb7185; font-size:14px;">❌ 結案未通過！</div>
+          <div style="margin:4px 0;">評等：${data.grade} (得分：${data.score}分)</div>
+          <div style="color:#cbd5e1; font-size:11px;">${data.feedback}</div>
+        `;
       }
       loadStatus();
       loadBridgeEvents();
     }
 
+    async function archiveCurrentCaseCold() {
+      if (!confirm('確認將當前案件加蓋「未破懸案」官印移入雙北歷史懸案檔案庫？（零劇透封存）')) return;
+
+      const res = await fetch('/api/detective/deduction/cold-case', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ caseId: currentCaseId, reason: '調查員暫停調查' })
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert(data.message);
+        loadColdCases();
+        loadStatus();
+        loadBridgeEvents();
+      }
+    }
+
+    async function loadColdCases() {
+      const res = await fetch('/api/detective/deduction/cold-cases');
+      const data = await res.json();
+      const wrap = document.getElementById('coldCaseList');
+      if (!data.coldCases || data.coldCases.length === 0) {
+        wrap.innerText = '暫無封存之未破懸案。';
+        return;
+      }
+      wrap.innerHTML = '';
+      data.coldCases.forEach(c => {
+        wrap.innerHTML += `
+          <div class="card" style="border-left:3px solid #64748b; margin-bottom:4px;">
+            <b>${c.coldCaseName}</b><br>
+            <span style="color:#94a3b8; font-size:10px;">官印：${c.officialSeal} (零劇透封存)</span>
+          </div>
+        `;
+      });
+    }
+
+    function toggleSafeMosaic() {
+      safeMosaicEnabled = !safeMosaicEnabled;
+      const btn = document.getElementById('btnSafeMosaic');
+      const briefContent = document.getElementById('briefingContentText');
+
+      if (safeMosaicEnabled) {
+        btn.innerText = '🛡️ 防嚇保護馬賽克：已開啟';
+        btn.style.background = '#475569';
+        briefContent.className = 'safe-mosaic';
+      } else {
+        btn.innerText = '👁️ 防嚇保護馬賽克：已關閉 (清晰原貌)';
+        btn.style.background = '#0284c7';
+        briefContent.className = 'safe-clear';
+      }
+
+      fetch('/api/detective/settings/safe-viewing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled: safeMosaicEnabled })
+      });
+    }
+
+    // ─── 通勤與防瞬移功能 ───
+    async function walkToLocation() {
+      const res = await fetch('/api/detective/move/walk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ coords: [25.0440, 121.5090], locationName: '西門町峨嵋街徒步區' })
+      });
+      const data = await res.json();
+      const fb = document.getElementById('movementFeedback');
+      if (data.success) {
+        fb.style.color = '#34d399';
+        fb.innerText = `✅ ${data.message}`;
+      } else {
+        fb.style.color = '#fb7185';
+        fb.innerText = `❌ ${data.error}`;
+      }
+      loadStatus();
+      loadBridgeEvents();
+    }
+
+    async function transitRideMrt() {
+      const res = await fetch('/api/detective/move/transit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ coords: [25.0465, 121.5170], stationName: '台北車站捷運站', transportType: 'mrt' })
+      });
+      const data = await res.json();
+      const fb = document.getElementById('movementFeedback');
+      if (data.success) {
+        fb.style.color = '#34d399';
+        fb.innerText = `✅ ${data.message}`;
+      } else {
+        fb.style.color = '#fb7185';
+        fb.innerText = `❌ ${data.error}`;
+      }
+      loadStatus();
+      loadBridgeEvents();
+    }
+
+    async function attemptTeleport() {
+      const res = await fetch('/api/detective/move/teleport', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ coords: [25.0112, 121.4548] })
+      });
+      const data = await res.json();
+      const fb = document.getElementById('movementFeedback');
+      fb.style.color = '#fb7185';
+      fb.innerText = data.error;
+    }
+
+    // ─── 道具三軌取得測試 ───
+    async function buyToolTest() {
+      const res = await fetch('/api/detective/inventory/buy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          item: { id: 'tool_metal_detector', name: '便攜金屬探測器', track: 'tool', cost: 25 },
+          isPhysicalStore: true
+        })
+      });
+      const data = await res.json();
+      alert(`購買成功！${data.note}，實扣 $${data.costPaid}，餘額 $${data.balance}`);
+      loadStatus();
+    }
+
+    async function borrowToolTest() {
+      const res = await fetch('/api/detective/inventory/borrow', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tool: { id: 'tool_equal_balance', name: '中藥等臂天平與砝碼', track: 'tool' },
+          venueName: '國立臺灣博物館中藥展廳'
+        })
+      });
+      const data = await res.json();
+      alert(data.message);
+      loadStatus();
+    }
+
+    async function pickEasterEggTest() {
+      const res = await fetch('/api/detective/inventory/egg', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          item: { id: 'egg_cat_sample', name: '巷弄流浪貓毛髮對照樣本', track: 'supply' },
+          caseId: currentCaseId,
+          distanceMeters: 45
+        })
+      });
+      const data = await res.json();
+      alert(data.message);
+      loadStatus();
+    }
+
     async function loadBridgeEvents() {
       const res = await fetch('/api/detective/bridge/events');
       const data = await res.json();
-      const box = document.getElementById('bridgeLog');
-      box.innerHTML = (data.events || []).map(e => `[${e.timestamp.slice(11,19)}] 📡 ${e.event}`).join('<br>');
-    }
-
-    async function simulateMapMove() {
-      await fetch('/api/detective/bridge/event', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ event: 'map:player_moved', payload: { lat: 25.0425, lon: 121.5072, sectorName: '萬華特區' } })
+      const log = document.getElementById('bridgeLog');
+      log.innerHTML = '';
+      (data.events || []).forEach(e => {
+        log.innerHTML += `<div>[${e.timestamp.slice(11,19)}] <b>${e.event}</b></div>`;
       });
-      loadBridgeEvents();
     }
 
-    async function simulateStoreEnter() {
-      await fetch('/api/detective/bridge/event', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ event: 'map:store_entered', payload: { name: '西門町成都路咖啡館', storeId: 'store_cafe_01' } })
-      });
-      loadBridgeEvents();
-    }
-
+    // 初始化啟動
     window.onload = () => {
       loadStatus();
       loadCases();
+      loadColdCases();
       loadBridgeEvents();
-      startNpcDialogue('suspect_01_barista');
+      setInterval(loadBridgeEvents, 8000);
     };
   </script>
 </body>

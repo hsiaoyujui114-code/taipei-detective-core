@@ -52,7 +52,13 @@ const MapDetectiveEvents = {
     ECO_POINTS_AWARDED: 'detective:eco_points_awarded',
 
     // 案件破案結案: { caseId, evaluationGrade, isSuccess, rewardPoints }
-    CASE_RESOLVED: 'detective:case_resolved'
+    CASE_RESOLVED: 'detective:case_resolved',
+
+    // 冷案檔案庫封存通知 (零劇透未破懸案移入檔案庫): { caseId, coldCaseName, reason }
+    COLD_CASE_ARCHIVED: 'detective:cold_case_archived',
+
+    // 六年級防嚇保護馬賽克狀態同步: { enabled }
+    SAFE_VIEWING_TOGGLED: 'detective:safe_viewing_toggled'
   }
 };
 
