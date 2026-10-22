@@ -88,37 +88,117 @@ const soundDelay = engine.evidenceEngine.runAcousticDelayCalculation(300, 20);
 assert(soundDelay.travelTimeSeconds < 1.0, '300m 聲速傳播應在 1 秒以內');
 console.log(`✅ [3.7] 常溫聲速計算成功：300 公尺僅需 ${soundDelay.travelTimeSeconds} 秒，戳破 20 分鐘延遲謊言`);
 
-// ─── 階段 4：三軌背包與三軌道具取得機制 ───
-// 4.1 💰 門市購買 85 折優惠
-const buyRes = engine.investigator.inventory.buyItem(
+// ─── 階段 4：三軌背包與親赴現場驗證機制 (Round 100 規格) ───
+// 4.1 💰 門市購買親赴驗證 (<= 60m 享 85 折到店優惠，> 60m 拒絕並提示距離)
+// 4.1.1 距離門市 > 60m 嘗試購買：必須被拒絕並回傳不能購買與距離提示
+const farBuyRes = engine.investigator.inventory.buyItem(
   { id: 'tool_metal_detector', name: '金屬探測器', track: 'tool', cost: 25 },
   engine.investigator.wallet,
-  true // 實體到店
+  engine.investigator,
+  'store_cvs_ximen'
 );
-assert(buyRes.success);
-assert.strictEqual(buyRes.costPaid, 21, '實體到店享 85 折應扣 21 元 (原價 25)');
-console.log(`✅ [4.1] 門市 85 折購買成功：實付 $${buyRes.costPaid}，餘額 $${buyRes.balance}`);
+assert(!farBuyRes.success, '距離門市 > 60m 應禁止購買');
+assert.strictEqual(farBuyRes.canPurchase, false);
+assert(farBuyRes.distanceMeters > 60);
+console.log(`✅ [4.1.1] 門市遠距購買攔截成功：${farBuyRes.error}`);
 
-// 4.2 🏛️ 科教館微借用
-const borrowRes = engine.investigator.inventory.borrowToolFromVenue(
+// 4.1.2 親自抵達門市現場 (<= 60m)：成功購買並享 85 折到店優惠
+const savedCoords = [...engine.investigator.currentCoords];
+engine.investigator.currentCoords = [25.0437, 121.5077]; // 距離漢中街門市約 15m
+const nearBuyRes = engine.investigator.inventory.buyItem(
+  { id: 'tool_metal_detector', name: '金屬探測器', track: 'tool', cost: 25 },
+  engine.investigator.wallet,
+  engine.investigator,
+  'store_cvs_ximen'
+);
+assert(nearBuyRes.success, '親自抵達門市現場 <= 60m 應成功購買');
+assert.strictEqual(nearBuyRes.canPurchase, true);
+assert.strictEqual(nearBuyRes.costPaid, 21, '實體到店享 85 折應扣 21 元 (原價 25)');
+engine.investigator.currentCoords = savedCoords;
+console.log(`✅ [4.1.2] 門市親赴 85 折購買成功：實付 $${nearBuyRes.costPaid}，餘額 $${nearBuyRes.balance}`);
+
+// 4.2 🏛️ 4 大科普場館借用親赴驗證 (<= 60m 完成微任務借用，> 60m 拒絕並提示距離)
+// 4.2.1 距離科普場館 > 60m 嘗試借用：必須被拒絕並回傳不能借用
+const farBorrowRes = engine.investigator.inventory.borrowToolFromVenue(
   { id: 'tool_shadow_rod', name: '日影幾何標竿', track: 'tool' },
-  '士林國立臺灣科學教育館微型實驗台'
+  '科教館',
+  engine.investigator
 );
-assert(borrowRes.success);
-assert(engine.investigator.inventory.hasTool('tool_shadow_rod'));
-console.log(`✅ [4.2] 科普場館借用成功：${borrowRes.message}`);
+assert(!farBorrowRes.success, '距離科普場館 > 60m 應禁止借用');
+assert.strictEqual(farBorrowRes.canBorrow, false);
+assert(farBorrowRes.distanceMeters > 60);
+console.log(`✅ [4.2.1] 科普場館遠距借用攔截成功：${farBorrowRes.error}`);
 
-// 4.3 🥚 案發生活圈 50~100m 彩蛋拾獲
-const eggRes = engine.investigator.inventory.pickEasterEgg(
+// 4.2.2 親自前往科普場館現場 (<= 60m)：完成微任務成功借用專業儀器
+engine.investigator.currentCoords = [25.0957, 121.5159]; // 距離科教館約 15m
+const nearBorrowRes = engine.investigator.inventory.borrowToolFromVenue(
+  { id: 'tool_shadow_rod', name: '日影幾何標竿', track: 'tool' },
+  '科教館',
+  engine.investigator
+);
+assert(nearBorrowRes.success, '親赴科普場館現場 <= 60m 應成功借用');
+assert.strictEqual(nearBorrowRes.canBorrow, true);
+assert(engine.investigator.inventory.hasTool('tool_shadow_rod'));
+engine.investigator.currentCoords = savedCoords;
+console.log(`✅ [4.2.2] 科普場館親赴借用成功：${nearBorrowRes.message}`);
+
+// 4.3 🥚 觸發彩蛋親赴生活圈驗證 (50~100m 生活圈才可拾獲，平時不直接顯示)
+// 4.3.1 距離案發中心過近 (< 50m)：核心封鎖區，嘗試拾獲必回傳失敗
+const tooCloseEgg = engine.investigator.inventory.pickEasterEgg(
   { id: 'egg_test_sample', name: '巷弄微量對照色卡', track: 'supply' },
   'case_01',
-  45 // 距離 45 公尺
+  35 // 距離 35m < 50m
 );
-assert(eggRes.success);
-// 測試超出 100 公尺違規規範
-const farEgg = engine.investigator.inventory.pickEasterEgg({ id: 'far' }, 'case_01', 150);
-assert(!farEgg.success, '超出 100 公尺彩蛋應被拒絕');
-console.log(`✅ [4.3] 案發 45m 鄰近彩蛋拾獲成功，超距防跑圖機制生效`);
+assert(!tooCloseEgg.success, '距離案發中心 < 50m 應禁止拾獲');
+assert.strictEqual(tooCloseEgg.canPick, false);
+console.log(`✅ [4.3.1] 案發中心過近 (< 50m) 拾獲攔截成功：${tooCloseEgg.error}`);
+
+// 4.3.2 距離案發中心過遠 (> 100m)：嘗試拾獲必回傳失敗
+const tooFarEgg = engine.investigator.inventory.pickEasterEgg(
+  { id: 'egg_test_sample', name: '巷弄微量對照色卡', track: 'supply' },
+  'case_01',
+  150 // 距離 150m > 100m
+);
+assert(!tooFarEgg.success, '距離案發中心 > 100m 應禁止拾獲');
+assert.strictEqual(tooFarEgg.canPick, false);
+console.log(`✅ [4.3.2] 案發生活圈過遠 (> 100m) 跑圖拾獲攔截成功：${tooFarEgg.error}`);
+
+// 4.3.3 親自前往案發現場周邊 50~100m 生活圈巷弄：成功發現並拾獲
+const validEgg = engine.investigator.inventory.pickEasterEgg(
+  { id: 'egg_test_sample', name: '巷弄微量對照色卡', track: 'supply' },
+  'case_01',
+  65 // 距離 65m 合格生活圈
+);
+assert(validEgg.success, '親赴案發現場 50~100m 生活圈應成功發現並拾獲彩蛋');
+assert.strictEqual(validEgg.canPick, true);
+console.log(`✅ [4.3.3] 案發周圍 65m 生活圈親赴拾獲彩蛋成功：${validEgg.message}`);
+
+// 4.4 🏢 建築進出標記親赴驗證 (企劃書 02.2 規格：可進建築大門提供進出，不可進建築無圖案阻擋盲探)
+const nearbyBldgs = engine.buildingSystem.getNearbyBuildings(engine.investigator.currentCoords, 850);
+assert(nearbyBldgs.length >= 2, '生活圈 850m 內應掃描到建築');
+const enterableBldg = nearbyBldgs.find(b => b.isEnterable);
+const unenterableBldg = nearbyBldgs.find(b => !b.isEnterable);
+assert(enterableBldg && enterableBldg.icon !== null, '可進建築必須顯示專屬圖案標記');
+assert(unenterableBldg && unenterableBldg.icon === null, '不可進建築必須無圖案標記 (icon: null)');
+console.log(`✅ [4.4.1] 建築圖案標記驗證成功：可進建築 [${enterableBldg.name}] 顯示 ${enterableBldg.icon}，不可進建築無圖案`);
+
+// 4.4.2 嘗試進入不可進建築 (街景碰撞實體阻擋盲試)
+const blockUnenterable = engine.buildingSystem.enterBuilding(unenterableBldg.id, engine.investigator.currentCoords);
+assert(!blockUnenterable.success && blockUnenterable.icon === null, '不可進建築應被阻擋進入');
+console.log(`✅ [4.4.2] 不可進建築盲試阻擋成功：${blockUnenterable.error}`);
+
+// 4.4.3 可進入建築大門過遠 (> 25m) 禁止進入
+const farEnterBldg = engine.buildingSystem.enterBuilding('cafe_ximen_chengdu', [25.0460, 121.5072]);
+assert(!farEnterBldg.success && farEnterBldg.distanceMeters > 25, '距大門 > 25m 應禁止進入');
+console.log(`✅ [4.4.3] 可進建築遠距進入阻擋成功：${farEnterBldg.error}`);
+
+// 4.4.4 親自靠近大門光圈 (<= 25m) 進入室內與退出
+const enterOffice = engine.buildingSystem.enterBuilding('office_investigator', [25.0425, 121.5072]);
+assert(enterOffice.success, '靠近大門 <= 25m 應成功進入室內');
+assert.strictEqual(engine.buildingSystem.currentInsideBuildingId, 'office_investigator');
+const exitOffice = engine.buildingSystem.exitBuilding();
+assert(exitOffice.success && engine.buildingSystem.currentInsideBuildingId === null, '退出建築回到室外應成功');
+console.log(`✅ [4.4.4] 建築親赴進出切換成功：進入 [${enterOffice.building.name}] 並安全返回室外街道`);
 
 // ─── 階段 5：雙北真實物理移動與嚴禁瞬移驗證 ───
 // 5.1 實體步行消耗體力

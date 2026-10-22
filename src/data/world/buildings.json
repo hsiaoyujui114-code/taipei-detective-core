@@ -1,0 +1,222 @@
+[
+  {
+    "id": "store_ximen_convenience",
+    "name": "漢中街便利商店",
+    "category": "convenience",
+    "isEnterable": true,
+    "icon": "🏪",
+    "coords": [25.0438, 121.5078],
+    "address": "台北市萬華區漢中街52號",
+    "interiorTemplate": "convenience_store",
+    "description": "西門町核心徒步區明亮超商，販售日常耗材與科普廣用試紙補充包。"
+  },
+  {
+    "id": "store_tpe_hardware",
+    "name": "台北車站地下街五金行",
+    "category": "hardware",
+    "isEnterable": true,
+    "icon": "🏪",
+    "coords": [25.0465, 121.5170],
+    "address": "台北市中正區市民大道一段100號B1",
+    "interiorTemplate": "hardware_store",
+    "description": "北車地下街老字號工程五金，提供管線流速與聲學延遲手冊。"
+  },
+  {
+    "id": "store_danshui_stationery",
+    "name": "淡水老街文具雜貨店",
+    "category": "stationery",
+    "isEnterable": true,
+    "icon": "🏪",
+    "coords": [25.1710, 121.4380],
+    "address": "新北市淡水區中正路112號",
+    "interiorTemplate": "stationery_store",
+    "description": "淡水河畔懷舊雜貨行，販售河口潮汐深度與航道圖冊。"
+  },
+  {
+    "id": "store_beitou_hardware",
+    "name": "北投光明路五金雜貨店",
+    "category": "hardware",
+    "isEnterable": true,
+    "icon": "🏪",
+    "coords": [25.1365, 121.5055],
+    "address": "台北市北投區光明路220號",
+    "interiorTemplate": "hardware_store",
+    "description": "溫泉鄉老五金鋪，販售耐熱長竹夾與安全防燙手套。"
+  },
+  {
+    "id": "store_banqiao_tools",
+    "name": "板橋府中工程量具店",
+    "category": "tools",
+    "isEnterable": true,
+    "icon": "🏪",
+    "coords": [25.0090, 121.4590],
+    "address": "新北市板橋區重慶路18號",
+    "interiorTemplate": "tools_store",
+    "description": "府中商圈專業工程測量儀器店，提供精密太陽高度角傾角儀。"
+  },
+  {
+    "id": "store_dadaocheng_grocery",
+    "name": "迪化街南北貨雜貨行",
+    "category": "grocery",
+    "isEnterable": true,
+    "icon": "🏪",
+    "coords": [25.0565, 121.5100],
+    "address": "台北市大同區迪化街一段88號",
+    "interiorTemplate": "grocery_store",
+    "description": "大稻埕百年南北貨老店，提供中藥等臂天平銅砝碼組。"
+  },
+  {
+    "id": "store_nanjing_electronics",
+    "name": "南京東路電子生活館",
+    "category": "electronics",
+    "isEnterable": true,
+    "icon": "🏪",
+    "coords": [25.0518, 121.5492],
+    "address": "台北市松山區南京東路三段285號",
+    "interiorTemplate": "electronics_store",
+    "description": "南京復興捷運旁電子行，提供高靈敏度便攜金屬探測棒。"
+  },
+  {
+    "id": "store_jianguo_hardware",
+    "name": "建國南路五金花卉材料行",
+    "category": "hardware",
+    "isEnterable": true,
+    "icon": "🏪",
+    "coords": [25.0310, 121.5360],
+    "address": "台北市大安區建國南路二段80號",
+    "interiorTemplate": "hardware_store",
+    "description": "大安森林公園旁園藝材料行，提供土質飽和壓強測定儀。"
+  },
+  {
+    "id": "cafe_ximen_chengdu",
+    "name": "西門町成都路連鎖咖啡館",
+    "category": "cafe",
+    "isEnterable": true,
+    "icon": "☕",
+    "coords": [25.0425, 121.5072],
+    "address": "台北市萬華區成都路27號",
+    "interiorTemplate": "cafe_interior",
+    "description": "西門町人潮絡繹不絕之雙層連鎖咖啡館，拿鐵中毒案案發第一現場。"
+  },
+  {
+    "id": "pharmacy_dejitang",
+    "name": "大稻埕德濟堂百年中藥行",
+    "category": "pharmacy",
+    "isEnterable": true,
+    "icon": "🌿",
+    "coords": [25.0560, 121.5098],
+    "address": "台北市大同區迪化街一段142號",
+    "interiorTemplate": "pharmacy_interior",
+    "description": "迪化街南北貨精華區百年老藥鋪，消失百年野山蔘案發現場。"
+  },
+  {
+    "id": "hotspring_inn_beitou",
+    "name": "北投老溫泉旅店",
+    "category": "hotspring",
+    "isEnterable": true,
+    "icon": "♨️",
+    "coords": [25.1368, 121.5065],
+    "address": "台北市北投區中山路12號",
+    "interiorTemplate": "hotspring_inn",
+    "description": "北投溫泉博物館旁日式老旅店，天然 85°C 青磺泉蒸氣出水口。"
+  },
+  {
+    "id": "office_investigator",
+    "name": "西門町都會調查員事務所",
+    "category": "office",
+    "isEnterable": true,
+    "icon": "🚪",
+    "coords": [25.0425, 121.5072],
+    "address": "台北市萬華區成都路35號三樓",
+    "interiorTemplate": "investigator_office",
+    "description": "都會調查員個人空間基地，配置大衣櫃換裝系統、老式生活收音機與雙北特產工藝展示架。"
+  },
+  {
+    "id": "venue_sec",
+    "name": "士林國立臺灣科學教育館微型實驗台",
+    "category": "venue",
+    "isEnterable": true,
+    "icon": "🏛️",
+    "coords": [25.0958, 121.5160],
+    "address": "台北市士林區士商路189號",
+    "interiorTemplate": "museum_hall",
+    "description": "四大微型學習場館之一：提供 1~3 分鐘弱酸顯色與光學分光微互動，免費借用便攜分光鏡與日影幾何標竿。"
+  },
+  {
+    "id": "venue_tpl",
+    "name": "台北市立圖書館總館科技諮詢台",
+    "category": "venue",
+    "isEnterable": true,
+    "icon": "🏛️",
+    "coords": [25.0298, 121.5375],
+    "address": "台北市大安區建國南路二段125號",
+    "interiorTemplate": "library_hall",
+    "description": "四大微型學習場館之一：提供聲學傳播時差與密碼字典微學習，免費借用數位聲學時差分析儀。"
+  },
+  {
+    "id": "venue_customs",
+    "name": "淡水海關故事館文史考據微型站",
+    "category": "venue",
+    "isEnterable": true,
+    "icon": "🏛️",
+    "coords": [25.1725, 121.4342],
+    "address": "新北市淡水區中正路259號",
+    "interiorTemplate": "museum_hall",
+    "description": "四大微型學習場館之一：提供十九世紀英文旗語頻率與淡水潮汐教學，免費借用字母頻率表。"
+  },
+  {
+    "id": "venue_tcm",
+    "name": "國立臺灣博物館中藥常設展廳",
+    "category": "venue",
+    "isEnterable": true,
+    "icon": "🏛️",
+    "coords": [25.0428, 121.5150],
+    "address": "台北市中正區襄陽路2號",
+    "interiorTemplate": "museum_hall",
+    "description": "四大微型學習場館之一：提供阿基米德浮力密度排水法教學，免費借用精密玻璃排水量筒。"
+  },
+  {
+    "id": "bldg_ximen_apartments",
+    "name": "西門町漢中街臨街舊公寓",
+    "category": "residential",
+    "isEnterable": false,
+    "icon": null,
+    "coords": [25.0430, 121.5070],
+    "address": "台北市萬華區漢中街38號",
+    "interiorTemplate": null,
+    "description": "一般街景實體建築，外觀封閉無浮動圖案標記，作為實體碰撞阻擋，杜絕無意義盲目試探。"
+  },
+  {
+    "id": "bldg_tpe_commercial",
+    "name": "台北車站忠孝西路金融商業大樓",
+    "category": "commercial",
+    "isEnterable": false,
+    "icon": null,
+    "coords": [25.0460, 121.5160],
+    "address": "台北市中正區忠孝西路一段66號",
+    "interiorTemplate": null,
+    "description": "實體街景高樓外牆阻擋，無發光進出標記，杜絕無意義盲目試探。"
+  },
+  {
+    "id": "bldg_daan_residential",
+    "name": "大安森林公園信義路住宅大廈",
+    "category": "residential",
+    "isEnterable": false,
+    "icon": null,
+    "coords": [25.0320, 121.5350],
+    "address": "台北市大安區信義路三段147號",
+    "interiorTemplate": null,
+    "description": "一般臨街住宅立面，無進出標記圖案，不可進入。"
+  },
+  {
+    "id": "bldg_danshui_residential",
+    "name": "淡水老街紅磚民宅街廓",
+    "category": "residential",
+    "isEnterable": false,
+    "icon": null,
+    "coords": [25.1700, 121.4370],
+    "address": "新北市淡水區中正路78號",
+    "interiorTemplate": null,
+    "description": "古蹟外圍居民住宅區，無進出圖案標記，不可進入。"
+  }
+]

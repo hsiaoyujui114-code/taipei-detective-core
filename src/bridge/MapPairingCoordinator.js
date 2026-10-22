@@ -23,7 +23,7 @@
  */
 
 const { MapDetectiveEvents } = require('./EventContracts');
-const { calculateDistanceMeters } = require('../player/Investigator');
+const { calculateDistanceMeters } = require('../utils/geoUtils');
 
 class MapPairingCoordinator {
   constructor(storyLoader, caseManager, investigator, bridge) {

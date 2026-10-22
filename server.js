@@ -69,7 +69,8 @@ const server = http.createServer(async (req, res) => {
       activeCase: engine.caseManager.getActiveCaseState(),
       souvenirs: engine.investigator.roomSouvenirs,
       safeViewingMosaic: engine.deductionBoard.safeViewingMosaic,
-      sectorsTrust: engine.trustSystem.getAllSectorStatus()
+      sectorsTrust: engine.trustSystem.getAllSectorStatus(),
+      insideBuilding: engine.buildingSystem.getCurrentInsideBuilding()
     });
   }
 
@@ -203,26 +204,40 @@ const server = http.createServer(async (req, res) => {
     });
   }
 
-  // ─── 5. 道具三軌取得與悠遊卡錢包 API ───
+  // ─── 5. 道具三軌取得親赴驗證 API (Round 100 規格) ───
 
   if (pathname === '/api/detective/inventory/buy' && req.method === 'POST') {
     const body = await parseBody(req);
     const result = engine.investigator.inventory.buyItem(
-      body.item, engine.investigator.wallet, body.isPhysicalStore !== false, body.useTumbler === true
+      body.item,
+      engine.investigator.wallet,
+      engine.investigator,
+      body.storeId || body.storeTarget || null,
+      {
+        isPhysicalStore: body.isPhysicalStore !== false,
+        useTumbler: body.useTumbler === true
+      }
     );
     return sendJson(res, result.success ? 200 : 400, result);
   }
 
   if (pathname === '/api/detective/inventory/borrow' && req.method === 'POST') {
     const body = await parseBody(req);
-    const result = engine.investigator.inventory.borrowToolFromVenue(body.tool, body.venueName || '科普場館');
-    return sendJson(res, 200, result);
+    const result = engine.investigator.inventory.borrowToolFromVenue(
+      body.tool,
+      body.venueName || body.venueId || null,
+      engine.investigator
+    );
+    return sendJson(res, result.success ? 200 : 400, result);
   }
 
   if (pathname === '/api/detective/inventory/egg' && req.method === 'POST') {
     const body = await parseBody(req);
     const result = engine.investigator.inventory.pickEasterEgg(
-      body.item, body.caseId, body.distanceMeters || 45
+      body.item,
+      body.caseId || (engine.caseManager.activeCase ? engine.caseManager.activeCase.location.coords : null),
+      engine.investigator,
+      body.distanceMeters || null
     );
     return sendJson(res, result.success ? 200 : 400, result);
   }
@@ -239,7 +254,35 @@ const server = http.createServer(async (req, res) => {
     return sendJson(res, result.success ? 200 : 400, result);
   }
 
-  // ─── 6. 108 課綱自然科學實驗演算 API ───
+  // ─── 6. 建築進出標記系統 API (企劃書 02.2 核心規格) ───
+
+  if (pathname === '/api/detective/buildings/nearby' && req.method === 'GET') {
+    const radius = Number(urlObj.searchParams.get('radius')) || 850;
+    const buildings = engine.buildingSystem.getNearbyBuildings(engine.investigator.currentCoords, radius);
+    return sendJson(res, 200, { success: true, radius, buildings });
+  }
+
+  if (pathname === '/api/detective/building/enter' && req.method === 'POST') {
+    const body = await parseBody(req);
+    const result = engine.buildingSystem.enterBuilding(body.buildingId, engine.investigator.currentCoords);
+    if (result.success) {
+      engine.bridge.dispatch(engine.events.MAP.STORE_ENTERED, {
+        storeId: body.buildingId,
+        name: result.buildingName
+      });
+    }
+    return sendJson(res, result.success ? 200 : 400, result);
+  }
+
+  if (pathname === '/api/detective/building/exit' && req.method === 'POST') {
+    const result = engine.buildingSystem.exitBuilding();
+    if (result.success) {
+      engine.bridge.dispatch(engine.events.MAP.STORE_EXITED, result);
+    }
+    return sendJson(res, result.success ? 200 : 400, result);
+  }
+
+  // ─── 7. 108 課綱自然科學實驗演算 API ───
 
   if (pathname === '/api/detective/science/ph' && req.method === 'POST') {
     const body = await parseBody(req);
@@ -267,7 +310,7 @@ const server = http.createServer(async (req, res) => {
     ));
   }
 
-  // ─── 7. 地圖協同橋樑事件 API ───
+  // ─── 8. 地圖協同橋樑事件 API ───
 
   if (pathname === '/api/detective/bridge/events' && req.method === 'GET') {
     return sendJson(res, 200, {
@@ -282,36 +325,7 @@ const server = http.createServer(async (req, res) => {
     return sendJson(res, 200, { success: true, dispatched: entry });
   }
 
-  // ─── 7B. 地圖協同調度與地理圖層 API (Map Pairing & Geo Overlays) ───
-
-  if (pathname === '/api/detective/map/pairing-status' && req.method === 'GET') {
-    const caseId = urlObj.searchParams.get('caseId');
-    return sendJson(res, 200, engine.mapCoordinator.getCaseMapOverlays(caseId));
-  }
-
-  if (pathname === '/api/detective/map/geojson' && req.method === 'GET') {
-    const caseId = urlObj.searchParams.get('caseId');
-    return sendJson(res, 200, engine.mapCoordinator.exportGeoJson(caseId));
-  }
-
-  if (pathname === '/api/detective/map/sync-location' && req.method === 'POST') {
-    const body = await parseBody(req);
-    const coords = body.coords || [body.lat, body.lon];
-    const result = engine.mapCoordinator.syncLocationFromMap(
-      coords,
-      body.locationName || '雙北街區',
-      body.isWalk !== false
-    );
-    return sendJson(res, result.success ? 200 : (result.isForbidden ? 403 : 400), result);
-  }
-
-  if (pathname === '/api/detective/map/mode' && req.method === 'POST') {
-    const body = await parseBody(req);
-    const result = engine.mapCoordinator.setPairingMode(body.mode);
-    return sendJson(res, result.success ? 200 : 400, result);
-  }
-
-  // ─── 8. 靜態可視化工作台檔案路由 ───
+  // ─── 9. 靜態可視化工作台檔案路由 ───
 
   let filePath = path.join(__dirname, 'public', pathname === '/' ? 'index.html' : pathname);
   if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {

@@ -6,18 +6,21 @@
  * 包含：
  * 1. StoryLoader (非寫死劇情資料載入器)
  * 2. Investigator (都會調查員狀態、三軌背包與物理移動系統)
- * 3. EvidenceEngine (生活科學物證鑑識與自然科學演算)
- * 4. DialogueEngine (多輪 NPC 詰問樹與物證對質打臉)
- * 5. DeductionBoard (思維推理板、指控評等與冷案檔案庫)
- * 6. TrustSystem (社區信賴度 Lv.1~Lv.5 與特區聲譽)
- * 7. CaseManager (全生命週期狀態機總控)
- * 8. MapBridge (雙向事件協同橋樑總線)
+ * 3. BuildingSystem (雙北真實建築進出標記系統 企劃書 02.2)
+ * 4. EvidenceEngine (生活科學物證鑑識與自然科學演算)
+ * 5. DialogueEngine (多輪 NPC 詰問樹與物證對質打臉)
+ * 6. DeductionBoard (思維推理板、指控評等與冷案檔案庫)
+ * 7. TrustSystem (社區信賴度 Lv.1~Lv.5 與特區聲譽)
+ * 8. CaseManager (全生命週期狀態機總控)
+ * 9. MapBridge (雙向事件協同橋樑總線)
+ * 10. MapPairingCoordinator (地圖協同調度器)
  */
 
 const { StoryLoader } = require('./storyline/StoryLoader');
 const { Investigator, calculateDistanceMeters } = require('./player/Investigator');
 const { Inventory } = require('./player/Inventory');
 const { EcoWallet } = require('./player/EcoWallet');
+const { BuildingSystem } = require('./world/BuildingSystem');
 const { EvidenceEngine } = require('./core/EvidenceEngine');
 const { DialogueEngine } = require('./storyline/DialogueEngine');
 const { DeductionBoard } = require('./core/DeductionBoard');
@@ -30,6 +33,7 @@ function createDetectiveEngine(customDataDir = null) {
   const loader = new StoryLoader(customDataDir);
   const bridge = new MapBridge();
   const investigator = new Investigator('雙北行蹤調查員');
+  const buildingSystem = new BuildingSystem();
 
   const evidenceEngine = new EvidenceEngine(loader);
   const dialogueEngine = new DialogueEngine(loader);
@@ -70,6 +74,7 @@ function createDetectiveEngine(customDataDir = null) {
     loader,
     bridge,
     investigator,
+    buildingSystem,
     evidenceEngine,
     dialogueEngine,
     deductionBoard,
@@ -89,6 +94,7 @@ module.exports = {
   Investigator,
   Inventory,
   EcoWallet,
+  BuildingSystem,
   EvidenceEngine,
   DialogueEngine,
   DeductionBoard,
