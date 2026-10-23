@@ -234,6 +234,84 @@ class EvidenceEngine {
       scientificPrinciple: `在 ${temperatureC}°C 常溫空氣中，聲波傳播 ${distanceMeters} 公尺僅需 ${travelTimeSeconds} 秒，絕不可能延遲數十分鐘！`
     };
   }
+
+  /**
+   * 6. 薄層色層分析 (TLC) 展開比 Rf 演算
+   * 公式：Rf = 溶質移動距離 (mm) / 展開劑前沿移動距離 (mm)
+   */
+  runTlcRfAnalysis(spotDistanceMm, solventFrontMm, standardRf = 0.42, tolerance = 0.05) {
+    if (solventFrontMm <= 0) return { error: '溶劑前沿移動距離必須大於 0' };
+    if (spotDistanceMm < 0 || spotDistanceMm > solventFrontMm) {
+      return { error: '溶質爬升距離不能小於 0 且不能超越溶劑前沿' };
+    }
+
+    const calculatedRf = Number((spotDistanceMm / solventFrontMm).toFixed(2));
+    const isMatched = Math.abs(calculatedRf - standardRf) <= tolerance;
+
+    return {
+      spotDistanceMm,
+      solventFrontMm,
+      calculatedRf,
+      standardRf,
+      tolerance,
+      isMatched,
+      conclusion: isMatched
+        ? `薄層層析展開比 Rf = ${calculatedRf} 與標準品 Rf = ${standardRf} (容差 ±${tolerance}) 完全吻合，證實成分高度一致！`
+        : `薄層層析展開比 Rf = ${calculatedRf} 與標準品 Rf = ${standardRf} 顯著偏差，排除同種化學物質。`,
+      formula: 'Rf = 溶質移動距離 ÷ 展開劑前沿移動距離',
+      scientificPrinciple: '108 課綱基礎化學毛細現象與分配層析原理：混合物在固定相（矽膠薄層）與移動相（展開溶劑）間因極性與溶解度差異產生不同的遷移速率。'
+    };
+  }
+
+  /**
+   * 7. 紫外光 (UV) 螢光光譜激發判定
+   * 判定激發波長（例如 365nm UV-A、254nm UV-C）下的特定受檢物質光學反應
+   */
+  runUvFluorescenceAnalysis(wavelengthNm, substanceKey) {
+    const uvStandards = {
+      amygdalin: {
+        name: '苦杏仁苷 (有機生物鹼)',
+        excitationNm: 365,
+        fluorescenceColor: '亮黃綠色',
+        visibleUnderNormalLight: false,
+        desc: '在 365nm 紫外燈激發下顯露特征黃綠色螢光色帶。'
+      },
+      sweat_protein: {
+        name: '汗液蛋白質與油脂殘留 (指紋)',
+        excitationNm: 365,
+        fluorescenceColor: '微弱青白色',
+        visibleUnderNormalLight: false,
+        desc: '汗液所含色胺酸與皮脂在 365nm 紫外光下激發微弱青白螢光，凸顯指紋脊線與印痕。'
+      },
+      currency_ink: {
+        name: '鈔券防偽螢光油墨',
+        excitationNm: 365,
+        fluorescenceColor: '鮮橙紅色',
+        visibleUnderNormalLight: false,
+        desc: '央行特種螢光防偽纖維與油墨激發。'
+      }
+    };
+
+    const targetSubstance = uvStandards[substanceKey] || {
+      name: substanceKey || '未知化合物',
+      excitationNm: 365,
+      fluorescenceColor: '無明顯螢光激發',
+      visibleUnderNormalLight: true,
+      desc: '未檢測出顯著特徵螢光反應。'
+    };
+
+    const isExcited = Math.abs(wavelengthNm - targetSubstance.excitationNm) <= 20;
+
+    return {
+      testedWavelengthNm: wavelengthNm,
+      substanceKey,
+      substanceName: targetSubstance.name,
+      isExcited,
+      observedFluorescence: isExcited ? targetSubstance.fluorescenceColor : '無螢光（非該物質最佳激發波長）',
+      details: targetSubstance.desc,
+      scientificPrinciple: '光學史托克定律 (Stokes Law)：分子吸收高能量短波長紫外光（如 365nm）躍遷至激發態，退激發時釋放較低能量長波長的可見光螢光。'
+    };
+  }
 }
 
 module.exports = {

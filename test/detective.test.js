@@ -74,14 +74,18 @@ console.log(`✅ [3.2] pH 酸鹼滴定成功：${phExamine.result}`);
 const ev02 = case01.evidenceChain[1]; // 杯蓋
 const uvExamine = engine.caseManager.examineEvidence(ev02.id, 'tool_uv_torch', engine.investigator);
 assert(uvExamine.success, '紫外光化驗杯蓋應成功');
-console.log(`✅ [3.3] 365nm 紫外光檢驗成功：${uvExamine.result}`);
+const uvSim = engine.evidenceEngine.runUvFluorescenceAnalysis(365, 'amygdalin');
+assert(uvSim.isExcited, '365nm 應能激發苦杏仁苷螢光');
+console.log(`✅ [3.3] 365nm 紫外光檢驗成功：${uvExamine.result} (演算法螢光激發：${uvSim.observedFluorescence})`);
 
 // 3.4 薄層色層分析 (TLC) 毛細分離
 const ev03 = case01.evidenceChain[2]; // TLC 分析片
 engine.investigator.inventory.addTool({ id: 'tool_tlc_scanner', name: 'TLC 展開鏡' });
 const tlcExamine = engine.caseManager.examineEvidence(ev03.id, 'tool_tlc_scanner', engine.investigator);
 assert(tlcExamine.success, 'TLC 檢驗應成功');
-console.log(`✅ [3.4] TLC 薄層層析展開比對成功：${tlcExamine.result}`);
+const tlcSim = engine.evidenceEngine.runTlcRfAnalysis(21.0, 50.0, 0.42); // 21mm / 50mm = 0.42
+assert(tlcSim.isMatched, 'Rf 0.42 應與標準品吻合');
+console.log(`✅ [3.4] TLC 薄層層析展開比對成功：${tlcExamine.result} (Rf演算值：${tlcSim.calculatedRf})`);
 
 // 3.5 阿基米德浮力與密度測定 (Case 08 中空砝碼)
 const densitySim = engine.evidenceEngine.runArchimedesDensity(50.0, 7.58);
