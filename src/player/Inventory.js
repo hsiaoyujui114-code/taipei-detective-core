@@ -457,6 +457,55 @@ class Inventory {
     };
   }
 
+  /**
+   * 取得雙北合作特約實體門市清單（支援以調查員當前座標即時計算距離與 85 折到店資格）
+   * @param {number[]|null} userCoords - 調查員當前經緯度 [lat, lon]
+   * @returns {Array<Object>} 門市清單
+   */
+  getAllStores(userCoords = null) {
+    return Object.values(STORES_MAP).map(store => {
+      const dist = userCoords ? calculateDistanceMeters(userCoords, store.coords) : null;
+      const canPurchase = dist !== null ? dist <= 60 : null;
+      return {
+        id: store.id,
+        name: store.name,
+        aliases: store.aliases,
+        coords: store.coords,
+        discountRate: 0.85,
+        perkDescription: '親赴門市現場（<= 60m）享有 85 折到店優惠',
+        distanceMeters: dist,
+        canPurchase,
+        statusText: dist === null
+          ? '待定位'
+          : (canPurchase ? '已抵達門市現場 (可享85折)' : `距門市 ${dist}m (需親赴至 60m 內)`)
+      };
+    });
+  }
+
+  /**
+   * 取得雙北 4 大科普微型學習場館清單（支援以調查員當前座標即時計算距離與免費借用資格）
+   * @param {number[]|null} userCoords - 調查員當前經緯度 [lat, lon]
+   * @returns {Array<Object>} 場館清單
+   */
+  getAllVenues(userCoords = null) {
+    return Object.values(VENUES_MAP).map(venue => {
+      const dist = userCoords ? calculateDistanceMeters(userCoords, venue.coords) : null;
+      const canBorrow = dist !== null ? dist <= 60 : null;
+      return {
+        id: venue.id,
+        name: venue.name,
+        aliases: venue.aliases,
+        coords: venue.coords,
+        microTaskDescription: '完成 1~3 分鐘微型動手教學任務即可免費借用專業儀器',
+        distanceMeters: dist,
+        canBorrow,
+        statusText: dist === null
+          ? '待定位'
+          : (canBorrow ? '已抵達科普場館 (可免費借用)' : `距場館 ${dist}m (需親赴至 60m 內)`)
+      };
+    });
+  }
+
   listAll() {
     return {
       supplies: this.supplies,

@@ -2,20 +2,28 @@
  * ============================================================================
  * MAP PAIRING COORDINATOR (地圖協同調度器)
  * ============================================================================
- * 專為《雙北漫遊：都會行蹤》偵探系統與地圖系統聯動設計的專屬協同模組。
+ * 專為《雙北漫遊：都會行蹤》偵探核心系統與 Web Leaflet 地圖系統深度無縫對接設計。
  *
- * 核心功能：
- * 1. 案件搜查警戒圈管理 (Crime Scene Perimeter)：
- *    - 為 10 大示範案件生成 GPS 中心點、半徑 (50~150m)、顏色與警示光圈規範。
+ * 核心職責 (Architecture & Responsibilities)：
+ * 1. 搜查警戒圈管理與派發 (Crime Scene Perimeter Dispatch)：
+ *    - 10 大示範案件 GPS 中心點、半徑 (50~150m)、顏色與警戒黃線規範。
  * 2. 空間定位與案發距離感測 (Geospatial Proximity Tracking)：
- *    - 接收地圖回傳的調查員經緯度，實時演算距離、步程、體力扣減與是否進入現場。
+ *    - 接收地圖回傳經緯度，實時演算距離、步程、體力扣減、防瞬移審查與進入現場判定。
  * 3. 現場物證與關係人地圖標記 (Map POI & Suspect Markers)：
- *    - 輸出標準 GeoJSON 格式，供 Leaflet / Canvas 地圖無縫渲染標記。
- * 4. 大眾運輸導航與 TPASS 扣款協同 (Transit Routing & Fare Sync)：
- *    - 串接捷運與公車路網，估算搭乘時間與站點轉乘。
- * 5. 學校模式 vs 家中模式智慧適配 (School/Home Mode Adapter)：
- *    - 學校模式 (School Mode)：地圖獨立維護，支援離線契約模擬，不卡死開發。
- *    - 家中模式 (Home Mode)：雙軌即時聯調，WebSocket/HTTP 雙向推播事件。
+ *    - 嫌疑人標記與口供筆錄狀態雙向綁定 (Interrogation State Binding)。
+ *    - 物證標記與生活科學檢驗狀態綁定。
+ * 4. 三軌親赴現場驗證對接 (Round 100 On-Site Physical Verification)：
+ *    - 門市親赴 85 折結算 (<= 60m 判定)。
+ *    - 4 大科普場館借用通知 (<= 60m 微任務判定)。
+ *    - 案發 50~100m 巷弄生活圈彩蛋拾獲判定。
+ * 5. 建築物進出切換 (Proposal 02.2 Building Entry / Collider System)：
+ *    - 可進入建築圖案標記 (🏪, ☕, 🌿, 🏛️, 🚪, ♨️) 與 <= 25m 大門進出。
+ *    - 不可進建築無圖案 (icon: null) 實體街景碰撞阻擋。
+ * 6. 標準 GeoJSON 圖層輸出 (Leaflet Web Map Layer Feed)：
+ *    - 單一資料來源供應所有地圖圖層，杜絕任何資料斷點。
+ * 7. 雙軌模式適配器 (School vs Home Mode)：
+ *    - 學校模式 (School Mode)：離線獨立開發，標準事件合約待命。
+ *    - 家中模式 (Home Mode)：雙軌實時通訊，WebSocket / HTTP 事件雙向連動。
  *
  * 嚴守三大最高規範：
  * - 稱謂規範：全專案稱呼「都會調查員」或「市民」。
@@ -24,19 +32,28 @@
 
 const { MapDetectiveEvents } = require('./EventContracts');
 const { calculateDistanceMeters } = require('../utils/geoUtils');
+const { BuildingSystem } = require('../world/BuildingSystem');
 
 class MapPairingCoordinator {
-  constructor(storyLoader, caseManager, investigator, bridge) {
+  /**
+   * @param {Object} storyLoader - 劇情動態資料載入器
+   * @param {Object} caseManager - 案件全生命週期狀態機總控
+   * @param {Object} investigator - 都會調查員模型
+   * @param {Object} bridge - 雙向協同事件橋樑總線
+   * @param {Object|null} buildingSystem - 建築進出系統 (可選，預設自動建構)
+   */
+  constructor(storyLoader, caseManager, investigator, bridge, buildingSystem = null) {
     this.loader = storyLoader;
     this.caseManager = caseManager;
     this.investigator = investigator;
     this.bridge = bridge;
+    this.buildingSystem = buildingSystem || new BuildingSystem();
 
     // 學校 vs 家中模式狀態
     this.currentMode = 'home'; // 'home' (雙軌即時聯調) 或 'school' (學校地圖獨立模式)
     this.mainMapServerUrl = 'http://localhost:3000';
 
-    // 案發搜查警戒圈配置 (10 大案件專屬半徑與中心座標)
+    // 案發搜查警戒圈配置 (10 大案件專屬半徑、中心座標、色系與捷運站對照)
     this.casePerimeters = {
       case_01: {
         caseId: 'case_01',
@@ -141,55 +158,343 @@ class MapPairingCoordinator {
     };
   }
 
-  /**
-   * 取得指定案件或當前活躍案件的地圖圖層規範 (Overlays)
-   */
-  getCaseMapOverlays(targetCaseId = null) {
-    const caseId = targetCaseId || this.investigator.activeCaseId || 'case_01';
-    const perimeter = this.casePerimeters[caseId] || this.casePerimeters['case_01'];
-    const caseDef = this.loader.getCase(caseId);
+  // ─── 1. 搜查警戒圈管理與派發 ───
 
-    // 涉案關係人地圖點位
-    const suspects = this.loader.getSuspectsForCase(caseId).map((s, idx) => {
-      // 依據案件中心座標略微偏移 (模擬關係人分佈在周遭 30~70 公尺門市或攤位)
+  /**
+   * 取得指定案件之搜查警戒圈設定
+   * @param {string|null} caseId
+   * @returns {Object} 警戒圈配置
+   */
+  getPerimeter(caseId = null) {
+    const cId = caseId || this.investigator.activeCaseId || 'case_01';
+    return this.casePerimeters[cId] || this.casePerimeters['case_01'];
+  }
+
+  /**
+   * 主動向地圖系統派發搜查警戒圈事件 (Detective -> Map)
+   * @param {string|null} caseId
+   * @returns {Object} 派發內容
+   */
+  dispatchPerimeter(caseId = null) {
+    const perimeter = this.getPerimeter(caseId);
+    const payload = {
+      caseId: perimeter.caseId,
+      title: perimeter.title,
+      center: perimeter.center,
+      radiusMeters: perimeter.radiusMeters,
+      sector: perimeter.sector,
+      color: perimeter.color,
+      nearestMrt: perimeter.nearestMrt,
+      crimeTapeActive: perimeter.crimeTapeActive
+    };
+
+    this.bridge.dispatch(MapDetectiveEvents.DETECTIVE.PERIMETER_DISPATCHED, payload);
+    this.bridge.dispatch(MapDetectiveEvents.DETECTIVE.CASE_ACCEPTED, {
+      caseId: perimeter.caseId,
+      title: perimeter.title,
+      centerCoords: perimeter.center,
+      radiusMeters: perimeter.radiusMeters,
+      hints: `請前往【${perimeter.sector}】(${perimeter.nearestMrt}) 開展現場調查`
+    });
+
+    return {
+      success: true,
+      dispatched: payload
+    };
+  }
+
+  // ─── 2. 涉案關係人與口供筆錄狀態雙向綁定 ───
+
+  /**
+   * 取得涉案關係人列表，並附帶筆錄對質進度狀態 (供地圖渲染關係人互動標記)
+   * @param {string|null} caseId
+   * @returns {Array<Object>} 關係人地圖資訊
+   */
+  getSuspectsWithDialogueState(caseId = null) {
+    const cId = caseId || this.investigator.activeCaseId || 'case_01';
+    const perimeter = this.getPerimeter(cId);
+    const rawSuspects = this.loader.getSuspectsForCase(cId);
+
+    return rawSuspects.map((s, idx) => {
+      // 空間微偏移模擬關係人分佈在案發中心周圍 30~70 公尺之街區或店鋪
       const latOffset = (idx % 2 === 0 ? 1 : -1) * (0.00025 + idx * 0.00015);
       const lonOffset = (idx > 1 ? 1 : -1) * (0.00030 + idx * 0.00012);
+      const coords = [
+        Number((perimeter.center[0] + latOffset).toFixed(6)),
+        Number((perimeter.center[1] + lonOffset).toFixed(6))
+      ];
+      const distFromInvestigator = calculateDistanceMeters(this.investigator.currentCoords, coords);
+
       return {
         id: s.id,
         name: s.name,
         role: s.role,
         occupation: s.occupation,
         locationName: s.location || '案發周邊街區',
-        coords: [
-          Number((perimeter.center[0] + latOffset).toFixed(6)),
-          Number((perimeter.center[1] + lonOffset).toFixed(6))
-        ],
+        coords,
+        distanceFromInvestigator: distFromInvestigator,
+        canTalkRightNow: distFromInvestigator <= 60,
+        dialogueAvailable: true,
         type: 'suspect'
       };
     });
+  }
 
-    // 關鍵物證與彩蛋點位
+  /**
+   * 地圖端與嫌疑人進行詰問或出示物證對質 (Map -> Detective 雙向綁定)
+   * @param {string} sessionId - 對話階段識別碼
+   * @param {string} suspectId - 嫌疑人代號
+   * @param {number|null} optionIndex - 選擇之對話分支 (null 表示開啟對話)
+   * @returns {Object} 對話或對質結果
+   */
+  syncSuspectInterrogationState(sessionId, suspectId, optionIndex = null) {
+    let result;
+    if (optionIndex === null || optionIndex === undefined) {
+      result = this.caseManager.interrogateSuspect(sessionId, suspectId);
+    } else {
+      if (!this.caseManager.dialogueEngine.activeSessions.has(sessionId)) {
+        this.caseManager.interrogateSuspect(sessionId, suspectId);
+      }
+      result = this.caseManager.dialogueEngine.selectOption(sessionId, optionIndex, this.investigator);
+    }
+
+    if (result.success) {
+      const suspect = this.loader.getNpc(suspectId);
+      this.bridge.dispatch(MapDetectiveEvents.DETECTIVE.SUSPECT_CONFRONTED, {
+        sessionId,
+        suspectId,
+        suspectName: suspect ? suspect.name : suspectId,
+        step: result.step,
+        clueUnlocked: result.clueUnlocked || null,
+        caseClosed: result.caseClosed || false,
+        text: result.text || ''
+      });
+    }
+
+    return result;
+  }
+
+  // ─── 3. 三軌道具親赴驗證對接 (門市 85 折、場館借用、生活圈彩蛋) ───
+
+  /**
+   * 取得地圖周邊合作特約門市清單（含即時距離與 85 折資格判定）
+   * @param {number} radiusMeters
+   * @returns {Array<Object>}
+   */
+  getNearbyStoresOnMap(radiusMeters = 850) {
+    const stores = this.investigator.inventory.getAllStores(this.investigator.currentCoords);
+    return stores.filter(s => s.distanceMeters === null || s.distanceMeters <= radiusMeters);
+  }
+
+  /**
+   * 於地圖端觸發實體門市購買 (驗證距離 <= 60m 享 85 折)
+   * @param {Object} itemDef - 道具定義
+   * @param {string} storeId - 目標門市代號
+   * @param {Object} options - 購買選項 (例如使用隨行杯)
+   * @returns {Object} 購買結果
+   */
+  purchaseAtStoreFromMap(itemDef, storeId, options = {}) {
+    const result = this.investigator.inventory.buyItem(
+      itemDef,
+      this.investigator.wallet,
+      this.investigator,
+      storeId,
+      options
+    );
+
+    if (result.success) {
+      this.bridge.dispatch(MapDetectiveEvents.DETECTIVE.STORE_PURCHASED, {
+        item: result.item,
+        costPaid: result.costPaid,
+        balance: result.balance,
+        storeName: result.targetStoreName,
+        distanceMeters: result.distanceMeters
+      });
+    }
+
+    return result;
+  }
+
+  /**
+   * 取得雙北 4 大科普微型學習場館（含即時距離與免費借用資格判定）
+   * @returns {Array<Object>}
+   */
+  getVenuesOnMap() {
+    return this.investigator.inventory.getAllVenues(this.investigator.currentCoords);
+  }
+
+  /**
+   * 於地圖端觸發科普場館借用 (驗證距離 <= 60m 完成微任務)
+   * @param {Object} toolDef - 儀器定義
+   * @param {string} venueId - 目標場館代號
+   * @returns {Object} 借用結果
+   */
+  borrowFromVenueFromMap(toolDef, venueId) {
+    const result = this.investigator.inventory.borrowToolFromVenue(
+      toolDef,
+      venueId,
+      this.investigator
+    );
+
+    if (result.success) {
+      this.bridge.dispatch(MapDetectiveEvents.DETECTIVE.VENUE_BORROWED, {
+        tool: result.tool,
+        venueName: result.targetVenueName,
+        distanceMeters: result.distanceMeters
+      });
+    }
+
+    return result;
+  }
+
+  /**
+   * 取得案發生活圈 50~100m 彩蛋探索熱區規格
+   * @param {string|null} caseId
+   * @returns {Object} 彩蛋圈幾何規格
+   */
+  getEasterEggZoneOnMap(caseId = null) {
+    const perimeter = this.getPerimeter(caseId);
+    const distToCenter = calculateDistanceMeters(this.investigator.currentCoords, perimeter.center);
+    const isInsideEggZone = distToCenter >= 50 && distToCenter <= 100;
+
+    return {
+      caseId: perimeter.caseId,
+      center: perimeter.center,
+      minRadiusMeters: 50,
+      maxRadiusMeters: 100,
+      color: '#f59e0b', // 琥珀探索金
+      distanceToCenterMeters: distToCenter,
+      isInsideEggZone,
+      hintText: isInsideEggZone
+        ? '🔍 已親赴抵達案發現場周圍 50~100m 生活圈巷弄，有微量隱藏彩蛋跡象可供拾獲！'
+        : (distToCenter < 50
+            ? '⚠️ 當前過於接近核心封鎖區 (< 50m)，彩蛋藏於外環巷弄生活圈。'
+            : '⚠️ 距案發中心過遠 (> 100m)，請親自返回生活圈街區。')
+    };
+  }
+
+  /**
+   * 於地圖端觸發彩蛋拾獲 (驗證距離 50~100m 巷弄生活圈)
+   * @param {Object} eggItem - 彩蛋道具定義
+   * @param {string|null} caseId - 案件代號
+   * @returns {Object} 拾獲結果
+   */
+  pickEasterEggFromMap(eggItem, caseId = null) {
+    const perimeter = this.getPerimeter(caseId);
+    const result = this.investigator.inventory.pickEasterEgg(
+      eggItem,
+      perimeter.center,
+      this.investigator
+    );
+
+    if (result.success) {
+      this.bridge.dispatch(MapDetectiveEvents.DETECTIVE.EASTER_EGG_FOUND, {
+        item: result.item,
+        caseId: perimeter.caseId,
+        distanceMeters: result.distanceMeters
+      });
+    }
+
+    return result;
+  }
+
+  // ─── 4. 建築進出標記系統對接 (企劃書 02.2) ───
+
+  /**
+   * 取得地圖周遭建築標記清單 (可進顯示圖案 🏪/☕/🌿/🏛️/🚪/♨️，不可進無圖案作為街景碰撞)
+   * @param {number} radiusMeters
+   * @returns {Array<Object>}
+   */
+  getBuildingMarkersOnMap(radiusMeters = 850) {
+    return this.buildingSystem.getNearbyBuildings(this.investigator.currentCoords, radiusMeters);
+  }
+
+  /**
+   * 於地圖端進入建築物大門 (靠近大門 <= 25m 切換精緻室內)
+   * @param {string} buildingId - 建築代號
+   * @returns {Object} 進入結果
+   */
+  enterBuildingFromMap(buildingId) {
+    const result = this.buildingSystem.enterBuilding(buildingId, this.investigator.currentCoords);
+    if (result.success) {
+      this.bridge.dispatch(MapDetectiveEvents.MAP.STORE_ENTERED, {
+        storeId: buildingId,
+        buildingId,
+        name: result.buildingName
+      });
+      this.bridge.dispatch(MapDetectiveEvents.DETECTIVE.BUILDING_ENTERED, {
+        buildingId,
+        buildingName: result.buildingName,
+        icon: result.icon,
+        interiorTemplate: result.interiorTemplate
+      });
+    }
+    return result;
+  }
+
+  /**
+   * 於地圖端走出建築物回到室外街道
+   * @returns {Object} 退出結果
+   */
+  exitBuildingFromMap() {
+    const result = this.buildingSystem.exitBuilding();
+    if (result.success) {
+      this.bridge.dispatch(MapDetectiveEvents.MAP.STORE_EXITED, result);
+      this.bridge.dispatch(MapDetectiveEvents.DETECTIVE.BUILDING_EXITED, result);
+    }
+    return result;
+  }
+
+  // ─── 5. 地圖圖層導出 (GeoJSON FeatureCollection) ───
+
+  /**
+   * 取得指定案件或當前活躍案件的地圖圖層規範 (Overlays)
+   * @param {string|null} targetCaseId
+   * @returns {Object}
+   */
+  getCaseMapOverlays(targetCaseId = null) {
+    const caseId = targetCaseId || this.investigator.activeCaseId || 'case_01';
+    const perimeter = this.getPerimeter(caseId);
+    const caseDef = this.loader.getCase(caseId);
+
+    // 涉案關係人點位 (含口供狀態)
+    const suspects = this.getSuspectsWithDialogueState(caseId);
+
+    // 關鍵物證點位
     const evidenceMarkers = ((caseDef && caseDef.evidenceChain) || []).map((e, idx) => {
       const latOffset = (idx % 2 === 0 ? -1 : 1) * (0.00018 + idx * 0.00010);
       const lonOffset = (idx > 1 ? -1 : 1) * (0.00020 + idx * 0.00015);
+      const coords = [
+        Number((perimeter.center[0] + latOffset).toFixed(6)),
+        Number((perimeter.center[1] + lonOffset).toFixed(6))
+      ];
       return {
         id: e.id,
         name: e.name,
         scienceTool: e.scienceCheck ? e.scienceCheck.tool : null,
-        coords: [
-          Number((perimeter.center[0] + latOffset).toFixed(6)),
-          Number((perimeter.center[1] + lonOffset).toFixed(6))
-        ],
+        coords,
+        distanceFromInvestigator: calculateDistanceMeters(this.investigator.currentCoords, coords),
         type: 'evidence'
       };
     });
 
-    // 計算當前調查員與案發中心的實體距離
+    // 實體合作門市
+    const stores = this.getNearbyStoresOnMap(850);
+
+    // 科普學習場館
+    const venues = this.getVenuesOnMap();
+
+    // 生活圈彩蛋熱區
+    const eggZone = this.getEasterEggZoneOnMap(caseId);
+
+    // 實體建築物
+    const buildings = this.getBuildingMarkersOnMap(850);
+
+    // 計算調查員與案發中心距離
     const distToPerimeterCenter = calculateDistanceMeters(
       this.investigator.currentCoords,
       perimeter.center
     );
-
     const isInsidePerimeter = distToPerimeterCenter <= perimeter.radiusMeters;
 
     return {
@@ -198,6 +503,10 @@ class MapPairingCoordinator {
       perimeter,
       suspects,
       evidenceMarkers,
+      stores,
+      venues,
+      eggZone,
+      buildings,
       investigatorLocation: {
         coords: this.investigator.currentCoords,
         locationName: this.investigator.currentLocationName,
@@ -205,7 +514,8 @@ class MapPairingCoordinator {
         isInsidePerimeter,
         stamina: this.investigator.stamina,
         walletBalance: this.investigator.wallet.easyCardBalance,
-        tpassActive: this.investigator.wallet.hasTpass1200
+        tpassActive: this.investigator.wallet.hasTpass1200,
+        insideBuilding: this.buildingSystem.getCurrentInsideBuilding()
       },
       pairingMode: this.currentMode,
       mainMapServerUrl: this.mainMapServerUrl
@@ -213,7 +523,31 @@ class MapPairingCoordinator {
   }
 
   /**
-   * 輸出標準 GeoJSON FeatureCollection 供地圖系統即時渲染
+   * 輔助函式：根據圓心與半徑生成 32 點圓形多邊形 (Leaflet Polygon GeoJSON)
+   * @param {number[]} center - [lat, lon]
+   * @param {number} radiusMeters - 半徑 (公尺)
+   * @returns {number[][][]} GeoJSON Coordinates
+   */
+  _generateCirclePolygonCoords(center, radiusMeters) {
+    const coords = [];
+    const points = 32;
+    const [lat, lon] = center;
+    for (let i = 0; i <= points; i++) {
+      const angle = (i * 2 * Math.PI) / points;
+      const dLat = (radiusMeters / 111320) * Math.cos(angle);
+      const dLon = (radiusMeters / (111320 * Math.cos(lat * Math.PI / 180))) * Math.sin(angle);
+      coords.push([
+        Number((lon + dLon).toFixed(6)),
+        Number((lat + dLat).toFixed(6))
+      ]);
+    }
+    return [coords];
+  }
+
+  /**
+   * 輸出標準 GeoJSON FeatureCollection 供 Leaflet 地圖無縫單點加載
+   * @param {string|null} caseId
+   * @returns {Object} FeatureCollection
    */
   exportGeoJson(caseId = null) {
     const overlays = this.getCaseMapOverlays(caseId);
@@ -236,7 +570,37 @@ class MapPairingCoordinator {
       }
     });
 
-    // 2. 關係人點位
+    // 2. 案發警戒圈幾何多邊形 (Circle Polygon)
+    features.push({
+      type: 'Feature',
+      geometry: {
+        type: 'Polygon',
+        coordinates: this._generateCirclePolygonCoords(overlays.perimeter.center, overlays.perimeter.radiusMeters)
+      },
+      properties: {
+        type: 'crime_scene_perimeter_polygon',
+        caseId: overlays.caseId,
+        color: overlays.perimeter.color,
+        radiusMeters: overlays.perimeter.radiusMeters
+      }
+    });
+
+    // 3. 50~100m 生活圈彩蛋探索外環熱區多邊形
+    features.push({
+      type: 'Feature',
+      geometry: {
+        type: 'Polygon',
+        coordinates: this._generateCirclePolygonCoords(overlays.perimeter.center, 100)
+      },
+      properties: {
+        type: 'easter_egg_zone_outer',
+        color: '#f59e0b',
+        radiusMeters: 100,
+        hint: '案發 50~100m 巷弄生活圈彩蛋探索熱區'
+      }
+    });
+
+    // 4. 關係人點位 (含口供狀態)
     overlays.suspects.forEach(s => {
       features.push({
         type: 'Feature',
@@ -250,12 +614,13 @@ class MapPairingCoordinator {
           name: s.name,
           role: s.role,
           occupation: s.occupation,
-          locationName: s.locationName
+          locationName: s.locationName,
+          canTalkRightNow: s.canTalkRightNow
         }
       });
     });
 
-    // 3. 物證點位
+    // 5. 物證點位
     overlays.evidenceMarkers.forEach(e => {
       features.push({
         type: 'Feature',
@@ -272,7 +637,62 @@ class MapPairingCoordinator {
       });
     });
 
-    // 4. 調查員當前實體位置
+    // 6. 合作特約門市 (85 折)
+    overlays.stores.forEach(st => {
+      features.push({
+        type: 'Feature',
+        geometry: {
+          type: 'Point',
+          coordinates: [st.coords[1], st.coords[0]]
+        },
+        properties: {
+          type: 'partner_store',
+          id: st.id,
+          name: st.name,
+          discountRate: st.discountRate,
+          canPurchase: st.canPurchase
+        }
+      });
+    });
+
+    // 7. 科普教育場館 (免費微借用)
+    overlays.venues.forEach(vn => {
+      features.push({
+        type: 'Feature',
+        geometry: {
+          type: 'Point',
+          coordinates: [vn.coords[1], vn.coords[0]]
+        },
+        properties: {
+          type: 'science_venue',
+          id: vn.id,
+          name: vn.name,
+          canBorrow: vn.canBorrow
+        }
+      });
+    });
+
+    // 8. 建築物標記 (可進有圖案，不可進無圖案)
+    overlays.buildings.forEach(b => {
+      features.push({
+        type: 'Feature',
+        geometry: {
+          type: 'Point',
+          coordinates: [b.coords[1], b.coords[0]]
+        },
+        properties: {
+          type: 'building',
+          id: b.id,
+          name: b.name,
+          category: b.category,
+          isEnterable: b.isEnterable,
+          icon: b.icon,
+          canEnterRightNow: b.canEnterRightNow
+        }
+      });
+    });
+
+    // 9. 調查員當前實體位置
     features.push({
       type: 'Feature',
       geometry: {
@@ -286,7 +706,9 @@ class MapPairingCoordinator {
         type: 'investigator',
         name: this.investigator.name,
         roleTitle: this.investigator.roleTitle,
-        stamina: this.investigator.stamina
+        stamina: this.investigator.stamina,
+        walletBalance: this.investigator.wallet.easyCardBalance,
+        tpassActive: this.investigator.wallet.hasTpass1200
       }
     });
 
@@ -297,9 +719,15 @@ class MapPairingCoordinator {
     };
   }
 
+  // ─── 6. 地圖雙向位置同步與防瞬移審查 ───
+
   /**
    * 接收來自地圖的調查員位置更新 (Map -> Detective)
-   * 自動進行距離感測、警戒圈判定、體力消耗、防瞬移審查
+   * 自動進行距離感測、警戒圈判定、體力消耗與防瞬移審查
+   * @param {number[]} targetCoords - [lat, lon]
+   * @param {string} locationName - 街區名稱
+   * @param {boolean} isWalk - 是否為實體步行
+   * @returns {Object}
    */
   syncLocationFromMap(targetCoords, locationName = '雙北街區', isWalk = true) {
     if (!targetCoords || targetCoords.length < 2) {
@@ -330,7 +758,7 @@ class MapPairingCoordinator {
 
     // 感測是否進入當前活躍案件的警戒圈
     const activeCaseId = this.investigator.activeCaseId || 'case_01';
-    const perimeter = this.casePerimeters[activeCaseId];
+    const perimeter = this.getPerimeter(activeCaseId);
     let enteredCrimeScene = false;
 
     if (perimeter) {
@@ -364,6 +792,8 @@ class MapPairingCoordinator {
 
   /**
    * 切換「學校模式」與「家中模式」
+   * @param {'school'|'home'} mode
+   * @returns {Object}
    */
   setPairingMode(mode) {
     if (mode === 'school' || mode === 'home') {

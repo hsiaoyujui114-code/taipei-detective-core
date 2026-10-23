@@ -40,7 +40,7 @@ function createDetectiveEngine(customDataDir = null) {
   const deductionBoard = new DeductionBoard(loader, evidenceEngine);
   const trustSystem = new TrustSystem();
   const caseManager = new CaseManager(loader, evidenceEngine, dialogueEngine, deductionBoard, bridge);
-  const mapCoordinator = new MapPairingCoordinator(loader, caseManager, investigator, bridge);
+  const mapCoordinator = new MapPairingCoordinator(loader, caseManager, investigator, bridge, buildingSystem);
 
   // ─── 自動掛載雙向協同事件監聽 (Map ⇄ Detective 自動聯動) ───
   bridge.on(MapDetectiveEvents.MAP.PLAYER_MOVED, (payload) => {
@@ -55,6 +55,40 @@ function createDetectiveEngine(customDataDir = null) {
   bridge.on(MapDetectiveEvents.MAP.TRANSIT_BOARDED, (payload) => {
     if (payload && payload.vehicleType) {
       investigator.wallet.payTransitFare(20, payload.vehicleType);
+    }
+  });
+
+  bridge.on(MapDetectiveEvents.MAP.BUILDING_ENTER_REQUEST, (payload) => {
+    if (payload && payload.buildingId) {
+      mapCoordinator.enterBuildingFromMap(payload.buildingId);
+    }
+  });
+
+  bridge.on(MapDetectiveEvents.MAP.BUILDING_EXIT_REQUEST, () => {
+    mapCoordinator.exitBuildingFromMap();
+  });
+
+  bridge.on(MapDetectiveEvents.MAP.ITEM_BUY_REQUEST, (payload) => {
+    if (payload && payload.item) {
+      mapCoordinator.purchaseAtStoreFromMap(payload.item, payload.storeId, payload.options || {});
+    }
+  });
+
+  bridge.on(MapDetectiveEvents.MAP.TOOL_BORROW_REQUEST, (payload) => {
+    if (payload && payload.tool && payload.venueId) {
+      mapCoordinator.borrowFromVenueFromMap(payload.tool, payload.venueId);
+    }
+  });
+
+  bridge.on(MapDetectiveEvents.MAP.EASTER_EGG_PICK_REQUEST, (payload) => {
+    if (payload && payload.item) {
+      mapCoordinator.pickEasterEggFromMap(payload.item, payload.caseId || null);
+    }
+  });
+
+  bridge.on(MapDetectiveEvents.MAP.SUSPECT_INTERROGATE_REQUEST, (payload) => {
+    if (payload && payload.sessionId && payload.suspectId) {
+      mapCoordinator.syncSuspectInterrogationState(payload.sessionId, payload.suspectId, payload.optionIndex);
     }
   });
 

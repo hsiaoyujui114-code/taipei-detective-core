@@ -179,6 +179,49 @@ class BuildingSystem {
     if (!this.currentInsideBuildingId) return null;
     return this.getBuilding(this.currentInsideBuildingId);
   }
+
+  /**
+   * 輸出建築物圖層 GeoJSON FeatureCollection（供 Leaflet Web 地圖直接加載）
+   * @param {number[]|null} userCoords - 調查員當前經緯度 [lat, lon]
+   * @param {number} radiusMeters - 視野半徑 (預設 850m)
+   * @returns {Object} GeoJSON FeatureCollection
+   */
+  exportBuildingGeoJson(userCoords = null, radiusMeters = 850) {
+    const buildings = userCoords
+      ? this.getNearbyBuildings(userCoords, radiusMeters)
+      : this.listAllBuildings().map(b => ({
+          ...b,
+          icon: b.isEnterable ? b.icon : null,
+          canEnterRightNow: false,
+          distanceMeters: null
+        }));
+
+    const features = buildings.map(b => ({
+      type: 'Feature',
+      geometry: {
+        type: 'Point',
+        coordinates: [b.coords[1], b.coords[0]]
+      },
+      properties: {
+        type: 'building',
+        id: b.id,
+        name: b.name,
+        category: b.category,
+        isEnterable: b.isEnterable,
+        icon: b.isEnterable ? b.icon : null,
+        address: b.address,
+        distanceMeters: b.distanceMeters,
+        canEnterRightNow: b.canEnterRightNow || false,
+        interiorTemplate: b.isEnterable ? b.interiorTemplate : null
+      }
+    }));
+
+    return {
+      type: 'FeatureCollection',
+      category: 'buildings',
+      features
+    };
+  }
 }
 
 module.exports = {

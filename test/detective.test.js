@@ -21,7 +21,8 @@ const { createDetectiveEngine, MapDetectiveEvents } = require('../src/index');
 
 console.log('🧪 開始執行《雙北漫遊：都會行蹤》都會調查員偵探核心全面驗證...\n');
 
-const engine = createDetectiveEngine();
+async function runAllTests() {
+  const engine = createDetectiveEngine();
 
 // ─── 階段 1：動態資料驅動載入驗證 (非寫死 JSON) ───
 const cases = engine.loader.listCases();
@@ -295,7 +296,137 @@ assert(syncIn.success && syncIn.enteredCrimeScene, '抵達案發中心 80m 內�
 const syncTeleport = engine.mapCoordinator.syncLocationFromMap([25.1724, 121.4371], '瞬間跳至淡水', true);
 assert(!syncTeleport.success && syncTeleport.isForbidden, '單次步行超距 2500m 必須攔截瞬移！');
 
-console.log('✅ [9] 地圖系統 (Antigravity) 雙向 Pub/Sub 事件協議與 MapPairingCoordinator 協同調度 100% 正常');
+// 9.6 主動派發搜查警戒圈事件 (dispatchPerimeter)
+let perimeterDispatched = null;
+engine.bridge.on(MapDetectiveEvents.DETECTIVE.PERIMETER_DISPATCHED, (p) => { perimeterDispatched = p; });
+const dispRes = engine.mapCoordinator.dispatchPerimeter('case_01');
+assert(dispRes.success && perimeterDispatched !== null);
+assert.strictEqual(perimeterDispatched.caseId, 'case_01');
+assert.strictEqual(perimeterDispatched.radiusMeters, 80);
+console.log(`✅ [9.6] 搜查警戒圈派發成功：【${perimeterDispatched.title}】半徑 ${perimeterDispatched.radiusMeters}m 警戒桃紅標記`);
+
+// 9.7 地圖端門市 85 折結算與事件派發 (purchaseAtStoreFromMap)
+let storePurchasedEvt = null;
+engine.bridge.on(MapDetectiveEvents.DETECTIVE.STORE_PURCHASED, (p) => { storePurchasedEvt = p; });
+const mapBuyFar = engine.mapCoordinator.purchaseAtStoreFromMap(
+  { id: 'tool_ph_paper_refill', name: 'pH試紙補充包', cost: 20 },
+  'store_ximen_convenience'
+);
+assert(!mapBuyFar.success, '距門市過遠時地圖端購買應遭拒絕');
+
+const savedCoords9 = [...engine.investigator.currentCoords];
+engine.investigator.currentCoords = [25.0437, 121.5077]; // 漢中街超商 <= 60m
+const mapBuyNear = engine.mapCoordinator.purchaseAtStoreFromMap(
+  { id: 'tool_ph_paper_refill', name: 'pH試紙補充包', cost: 20 },
+  'store_ximen_convenience'
+);
+assert(mapBuyNear.success && storePurchasedEvt !== null);
+assert.strictEqual(mapBuyNear.costPaid, 17, '85 折扣除 17 元 (20*0.85)');
+engine.investigator.currentCoords = savedCoords9;
+console.log(`✅ [9.7] 地圖端門市親赴 85 折結算與事件分發成功：實付 $${mapBuyNear.costPaid}`);
+
+// 9.8 地圖端科普場館微借用與事件派發 (borrowFromVenueFromMap)
+let venueBorrowedEvt = null;
+engine.bridge.on(MapDetectiveEvents.DETECTIVE.VENUE_BORROWED, (p) => { venueBorrowedEvt = p; });
+engine.investigator.currentCoords = [25.0957, 121.5159]; // 士林科教館現場 <= 60m
+const mapBorrowRes = engine.mapCoordinator.borrowFromVenueFromMap(
+  { id: 'tool_spectrometer', name: '微型分光光度計', track: 'tool' },
+  'venue_sec'
+);
+assert(mapBorrowRes.success && venueBorrowedEvt !== null);
+engine.investigator.currentCoords = savedCoords9;
+console.log(`✅ [9.8] 地圖端科普場館借用與通知分發成功：${mapBorrowRes.message}`);
+
+// 9.9 地圖端 50~100m 彩蛋拾獲與事件派發 (pickEasterEggFromMap)
+let eggFoundEvt = null;
+engine.bridge.on(MapDetectiveEvents.DETECTIVE.EASTER_EGG_FOUND, (p) => { eggFoundEvt = p; });
+engine.investigator.currentCoords = [25.0429, 121.5076]; // 距西門案發中心約 65m
+const mapEggRes = engine.mapCoordinator.pickEasterEggFromMap(
+  { id: 'egg_sample_strip', name: '老街微型色層對照片', track: 'supply' },
+  'case_01'
+);
+assert(mapEggRes.success && eggFoundEvt !== null);
+engine.investigator.currentCoords = savedCoords9;
+console.log(`✅ [9.9] 地圖端 50~100m 生活圈彩蛋拾獲與事件分發成功：${mapEggRes.message}`);
+
+// 9.10 地圖端建築大門進出切換 (enterBuildingFromMap & exitBuildingFromMap)
+let enteredBldgEvt = null;
+let exitedBldgEvt = null;
+engine.bridge.on(MapDetectiveEvents.DETECTIVE.BUILDING_ENTERED, (p) => { enteredBldgEvt = p; });
+engine.bridge.on(MapDetectiveEvents.DETECTIVE.BUILDING_EXITED, (p) => { exitedBldgEvt = p; });
+engine.investigator.currentCoords = [25.0425, 121.5072]; // 事務所大門 <= 25m
+const enterBldgRes = engine.mapCoordinator.enterBuildingFromMap('office_investigator');
+assert(enterBldgRes.success && enteredBldgEvt !== null);
+const exitBldgRes = engine.mapCoordinator.exitBuildingFromMap();
+assert(exitBldgRes.success && exitedBldgEvt !== null);
+console.log(`✅ [9.10] 地圖端建築大門進入/退出切換與事件分發成功：[${enteredBldgEvt.buildingName}] ⇄ 室外街廓`);
+
+// 9.11 嫌犯口供筆錄狀態雙向綁定 (syncSuspectInterrogationState)
+let confrontEvt = null;
+engine.bridge.on(MapDetectiveEvents.DETECTIVE.SUSPECT_CONFRONTED, (p) => { confrontEvt = p; });
+const diagRes = engine.mapCoordinator.syncSuspectInterrogationState('session_map_sync', 'suspect_01_wu', 2);
+assert(diagRes.success && confrontEvt !== null);
+console.log(`✅ [9.11] 嫌犯口供筆錄狀態雙向綁定與物證對質成功：${confrontEvt.clueUnlocked}`);
+
+// 9.12 REST API 路由器全面無縫對接驗證 (handleDetectiveRequest)
+const { handleDetectiveRequest } = require('../server');
+const EventEmitter = require('events');
+
+function callApi(method, pathName, body = null) {
+  return new Promise((resolve) => {
+    const req = new EventEmitter();
+    req.method = method;
+    req.url = pathName;
+    req.headers = { host: 'localhost:3001' };
+
+    let code = 200;
+    const res = {
+      writeHead(c) { code = c; },
+      setHeader() {},
+      end(data) {
+        resolve({ code, data: data ? JSON.parse(data) : null });
+      }
+    };
+
+    handleDetectiveRequest(req, res, engine).then(() => {
+      if (body) {
+        req.emit('data', JSON.stringify(body));
+      }
+      req.emit('end');
+    });
+  });
+}
+
+const pairingRes = await callApi('GET', '/api/detective/map/pairing-status');
+assert.strictEqual(pairingRes.code, 200);
+assert(pairingRes.data.success);
+
+const geoRes = await callApi('GET', '/api/detective/map/geojson');
+assert.strictEqual(geoRes.code, 200);
+assert.strictEqual(geoRes.data.type, 'FeatureCollection');
+assert(geoRes.data.features.length >= 8, 'GeoJSON 應涵蓋警戒圈、建築物、場館、門市與關係人');
+
+const storeRes = await callApi('GET', '/api/detective/stores');
+assert.strictEqual(storeRes.code, 200);
+assert(storeRes.data.stores.length >= 1, '西門町生活圈 850m 內應有合作門市');
+const allStoresRes = await callApi('GET', '/api/detective/stores?radius=0');
+assert(allStoresRes.data.stores.length >= 8, '雙北應涵蓋至少 8 家特約門市');
+
+const venueRes = await callApi('GET', '/api/detective/venues');
+assert.strictEqual(venueRes.code, 200);
+assert.strictEqual(venueRes.data.venues.length, 4);
+
+const bldgRes = await callApi('GET', '/api/detective/buildings/nearby');
+assert.strictEqual(bldgRes.code, 200);
+assert(bldgRes.data.buildings.length >= 2);
+
+const teleportApiRes = await callApi('POST', '/api/detective/move/teleport');
+assert.strictEqual(teleportApiRes.code, 403, '瞬移 API 永遠回傳 403 禁止攔截！');
+assert(teleportApiRes.data.isForbidden);
+
+console.log('✅ [9.12] 偵探核心 REST API 路由器全面無縫對接驗證通過 (100% 覆蓋)');
+
+console.log('✅ [9] 地圖系統 (Leaflet / Web) 雙向 Pub/Sub 事件協議與 MapPairingCoordinator 協同調度 100% 正常');
 
 // ─── 階段 10：三大憲法級絕對禁忌全域靜態掃描稽核 ───
 console.log('\n🔒 正在執行全專案三大最高憲法級禁忌代碼稽核...');
@@ -332,3 +463,9 @@ console.log('✅ [10] 全專案全域代碼、註解、JSON 資料稽核通過�
 console.log('\n========================================================');
 console.log('🎉 ALL 10 PHASES PASSED! 《雙北漫遊：都會行蹤》偵探核心 100% 完工！');
 console.log('========================================================\n');
+}
+
+runAllTests().catch(err => {
+  console.error(err);
+  process.exit(1);
+});
