@@ -16,6 +16,10 @@ const { EcoWallet } = require('./EcoWallet');
 const { calculateDistanceMeters } = require('../utils/geoUtils');
 
 class Investigator {
+  /**
+   * 初始化都會調查員個人狀態
+   * @param {string} name - 調查員姓名 (嚴格執行華人真實全名校驗)
+   */
   constructor(name = '雙北行蹤調查員') {
     // 嚴格校驗：若傳入名字包含違規字樣則強制校正為預設名
     const tabooWords = ['\u85dd\u78a9', '\u76ca\u78a9'];
@@ -57,7 +61,10 @@ class Investigator {
   // ─── 物理移動與防瞬移機制 ───
 
   /**
-   * 步行移動 (計算實際距離、步速與體力消耗)
+   * 步行移動 (計算實際大圓經緯度距離、步速與體力消耗)
+   * @param {number[]} targetCoords - 目標經緯度 [lat, lon]
+   * @param {string} locationName - 目標街區名稱
+   * @returns {Object} 移動結算
    */
   walkTo(targetCoords, locationName = '目標街區') {
     const distanceMeters = calculateDistanceMeters(this.currentCoords, targetCoords);
@@ -93,7 +100,11 @@ class Investigator {
   }
 
   /**
-   * 搭乘大眾運輸移動 (捷運 / 公車 / 輕軌)
+   * 搭乘大眾運輸移動 (捷運 / 公車 / 輕軌，自動串接 TPASS 1200 / 悠遊卡)
+   * @param {number[]} targetCoords - 目的站經緯度 [lat, lon]
+   * @param {string} destinationStation - 站點名稱
+   * @param {'mrt'|'bus'|'light_rail'} transportType - 大眾運輸類型
+   * @returns {Object} 乘車扣款與抵達結算
    */
   transitTo(targetCoords, destinationStation, transportType = 'mrt') {
     const distanceMeters = calculateDistanceMeters(this.currentCoords, targetCoords);
@@ -134,7 +145,9 @@ class Investigator {
   }
 
   /**
-   * 瞬移判定 (全面嚴格攔截禁止！)
+   * 瞬移判定 (全面嚴格攔截禁止！憲法級最高禁忌)
+   * @param {number[]} targetCoords
+   * @returns {Object} 禁令拒絕回應
    */
   teleportTo(targetCoords) {
     return {
@@ -146,16 +159,32 @@ class Investigator {
 
   // ─── 體力與筆記本管理 ───
 
+  /**
+   * 消耗體力
+   * @param {number} amount
+   * @returns {boolean} 是否成功扣除
+   */
   consumeStamina(amount) {
     if (this.stamina < amount) return false;
     this.stamina -= amount;
     return true;
   }
 
+  /**
+   * 恢復體力
+   * @param {number} amount
+   */
   recoverStamina(amount) {
     this.stamina = Math.min(this.maxStamina, this.stamina + amount);
   }
 
+  /**
+   * 記錄線索至調查筆記本
+   * @param {string} title
+   * @param {string} content
+   * @param {string[]} tags
+   * @returns {Object} 筆記本條目
+   */
   addNotebookNote(title, content, tags = []) {
     const note = {
       id: 'note_' + Date.now(),
@@ -170,6 +199,11 @@ class Investigator {
 
   // ─── 動森感衣櫃與特產收藏 (企劃書 06 節規格) ───
 
+  /**
+   * 換裝衣櫃系統
+   * @param {string} outfitName
+   * @returns {Object}
+   */
   changeOutfit(outfitName) {
     if (this.availableOutfits.includes(outfitName)) {
       this.currentOutfit = outfitName;
@@ -178,6 +212,11 @@ class Investigator {
     return { success: false, error: '衣櫃中無此款服裝。' };
   }
 
+  /**
+   * 破案解鎖動森感特產擺設 (企劃書 06 節規格)
+   * @param {string} caseId
+   * @returns {Object|null}
+   */
   unlockCaseSouvenir(caseId) {
     const souvenirMap = {
       case_01: { id: 'souvenir_ximen', name: '西門紅樓潮流街頭塗鴉滑板架', desc: '街頭藝術與潮流文化的迷你縮影。' },
@@ -203,6 +242,10 @@ class Investigator {
     return null;
   }
 
+  /**
+   * 取得調查員完整當前狀態 (供地圖與 UI 即時同步)
+   * @returns {Object}
+   */
   getStatus() {
     return {
       name: this.name,
