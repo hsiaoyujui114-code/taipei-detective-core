@@ -78,6 +78,16 @@ async function handleDetectiveRequest(req, res, customEngine = null) {
     return true;
   }
 
+  // ─── 0. 都會調查員偵探工作台 Web 介面 (HTML) ───
+  if (pathname === '/detective' || pathname === '/detective/' || pathname === '/workbench') {
+    const detectiveHtml = path.join(__dirname, 'public/index.html');
+    if (fs.existsSync(detectiveHtml)) {
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+      fs.createReadStream(detectiveHtml).pipe(res);
+      return true;
+    }
+  }
+
   // ─── 1. 調查員狀態與設定 API ───
 
   if (pathname === '/api/detective/status' && req.method === 'GET') {
@@ -481,10 +491,20 @@ async function handleDetectiveRequest(req, res, customEngine = null) {
 
 // 建立獨立 HTTP 伺服器
 const server = http.createServer(async (req, res) => {
+  const urlObj = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
+  if (urlObj.pathname === '/') {
+    const detectiveHtml = path.join(__dirname, 'public/index.html');
+    if (fs.existsSync(detectiveHtml)) {
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+      fs.createReadStream(detectiveHtml).pipe(res);
+      return;
+    }
+  }
+
   const handled = await handleDetectiveRequest(req, res, defaultEngine);
   if (!handled) {
     sendJson(res, 404, {
-      error: 'Taipei Detective Core API - 請造訪 /api/detective/* 端點'
+      error: 'Taipei Detective Core API - 請造訪 /detective 或 /api/detective/* 端點'
     });
   }
 });
