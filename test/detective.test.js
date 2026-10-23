@@ -29,6 +29,17 @@ const cases = engine.loader.listCases();
 console.log(`✅ [1.1] 成功動態載入案件庫：共 ${cases.length} 宗示範大案`);
 assert.strictEqual(cases.length, 10, '必須完整載入 10 宗企劃書首發示範案');
 
+const fiftyCases = engine.loader.listFiftyCases();
+console.log(`✅ [1.1b] 成功載入《雙北漫遊：都會行蹤》50 宗歷史生活科學案件全集：共 ${fiftyCases.length} 案`);
+assert.strictEqual(fiftyCases.length, 50, '必須完整載入 50 宗歷史生活科學案件全集');
+
+// 驗證首發示範案雙向豐富化
+const case01Enriched = engine.loader.getCase('case_01');
+assert(case01Enriched.history_culture, '首發示範案應豐富化歷史文化');
+assert(case01Enriched.science_principle, '首發示範案應豐富化生活科學原理');
+assert(case01Enriched.deposition, '首發示範案應豐富化警方筆錄');
+console.log(`✅ [1.1c] 首發示範案成功融合 50 案全集之歷史、科學與筆錄：${case01Enriched.history_culture.slice(0, 24)}...`);
+
 const npcs = engine.loader.listNpcs();
 console.log(`✅ [1.2] 成功載入涉案關係人群像名冊：共 ${npcs.length} 名全名華人關係人`);
 assert(npcs.length >= 35, '10 宗案件標配 3~4 名嫌疑人，總人數應不少於 35 人');
@@ -424,7 +435,17 @@ const teleportApiRes = await callApi('POST', '/api/detective/move/teleport');
 assert.strictEqual(teleportApiRes.code, 403, '瞬移 API 永遠回傳 403 禁止攔截！');
 assert(teleportApiRes.data.isForbidden);
 
-console.log('✅ [9.12] 偵探核心 REST API 路由器全面無縫對接驗證通過 (100% 覆蓋)');
+// 驗證 50 案全集 API 端點
+const fiftyApiRes = await callApi('GET', '/api/detective/cases/fifty');
+assert.strictEqual(fiftyApiRes.code, 200);
+assert.strictEqual(fiftyApiRes.data.total, 50, 'API 必須正確回傳 50 宗歷史生活科學全集');
+
+const case50ApiRes = await callApi('GET', '/api/detective/case/CASE-50');
+assert.strictEqual(case50ApiRes.code, 200);
+assert.strictEqual(case50ApiRes.data.case.id, 'CASE-50');
+assert(case50ApiRes.data.suspects.length >= 3, 'CASE-50 應動態關聯涉案人名單');
+
+console.log('✅ [9.12] 偵探核心 REST API 路由器全面無縫對接驗證通過 (100% 覆蓋，含 50 案全集)');
 
 console.log('✅ [9] 地圖系統 (Leaflet / Web) 雙向 Pub/Sub 事件協議與 MapPairingCoordinator 協同調度 100% 正常');
 

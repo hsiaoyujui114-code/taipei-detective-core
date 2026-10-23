@@ -88,6 +88,16 @@ async function handleDetectiveRequest(req, res, customEngine = null) {
     }
   }
 
+  // ─── 0.1 50 宗歷史風情與生活科學案件全集展示 (HTML) ───
+  if (pathname === '/cases' || pathname === '/cases/' || pathname === '/cases.html') {
+    const casesHtml = path.join(__dirname, 'public/cases.html');
+    if (fs.existsSync(casesHtml)) {
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+      fs.createReadStream(casesHtml).pipe(res);
+      return true;
+    }
+  }
+
   // ─── 1. 調查員狀態與設定 API ───
 
   if (pathname === '/api/detective/status' && req.method === 'GET') {
@@ -121,16 +131,37 @@ async function handleDetectiveRequest(req, res, customEngine = null) {
 
   // ─── 2. 案件生命週期 API ───
 
-  if (pathname === '/api/detective/cases' && req.method === 'GET') {
+  if ((pathname === '/api/detective/cases/fifty' || pathname === '/api/detective/fifty-cases') && req.method === 'GET') {
     sendJson(res, 200, {
       success: true,
-      cases: engine.loader.listCases()
+      total: engine.loader.listFiftyCases().length,
+      cases: engine.loader.listFiftyCases()
+    });
+    return true;
+  }
+
+  if (pathname === '/api/detective/cases' && req.method === 'GET') {
+    const isFifty = urlObj.searchParams.get('mode') === 'fifty' || urlObj.searchParams.get('all') === 'true';
+    sendJson(res, 200, {
+      success: true,
+      mode: isFifty ? 'fifty' : 'demo',
+      totalDemo: engine.loader.listCases().length,
+      totalFifty: engine.loader.listFiftyCases().length,
+      cases: isFifty ? engine.loader.listFiftyCases() : engine.loader.listCases()
     });
     return true;
   }
 
   if (pathname.startsWith('/api/detective/case/') && req.method === 'GET') {
     const caseId = pathname.replace('/api/detective/case/', '');
+    if (caseId === 'fifty') {
+      sendJson(res, 200, {
+        success: true,
+        total: engine.loader.listFiftyCases().length,
+        cases: engine.loader.listFiftyCases()
+      });
+      return true;
+    }
     const caseDetail = engine.loader.getCase(caseId);
     if (!caseDetail) {
       sendJson(res, 404, { error: `找不到案件 [${caseId}]` });

@@ -179,10 +179,25 @@
     <!-- ─── 左欄：案件檔案庫與特區信賴度 ─── -->
     <div class="panel">
       <div class="panel-title">
-        <span>📋 企劃書 10 首發示範案</span>
-        <button onclick="loadCases()">重整</button>
+        <span id="casePanelTitle">📂 雙北案件檔案庫</span>
+        <div style="display:flex; gap:4px; align-items:center;">
+          <a href="/cases" target="_blank" class="badge" style="background:#d97706; color:#fff; text-decoration:none;" title="開新分頁閱讀 50 案全景手冊">📖 全景手冊</a>
+          <button onclick="loadCases()">重整</button>
+        </div>
       </div>
-      <div id="caseList" style="display:flex; flex-direction:column; gap:8px; max-height:480px; overflow-y:auto;"></div>
+
+      <!-- 切換模式按鈕 -->
+      <div style="display:flex; gap:4px; margin-bottom:8px;">
+        <button id="btnTabDemo" class="tab-btn active" onclick="setCaseViewMode('demo')">🚨 10 宗示範案</button>
+        <button id="btnTabFifty" class="tab-btn" onclick="setCaseViewMode('fifty')">📂 50 宗科學案件全集</button>
+      </div>
+
+      <!-- 案件搜尋過濾器 -->
+      <div id="caseSearchWrap" style="margin-bottom:8px; display:none;">
+        <input type="text" id="caseSearchInput" placeholder="🔍 搜尋特區 (萬華/北投/大稻埕)、案件名或科學關鍵字..." oninput="filterCasesList()" style="width:100%; padding:6px 10px; font-size:11px; background:#0f172a; color:#fff; border:1px solid rgba(56,189,248,0.4); border-radius:6px;">
+      </div>
+
+      <div id="caseList" style="display:flex; flex-direction:column; gap:8px; max-height:460px; overflow-y:auto;"></div>
 
       <div class="panel-title" style="margin-top:8px;">
         <span>🏛️ 雙北特區市民聲譽 (Trust System)</span>
@@ -207,6 +222,18 @@
       <div id="caseBriefingBox" class="card" style="border-left:3px solid var(--cyan);">
         <div style="color:var(--amber); font-weight:bold; margin-bottom:4px;" id="briefingOfficerName">模式 B：現場帶隊警官親身簡報</div>
         <div id="briefingContentText" style="color:#e2e8f0; font-size:12px;">請於左側選擇示範案件接取調查！</div>
+
+        <!-- 豐富劇情與自然科學全景抽屜 -->
+        <div id="caseRichStoryDetails" style="margin-top:8px; border-top:1px dashed rgba(56,189,248,0.3); padding-top:8px; display:none;">
+          <div style="display:flex; gap:4px; margin-bottom:6px; flex-wrap:wrap;">
+            <button class="tab-btn active" id="btnStoryTabCause" onclick="switchStoryTab('cause')">📖 案情推導三部曲</button>
+            <button class="tab-btn" id="btnStoryTabScience" onclick="switchStoryTab('science')">🔬 解題生活科學</button>
+            <button class="tab-btn" id="btnStoryTabHistory" onclick="switchStoryTab('history')">🏛️ 在地歷史風情</button>
+            <button class="tab-btn" id="btnStoryTabDeposition" onclick="switchStoryTab('deposition')">📜 筆錄矛盾</button>
+            <button class="tab-btn" id="btnStoryTabProps" onclick="switchStoryTab('props')">🎒 道具與彩蛋</button>
+          </div>
+          <div id="storyTabContent" style="font-size:11px; line-height:1.6; color:#cbd5e1; max-height:180px; overflow-y:auto; background:rgba(0,0,0,0.35); padding:8px; border-radius:6px; border:1px solid rgba(255,255,255,0.08);"></div>
+        </div>
       </div>
 
       <!-- 生活科學物證鑑識台 -->
@@ -363,6 +390,11 @@
     let activeTrackTab = 'supplies';
     let cachedInventory = null;
     let safeMosaicEnabled = true;
+    let currentCaseMode = 'demo';
+    let cachedDemoCases = [];
+    let cachedFiftyCases = [];
+    let currentActiveCaseDetail = null;
+    let activeStoryTab = 'cause';
 
     async function loadStatus() {
       try {
@@ -458,29 +490,196 @@
       }
     }
 
+    function setCaseViewMode(mode) {
+      currentCaseMode = mode;
+      document.getElementById('btnTabDemo').className = `tab-btn ${mode === 'demo' ? 'active' : ''}`;
+      document.getElementById('btnTabFifty').className = `tab-btn ${mode === 'fifty' ? 'active' : ''}`;
+      document.getElementById('caseSearchWrap').style.display = mode === 'fifty' ? 'block' : 'none';
+      renderCasesList();
+    }
+
     async function loadCases() {
-      const res = await fetch('/api/detective/cases');
-      const data = await res.json();
+      try {
+        const resDemo = await fetch('/api/detective/cases');
+        const dataDemo = await resDemo.json();
+        cachedDemoCases = dataDemo.cases || [];
+      } catch (err) {
+        console.warn('載入示範案失敗:', err);
+      }
+
+      try {
+        const resFifty = await fetch('/api/detective/cases/fifty');
+        const dataFifty = await resFifty.json();
+        cachedFiftyCases = dataFifty.cases || [];
+      } catch (err) {
+        console.warn('載入 50 案全集失敗:', err);
+      }
+
+      renderCasesList();
+    }
+
+    function renderCasesList() {
       const wrap = document.getElementById('caseList');
       wrap.innerHTML = '';
 
-      (data.cases || []).forEach(c => {
-        const stars = '★'.repeat(c.difficulty) + '☆'.repeat(5 - c.difficulty);
-        const ghosts = '👻'.repeat(c.horrorLevel);
+      if (currentCaseMode === 'demo') {
+        cachedDemoCases.forEach(c => {
+          const stars = '★'.repeat(c.difficulty) + '☆'.repeat(5 - c.difficulty);
+          const ghosts = '👻'.repeat(c.horrorLevel);
+          wrap.innerHTML += `
+            <div class="card" style="border-left:3px solid #38bdf8;">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-weight:bold; color:#38bdf8;">${c.caseNumber}</span>
+                <span style="color:#fbbf24; font-size:11px;">難度 ${stars}</span>
+              </div>
+              <div style="font-weight:bold; color:#fff; font-size:13px; margin:2px 0;">${c.title}</div>
+              <div style="font-size:11px; color:#cbd5e1;">📍 ${c.location.name} (${c.location.sector})</div>
+              <div style="font-size:11px; color:#94a3b8;">驚悚指數：${ghosts} (${c.horrorLevel === 1 ? '溫和日常' : c.horrorLevel === 2 ? '微驚悚' : '暗夜懸疑'})</div>
+              <div style="font-size:10px; color:#34d399; margin-top:2px;">科學：${c.scienceField}</div>
+              <div style="display:flex; gap:4px; margin-top:6px;">
+                <button onclick="acceptCase('${c.id}')" style="flex:1; font-size:11px; background:#0284c7;">接取此案調查</button>
+                <button onclick="inspectCaseStory('${c.id}')" style="font-size:11px; background:#334155;">閱覽案卷</button>
+              </div>
+            </div>
+          `;
+        });
+      } else {
+        filterCasesList();
+      }
+    }
+
+    function filterCasesList() {
+      const q = (document.getElementById('caseSearchInput')?.value || '').toLowerCase().trim();
+      const wrap = document.getElementById('caseList');
+      wrap.innerHTML = '';
+
+      const filtered = cachedFiftyCases.filter(c => {
+        if (!q) return true;
+        const haystack = `${c.id} ${c.title} ${c.location} ${c.district} ${c.science_principle} ${c.history_culture}`.toLowerCase();
+        return haystack.includes(q);
+      });
+
+      if (filtered.length === 0) {
+        wrap.innerHTML = '<div style="font-size:11px; color:#94a3b8; padding:8px;">無符合條件的案件。</div>';
+        return;
+      }
+
+      filtered.forEach(c => {
         wrap.innerHTML += `
-          <div class="card" style="border-left:3px solid #38bdf8;">
+          <div class="card" style="border-left:3px solid #f59e0b;">
             <div style="display:flex; justify-content:space-between; align-items:center;">
-              <span style="font-weight:bold; color:#38bdf8;">${c.caseNumber}</span>
-              <span style="color:#fbbf24; font-size:11px;">難度 ${stars}</span>
+              <span style="font-weight:bold; color:#f59e0b;">${c.id} ｜ ${c.type}</span>
+              <span style="color:#fbbf24; font-size:11px;">${c.difficulty}</span>
             </div>
             <div style="font-weight:bold; color:#fff; font-size:13px; margin:2px 0;">${c.title}</div>
-            <div style="font-size:11px; color:#cbd5e1;">📍 ${c.location.name} (${c.location.sector})</div>
-            <div style="font-size:11px; color:#94a3b8;">驚悚指數：${ghosts} (${c.horrorLevel === 1 ? '溫和日常' : c.horrorLevel === 2 ? '微驚悚' : '暗夜懸疑'})</div>
-            <div style="font-size:10px; color:#34d399; margin-top:2px;">科學：${c.scienceField}</div>
-            <button onclick="acceptCase('${c.id}')" style="margin-top:6px; width:100%; font-size:11px;">接取此案調查</button>
+            <div style="font-size:11px; color:#cbd5e1;">📍 ${c.district}</div>
+            <div style="font-size:10px; color:#34d399; margin-top:2px;">🔬 ${c.science_principle ? c.science_principle.slice(0, 38) + '...' : ''}</div>
+            <div style="display:flex; gap:4px; margin-top:6px;">
+              <button onclick="acceptCase('${c.id}')" style="flex:1; font-size:11px; background:#0284c7;">接取調查</button>
+              <button onclick="inspectCaseStory('${c.id}')" style="font-size:11px; background:#334155;">閱覽案卷</button>
+            </div>
           </div>
         `;
       });
+    }
+
+    async function inspectCaseStory(id) {
+      const res = await fetch(`/api/detective/case/${id}`);
+      const data = await res.json();
+      if (!data.success || !data.case) return;
+      currentActiveCaseDetail = data.case;
+      renderCaseBriefing(data.case, false);
+    }
+
+    function switchStoryTab(tab) {
+      activeStoryTab = tab;
+      ['cause', 'science', 'history', 'deposition', 'props'].forEach(t => {
+        const btn = document.getElementById('btnStoryTab' + t.charAt(0).toUpperCase() + t.slice(1));
+        if (btn) btn.className = `tab-btn ${t === tab ? 'active' : ''}`;
+      });
+      if (currentActiveCaseDetail) {
+        renderStoryTabContent(currentActiveCaseDetail);
+      }
+    }
+
+    function renderStoryTabContent(c) {
+      const wrap = document.getElementById('storyTabContent');
+      if (!wrap) return;
+
+      if (activeStoryTab === 'cause') {
+        wrap.innerHTML = `
+          <div style="margin-bottom:6px;"><strong style="color:#38bdf8;">【起因】</strong> ${c.story_cause || c.backgroundStory || '尚無紀錄'}</div>
+          <div style="margin-bottom:6px;"><strong style="color:#fbbf24;">【經過】</strong> ${c.story_process || '現場涉案人員各執一詞，展開搜索。'}</div>
+          <div><strong style="color:#34d399;">【關鍵破案】</strong> ${c.story_climax || c.solutionRationale || '運用自然科學實徵數據閉環指控！'}</div>
+        `;
+      } else if (activeStoryTab === 'science') {
+        wrap.innerHTML = `
+          <div style="color:#34d399; font-weight:bold; margin-bottom:4px;">🔬 生活科學解題原理：</div>
+          <div>${c.science_principle || c.scienceField || '生活科學與物質特性分析'}</div>
+        `;
+      } else if (activeStoryTab === 'history') {
+        wrap.innerHTML = `
+          <div style="color:#f59e0b; font-weight:bold; margin-bottom:4px;">🏛️ 在地歷史脈絡與街廓風情：</div>
+          <div style="margin-bottom:6px;">${c.history_culture || '雙北百年街廓人文底蘊'}</div>
+          <div style="color:#38bdf8; font-weight:bold; margin-bottom:2px;">🚇 大眾運輸冷知識：</div>
+          <div>${c.traffic_trivia || c.transitStrategy || '雙北軌道與路面大眾運輸交通時序'}</div>
+        `;
+      } else if (activeStoryTab === 'deposition') {
+        const dp = c.deposition;
+        if (!dp) {
+          wrap.innerHTML = '<div style="color:#94a3b8;">此案件暫無特殊筆錄結構。</div>';
+          return;
+        }
+        wrap.innerHTML = `
+          <div style="color:#38bdf8; font-weight:bold;">案號：${dp.record_id || 'DP-2026-RECORD'} ｜ 員警：${dp.officer || '承辦警員'}</div>
+          <div style="margin-top:4px;"><strong style="color:#fbbf24;">受訊人：</strong> ${dp.interrogee || '嫌疑人'}</div>
+          <div style="margin-top:4px;"><strong style="color:#cbd5e1;">供述內容：</strong> ${dp.testimony || ''}</div>
+          <div style="margin-top:4px; color:#fb7185;"><strong>⚠️ 矛盾反駁：</strong> ${dp.contradiction || ''}</div>
+          <div style="margin-top:4px; color:#34d399;"><strong>🔍 核心定罪物證：</strong> ${dp.critical_evidence || ''}</div>
+        `;
+      } else if (activeStoryTab === 'props') {
+        const pe = c.props_and_easter_egg;
+        if (!pe) {
+          wrap.innerHTML = '<div style="color:#94a3b8;">此案件暫無額外三軌彩蛋配置。</div>';
+          return;
+        }
+        wrap.innerHTML = `
+          <div><strong style="color:#38bdf8;">💰 門市購買道具：</strong> ${pe.prop_money || '無'}</div>
+          <div style="margin-top:4px;"><strong style="color:#34d399;">🏛️ 場館探索學習：</strong> ${pe.prop_explore || '無'}</div>
+          <div style="margin-top:4px;"><strong style="color:#a78bfa;">🤝 社交信賴道具：</strong> ${pe.prop_social || '無'}</div>
+          <div style="margin-top:6px; padding:6px; background:rgba(245,158,11,0.15); border:1px solid #f59e0b; border-radius:4px; color:#fbbf24;">
+            <strong>🥚 50~100m 生活圈彩蛋：</strong> ${pe.easter_egg || '無'}
+          </div>
+        `;
+      }
+    }
+
+    function renderCaseBriefing(c, isAccepted = true) {
+      document.getElementById('activeCaseTitleHeader').innerText = `${isAccepted ? '🔍 當前承辦' : '📖 案卷檢視'}：${c.title}`;
+      document.getElementById('caseStateBadge').innerText = isAccepted ? '調查中' : '預覽案卷';
+      document.getElementById('caseStateBadge').style.background = isAccepted ? '#0284c7' : '#d97706';
+
+      const officer = c.briefingOfficer || (c.deposition && c.deposition.officer) || '大同分局/萬華分局帶隊警官';
+      const mode = c.briefingMode || '模式 B：現場帶隊警官親身簡報';
+      document.getElementById('briefingOfficerName').innerText = `${mode} (簡報者：${officer})`;
+
+      const briefContent = document.getElementById('briefingContentText');
+      const storyText = c.briefingContent || c.story_cause || c.story_process || '現場已拉起警戒線，都會調查員進場搜查。';
+      briefContent.innerText = storyText;
+
+      const horror = typeof c.horrorLevel === 'number' ? c.horrorLevel : (c.spookiness ? (c.spookiness.match(/👻/g) || []).length : 1);
+      if (safeMosaicEnabled && horror >= 2) {
+        briefContent.className = 'safe-mosaic';
+      } else {
+        briefContent.className = 'safe-clear';
+      }
+
+      // 展開豐富劇情抽屜
+      const richDrawer = document.getElementById('caseRichStoryDetails');
+      if (richDrawer) {
+        richDrawer.style.display = 'block';
+        renderStoryTabContent(c);
+      }
     }
 
     async function acceptCase(id) {
@@ -496,19 +695,8 @@
         return;
       }
 
-      const c = data.case;
-      document.getElementById('activeCaseTitleHeader').innerText = `🔍 當前案件：${c.title}`;
-      document.getElementById('caseStateBadge').innerText = '調查中';
-      document.getElementById('caseStateBadge').style.background = '#0284c7';
-
-      document.getElementById('briefingOfficerName').innerText = `${c.briefingMode} (簡報者：${c.briefingOfficer || '現場負責人'})`;
-      const briefContent = document.getElementById('briefingContentText');
-      briefContent.innerText = c.briefingContent;
-      if (safeMosaicEnabled && c.horrorLevel >= 2) {
-        briefContent.className = 'safe-mosaic';
-      } else {
-        briefContent.className = 'safe-clear';
-      }
+      currentActiveCaseDetail = data.case;
+      renderCaseBriefing(data.case, true);
 
       // 載入嫌疑人選單
       loadSuspectsForCase(id);
@@ -524,7 +712,8 @@
       const selNpc = document.getElementById('selNpc');
       selNpc.innerHTML = '';
       (data.suspects || []).forEach(s => {
-        selNpc.innerHTML += `<option value="${s.id}">${s.name} (${s.occupation}) [${s.roleType}]</option>`;
+        const roleLabel = s.occupation || s.identity || s.job_daily || s.roleType || '';
+        selNpc.innerHTML += `<option value="${s.id}">${s.name} (${roleLabel})</option>`;
       });
 
       if (data.suspects && data.suspects.length > 0) {
