@@ -243,6 +243,21 @@ class Investigator {
   }
 
   /**
+   * 獎勵信賴度 / 科普探索點數 (例如科普場館答對微任務 +5)
+   * @param {number} points
+   * @returns {Object}
+   */
+  addTrustBonus(points = 5) {
+    this.experience += points;
+    return {
+      success: true,
+      pointsAwarded: points,
+      totalExperience: this.experience,
+      message: `科普微任務挑戰成功！獲得社區信賴與探索點數 +${points}！`
+    };
+  }
+
+  /**
    * 取得調查員完整當前狀態 (供地圖與 UI 即時同步)
    * @returns {Object}
    */

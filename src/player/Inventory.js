@@ -49,6 +49,66 @@ const VENUES_MAP = {
   }
 };
 
+// 雙北四大科普微型學習場館 108 課綱自然生活科學微任務問答庫 (Round 101 規格)
+const VENUE_QUIZZES = {
+  venue_sec: {
+    venueId: 'venue_sec',
+    venueName: '士林國立臺灣科學教育館微型實驗台',
+    title: '【108 課綱自然領域・光學色散】微型光學分光任務',
+    question: '都會調查員在科教館借用分光鏡時，觀察陽光穿過稜鏡色散成彩虹光譜，其主要物理成因為何？',
+    options: [
+      'A. 不同波長的光在同種介質中的折射率與傳播速率不同',
+      'B. 不同色光的重力加速度大小不同',
+      'C. 稜鏡本身含有七種天然化學顏料釋放色素'
+    ],
+    correctAnswer: 'A',
+    correctAnswerIndex: 0,
+    curriculumExplanation: '108 課綱國高中自然物理：光在介質中傳播時，波長愈短（如紫光）折射率愈大、偏折角度愈大；波長愈長（如紅光）折射率愈小，因而分離出連續光譜。'
+  },
+  venue_tpl: {
+    venueId: 'venue_tpl',
+    venueName: '台北市立圖書館總館科技諮詢台',
+    title: '【108 課綱數學與地科・日影幾何】標竿投影三角任務',
+    question: '秋分正午於雙北街廓以 1 公尺直立標竿測得地面影長恰為 1 公尺，則此時太陽仰角為幾度？',
+    options: [
+      'A. 30 度',
+      'B. 45 度',
+      'C. 60 度'
+    ],
+    correctAnswer: 'B',
+    correctAnswerIndex: 1,
+    curriculumExplanation: '108 課綱跨領域幾何與天文：直立標竿與地面影長等長構成等腰直角三角形，tan(θ) = 竿長 / 影長 = 1，解得仰角 θ = 45 度。'
+  },
+  venue_customs: {
+    venueId: 'venue_customs',
+    venueName: '淡水海關故事館文史考據微型站',
+    title: '【108 課綱生活科技・電磁學】便攜金屬探測微任務',
+    question: '便攜金屬探測器在掃過淡水老街埋沒的鐵釘或合金時發出蜂鳴，主要運用何種物理原理？',
+    options: [
+      'A. 法拉第電磁感應在導體中激發渦電流與反向感應磁場',
+      'B. 牛頓第三運動定律的作用力與反作用力',
+      'C. 聲波都卜勒效應產生的波長壓縮'
+    ],
+    correctAnswer: 'A',
+    correctAnswerIndex: 0,
+    curriculumExplanation: '108 課綱生活科技與物理電磁學：發射線圈產生之交變磁場在金屬導體中感應出渦電流（Eddy Currents），進而激發次級磁場被接收線圈精準檢測。'
+  },
+  venue_tcm: {
+    venueId: 'venue_tcm',
+    venueName: '國立臺灣博物館中藥常設展廳',
+    title: '【108 課綱基礎化學・分離純化】薄層層析 (TLC) 毛細微任務',
+    question: '在薄層層析（TLC）展開實驗中，若使用正相極性矽膠片，極性較小（親脂性較高）之有機分子展開比 Rf 值通常如何？',
+    options: [
+      'A. 移動較快，展開比 Rf 值較大',
+      'B. 完全停留在原點，Rf 值為 0',
+      'C. 沿展開劑相反方向往下移動'
+    ],
+    correctAnswer: 'A',
+    correctAnswerIndex: 0,
+    curriculumExplanation: '108 課綱基礎化學分配層析：正相矽膠固定相為強極性，非極性或弱極性分子與固定相吸附力弱，隨展開溶劑爬升速率較快，因而 Rf 值較高。'
+  }
+};
+
 // 雙北示範門市基準坐標 (企劃書 02.2、06 節)
 const STORES_MAP = {
   store_ximen_convenience: {
@@ -250,7 +310,18 @@ class Inventory {
     return VENUES_MAP.venue_sec;
   }
 
-  // ─── 道具三軌親赴驗證機制 (Round 100 規格) ───
+  /**
+   * 獲取指定科普場館的 108 課綱生活科學微任務問答 (Round 101 規格)
+   * @param {string|Object} venueTarget - 場館鍵值或名稱
+   * @returns {Object} 微任務題目與解析
+   */
+  getVenueQuiz(venueTarget) {
+    const venue = this.findVenueDefinition(venueTarget);
+    const key = venue ? venue.id : 'venue_sec';
+    return VENUE_QUIZZES[key] || VENUE_QUIZZES.venue_sec;
+  }
+
+  // ─── 道具三軌親赴驗證機制 (Round 100 & 101 規格) ───
 
   /**
    * 途徑 1：💰 門市購買親赴驗證
@@ -317,21 +388,32 @@ class Inventory {
   }
 
   /**
-   * 途徑 2：🏛️ 4 大科普場館借用親赴驗證
-   * 規範：若距離 4 大科普場館（科教館、市圖、海關館、中藥館）> 60m，嘗試借用必須回傳不能借用；
-   * 只有親自前往（<= 60m）完成微任務才能借用。
+   * 途徑 2：🏛️ 4 大科普場館借用親赴驗證與 1 分鐘動手做微任務問答 (Round 101 規格)
+   * 規範：
+   * 1. 若距離 4 大科普場館（科教館、市圖、海關館、中藥館）> 60m，嘗試借用必須回傳不能借用；
+   * 2. 只有親自前往（<= 60m）完成 1~3 分鐘微型動手教學才能借用。
+   * 3. 觸發 108 課綱自然生活科學微任務問答，答對免費借用且獎勵信賴度 +5！
    */
-  borrowToolFromVenue(toolDef, venueTargetOrInvestigator = null, maybeInvestigator = null) {
+  borrowToolFromVenue(toolDef, arg2 = null, arg3 = null, arg4 = null) {
     let targetVenueKey = null;
     let investigator = null;
+    let userAnswer = null;
 
-    if (venueTargetOrInvestigator && typeof venueTargetOrInvestigator === 'object' && venueTargetOrInvestigator.currentCoords) {
-      investigator = venueTargetOrInvestigator;
+    if (arg2 && typeof arg2 === 'object' && arg2.currentCoords) {
+      investigator = arg2;
+      userAnswer = arg3;
     } else {
-      targetVenueKey = venueTargetOrInvestigator;
-      if (maybeInvestigator && maybeInvestigator.currentCoords) {
-        investigator = maybeInvestigator;
+      targetVenueKey = arg2;
+      if (arg3 && typeof arg3 === 'object' && arg3.currentCoords) {
+        investigator = arg3;
+        userAnswer = arg4;
+      } else if (typeof arg3 === 'string' || typeof arg3 === 'number') {
+        userAnswer = arg3;
       }
+    }
+
+    if (userAnswer && typeof userAnswer === 'object' && userAnswer.answer !== undefined) {
+      userAnswer = userAnswer.answer;
     }
 
     const targetVenue = this.findVenueDefinition(targetVenueKey || toolDef.venue || toolDef.borrowedFrom);
@@ -350,6 +432,30 @@ class Inventory {
       }
     }
 
+    // 取得科普場館 108 課綱微任務問答
+    const quiz = this.getVenueQuiz(targetVenue ? targetVenue.id : targetVenueKey);
+    let quizResult = null;
+    let trustAwarded = 0;
+
+    if (userAnswer !== null && userAnswer !== undefined) {
+      const cleanAns = String(userAnswer).trim().toUpperCase();
+      const isCorrect = cleanAns.startsWith(quiz.correctAnswer) || cleanAns === String(quiz.correctAnswerIndex);
+      if (isCorrect) {
+        trustAwarded = 5;
+        if (investigator && typeof investigator.addTrustBonus === 'function') {
+          investigator.addTrustBonus(5);
+        }
+      }
+      quizResult = {
+        questionTitle: quiz.title,
+        userAnswer,
+        correctAnswer: quiz.correctAnswer,
+        passed: isCorrect,
+        trustAwarded,
+        curriculumExplanation: quiz.curriculumExplanation
+      };
+    }
+
     this.addTool({
       ...toolDef,
       borrowedFrom: targetVenue ? targetVenue.name : (targetVenueKey || '科普場館'),
@@ -359,6 +465,7 @@ class Inventory {
     this.borrowRecords.push({
       toolId: toolDef.id,
       venueName: targetVenue ? targetVenue.name : (targetVenueKey || '科普場館'),
+      quizResult,
       timestamp: new Date().toISOString()
     });
 
@@ -366,13 +473,20 @@ class Inventory {
       ? calculateDistanceMeters(investigator.currentCoords, targetVenue.coords)
       : 0;
 
+    const message = (quizResult && quizResult.passed)
+      ? `已親自前往【${targetVenue ? targetVenue.name : '科普場館'}】（距離 ${distActual}m <= 60m）完成 108 課綱微任務問答（答對獎勵信賴度 +5），成功免費借用專業儀器 [${toolDef.name}]！`
+      : `已親自前往【${targetVenue ? targetVenue.name : '科普場館'}】（距離 ${distActual}m <= 60m）完成微任務，成功免費借用專業儀器 [${toolDef.name}]！`;
+
     return {
       success: true,
       canBorrow: true,
       distanceMeters: distActual,
       tool: toolDef,
       targetVenueName: targetVenue ? targetVenue.name : (targetVenueKey || '科普場館'),
-      message: `已親自前往【${targetVenue ? targetVenue.name : '科普場館'}】（距離 ${distActual}m <= 60m）完成微任務，成功免費借用專業儀器 [${toolDef.name}]！`
+      quiz,
+      quizResult,
+      trustAwarded,
+      message
     };
   }
 

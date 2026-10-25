@@ -177,29 +177,53 @@ class EvidenceEngine {
   }
 
   /**
-   * 3. 物理壓強計算 P = F / A
+   * 3. 物理壓強計算 P = F / A 與動態天候土壤剪切極限連鎖
+   * @param {number} massKg - 質量 (kg)
+   * @param {number} areaCm2 - 受力面積 (cm²)
+   * @param {Object} environment - 環境情境參數 { weather, temperatureC, humidityPercent, soilCondition }
    */
-  runPressureCalculation(massKg, areaCm2) {
+  runPressureCalculation(massKg, areaCm2, environment = {}) {
     if (areaCm2 <= 0) return { error: '受力面積必須大於 0' };
     const forceN = massKg * 9.8; // 重力 F = m * g
     const areaM2 = areaCm2 / 10000;
     const pressurePa = forceN / areaM2;
     const pressureKPa = Number((pressurePa / 1000).toFixed(2));
 
-    const soilYieldLimitKPa = 6.0; // 飽和爛泥剪切屈服極限約 6 kPa
+    // 動態天候與微環境情境連鎖：
+    // 晴天土壤剪切屈服極限約 6.0 kPa；
+    // 連日降雨或飽和泥地，土壤抗剪強度急遽下修至 3.5 kPa！
+    const isRainyOrSaturated =
+      environment.weather === 'rainy' ||
+      environment.weather === 'storm' ||
+      environment.soilCondition === 'saturated' ||
+      (environment.humidityPercent && environment.humidityPercent >= 90);
+
+    const soilYieldLimitKPa = isRainyOrSaturated ? 3.5 : 6.0;
     const willMudSink = pressureKPa >= soilYieldLimitKPa;
+
+    const weatherDesc = isRainyOrSaturated
+      ? '雨天飽和土壤 (抗剪極限下修至 3.5 kPa)'
+      : '晴天一般草坪土壤 (抗剪極限 6.0 kPa)';
 
     return {
       massKg,
       contactAreaCm2: areaCm2,
       forceNewtons: Number(forceN.toFixed(1)),
       pressureKPa,
+      environment: {
+        weather: environment.weather || 'clear',
+        temperatureC: environment.temperatureC ?? 20,
+        humidityPercent: environment.humidityPercent ?? 60,
+        soilLimitKPa: soilYieldLimitKPa,
+        description: weatherDesc
+      },
       soilLimitKPa: soilYieldLimitKPa,
       willMudSink,
       phenomenon: willMudSink
-        ? `壓強 ${pressureKPa} kPa ≥ 剪切極限 ${soilYieldLimitKPa} kPa，草地必下陷踩出明顯鞋印！`
-        : `壓強 ${pressureKPa} kPa < 剪切極限 ${soilYieldLimitKPa} kPa，草葉只受彈性彎折而不陷入泥中，形成無腳印現象！`,
-      formula: 'P = F / A (壓強 = 作用力 ÷ 受力面積)'
+        ? `壓強 ${pressureKPa} kPa ≥ 土壤剪切極限 ${soilYieldLimitKPa} kPa【${weatherDesc}】，草地必下陷踩出明顯鞋印！`
+        : `壓強 ${pressureKPa} kPa < 土壤剪切極限 ${soilYieldLimitKPa} kPa【${weatherDesc}】，草葉只受彈性彎折而不陷入泥中，形成無腳印現象！`,
+      formula: 'P = F / A (壓強 = 作用力 ÷ 受力面積)',
+      scientificPrinciple: '108 課綱固體壓力與土壤剪切力學：當單位面積正壓力小於土壤剪切屈服強度時，泥地維持彈性承載不產生塑性凹陷形變。'
     };
   }
 
@@ -310,6 +334,44 @@ class EvidenceEngine {
       observedFluorescence: isExcited ? targetSubstance.fluorescenceColor : '無螢光（非該物質最佳激發波長）',
       details: targetSubstance.desc,
       scientificPrinciple: '光學史托克定律 (Stokes Law)：分子吸收高能量短波長紫外光（如 365nm）躍遷至激發態，退激發時釋放較低能量長波長的可見光螢光。'
+    };
+  }
+
+  /**
+   * 8. 低溫露點凝結顯影與微環境速率演算 (Case 06 西門超商冷藏櫃指紋案)
+   * 公式：露點近似公式 T_dew ≈ T_ambient - (100 - RH) / 5
+   * @param {number} ambientTempC - 室內環境氣溫 (°C)
+   * @param {number} surfaceTempC - 冷藏櫃玻璃表面溫度 (°C)
+   * @param {number} humidityPercent - 相對濕度 (%)
+   */
+  runDewPointCondensationAnalysis(ambientTempC = 25, surfaceTempC = 4, humidityPercent = 80) {
+    if (humidityPercent <= 0 || humidityPercent > 100) {
+      return { error: '相對濕度必須在 1% ~ 100% 之間' };
+    }
+
+    // 氣象露點近似公式
+    const dewPointC = Number((ambientTempC - (100 - humidityPercent) / 5).toFixed(1));
+    const isCondensationTriggered = surfaceTempC <= dewPointC;
+
+    // 顯影速率（秒）：溫差越大、濕度越高，凝結越迅速
+    const tempDelta = Math.max(0.1, dewPointC - surfaceTempC);
+    const condensationRateFactor = (tempDelta * (humidityPercent / 100)).toFixed(2);
+    const condensationTimeSeconds = isCondensationTriggered
+      ? Number(Math.max(0.8, (8 / (tempDelta + 2)) * ((100 - humidityPercent) / 20 + 0.6)).toFixed(1))
+      : null;
+
+    return {
+      ambientTempC,
+      surfaceTempC,
+      humidityPercent,
+      dewPointC,
+      isCondensationTriggered,
+      condensationRateFactor: Number(condensationRateFactor),
+      condensationTimeSeconds,
+      opticalContrast: isCondensationTriggered
+        ? '玻璃表面迅速布滿微露珠產生漫散射（白濁），疏水性指紋油脂不沾水滴保持透明，反差顯現清晰指紋脊線！'
+        : '表面溫度高於露點，水汽無法過飽和凝結，無法顯影！',
+      scientificPrinciple: '108 課綱氣態與相變熱學：飽和水汽壓隨溫度降低而急遽下降；熱水汽遇低於露點之冷藏玻璃過飽和凝結成微米水滴，疏水性皮脂與親水玻璃表面張力差異形成光學散射對比。'
     };
   }
 }

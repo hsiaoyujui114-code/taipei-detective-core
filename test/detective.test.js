@@ -99,6 +99,16 @@ assert(pressureSimNormal.willMudSink, '普通鞋壓強 17.15 kPa 應下陷');
 assert(!pressureSimSnowshoe.willMudSink, '大面積軟木底板壓強 3.43 kPa 低於極限不陷坑');
 console.log(`✅ [3.6] 物理壓強 P=F/A 演算成功：軟木鞋壓強 ${pressureSimSnowshoe.pressureKPa} kPa < 土壤剪切極限`);
 
+// 3.6b 生活科學動態天候與微環境情境連鎖 (雨天土壤剪切極限下修至 3.5 kPa & 低溫露點凝結顯影)
+const rainyPressureSim = engine.evidenceEngine.runPressureCalculation(70, 2000, { weather: 'rainy', soilCondition: 'saturated' });
+assert.strictEqual(rainyPressureSim.soilLimitKPa, 3.5, '雨天飽和土壤剪切極限應下修為 3.5 kPa');
+assert(!rainyPressureSim.willMudSink, '軟木鞋 3.43 kPa < 3.5 kPa 飽和土壤極限仍能維持不陷坑');
+
+const dewPointSim = engine.evidenceEngine.runDewPointCondensationAnalysis(25, 4, 80);
+assert(dewPointSim.isCondensationTriggered, '25°C 濕度 80% 露點約 21°C，遇 4°C 冷藏玻璃應激發凝結');
+assert(dewPointSim.condensationTimeSeconds < 5.0, '凝結顯影應在數秒內迅速完成');
+console.log(`✅ [3.6b] 生活科學動態天候與微環境干擾演算成功：雨天土壤極限 ${rainyPressureSim.soilLimitKPa} kPa、低溫露點 ${dewPointSim.dewPointC}°C 顯影時間 ${dewPointSim.condensationTimeSeconds}s`);
+
 // 3.7 常溫聲速 340m/s 時差計算 (Case 02 北車長廊水力延時案)
 const soundDelay = engine.evidenceEngine.runAcousticDelayCalculation(300, 20);
 assert(soundDelay.travelTimeSeconds < 1.0, '300m 聲速傳播應在 1 秒以內');
@@ -157,6 +167,22 @@ assert.strictEqual(nearBorrowRes.canBorrow, true);
 assert(engine.investigator.inventory.hasTool('tool_shadow_rod'));
 engine.investigator.currentCoords = savedCoords;
 console.log(`✅ [4.2.2] 科普場館親赴借用成功：${nearBorrowRes.message}`);
+
+// 4.2.3 4 大科普場館 1 分鐘動手做微任務問答挑戰 (Round 101 規格)
+engine.investigator.currentCoords = [25.0957, 121.5159]; // 距離科教館 15m
+const initialExp = engine.investigator.experience;
+const quizBorrowRes = engine.investigator.inventory.borrowToolFromVenue(
+  { id: 'tool_prism_spectro', name: '微型光學分光鏡', track: 'tool' },
+  '科教館',
+  engine.investigator,
+  'A' // 答對選項 A：光學色散折射率不同
+);
+assert(quizBorrowRes.success, '親赴並答對微任務應成功借用');
+assert(quizBorrowRes.quizResult.passed, '選項 A 應判定為正確答案');
+assert.strictEqual(quizBorrowRes.trustAwarded, 5, '答對科普微任務應獎勵 5 點信賴度');
+assert.strictEqual(engine.investigator.experience, initialExp + 5, '調查員經驗信賴度應增加 5 點');
+engine.investigator.currentCoords = savedCoords;
+console.log(`✅ [4.2.3] 4 大科普場館 1 分鐘微任務挑戰成功：答對 108 課綱自然題，獎勵信賴度 +${quizBorrowRes.trustAwarded}！`);
 
 // 4.3 🥚 觸發彩蛋親赴生活圈驗證 (50~100m 生活圈才可拾獲，平時不直接顯示)
 // 4.3.1 距離案發中心過近 (< 50m)：核心封鎖區，嘗試拾獲必回傳失敗
@@ -239,18 +265,29 @@ console.log(`✅ [5.3] 憲法級禁忌瞬移攔截成功：${teleportRes.error}`
 // 6.1 開啟對話
 const startDiag = engine.caseManager.interrogateSuspect('session_test', 'suspect_01_wu');
 assert(startDiag.success);
-console.log(`✅ [6.1] 嫌疑人吳冠宇口供筆錄開啟成功`);
+assert.strictEqual(startDiag.psychologicalDefense, 100, '初始嫌疑人心理防線應為 100%');
+console.log(`✅ [6.1] 嫌疑人吳冠宇口供筆錄開啟成功 (心理防線：100%)`);
+
+// 6.1b 未化驗/無關物證反唇相譏測試 (嫌犯冷笑反諷，心理防線反彈加固)
+engine.investigator.inventory.addEvidence({ id: 'ev_fake_paper', name: '路邊未化驗廢紙團', examined: false });
+const unexaminedPresent = engine.dialogueEngine.presentEvidenceDirectly('session_test', 'ev_fake_paper', engine.investigator);
+assert(!unexaminedPresent.success && unexaminedPresent.isUnexamined, '未化驗物證應被嫌犯冷笑嘲諷');
+assert.strictEqual(unexaminedPresent.psychologicalDefense, 100, '心理防線維持或加固');
+console.log(`✅ [6.1b] 嫌犯反唇相譏機制驗證成功：${unexaminedPresent.sarcasm}`);
 
 // 6.2 出示物證打臉 (Present Evidence)
 const confrontRes = engine.dialogueEngine.selectOption('session_test', 2, engine.investigator);
 assert(confrontRes.success);
 assert(confrontRes.clueUnlocked, '出示物證應成功打臉並解鎖口供矛盾破綻');
-console.log(`✅ [6.2] 物證對質打臉成功：${confrontRes.clueUnlocked}`);
+assert.strictEqual(confrontRes.psychologicalDefense, 50, '出示關鍵化驗物證後心理防線應崩潰至 50%');
+console.log(`✅ [6.2] 物證對質打臉成功：${confrontRes.clueUnlocked} (嫌犯心防瓦解至 ${confrontRes.psychologicalDefense}%)`);
 
 // 6.3 認罪自白
 const confessionRes = engine.dialogueEngine.selectOption('session_test', 0, engine.investigator);
 assert(confessionRes.success && confessionRes.caseClosed, '出示鐵證後嫌疑人應認罪');
-console.log(`✅ [6.3] 嫌疑人心理防線崩潰坦承作案，筆錄閉環`);
+assert.strictEqual(confessionRes.psychologicalDefense, 0, '最終心理防線應全面歸零 (0%)');
+assert(confessionRes.isDefenseBroken, '防線全面瓦解標記應為 true');
+console.log(`✅ [6.3] 嫌疑人心理防線崩潰坦承作案，筆錄閉環 (防線歸零：0%)`);
 
 // ─── 階段 7：思維推理板評等與動森特產收藏 ───
 const solveRes = engine.caseManager.resolveCase(
@@ -272,6 +309,20 @@ assert(coldRes.success);
 assert.strictEqual(coldRes.coldCaseRecord.officialSeal, '雙北都會調查處・未破懸案官印');
 assert(coldRes.coldCaseRecord.spoilerGuarded, '必須嚴格零劇透');
 console.log(`✅ [7.3] 雙北歷史懸案檔案庫封存成功：加蓋「未破懸案」官印，100% 零劇透保護`);
+
+// 7.4 有向思維導圖網 (Deduction Graph) 邏輯閉環與 Eureka 頓悟事件 (Round 101 規格)
+engine.deductionBoard.addGraphNode('case_01', { id: 'ev_01_cup_lid', label: '外帶杯蓋', type: 'evidence', metadata: { isVerifiedByScience: true } });
+engine.deductionBoard.addGraphNode('case_01', { id: 'science_amygdalin', label: '365nm紫外光苦杏仁苷反應', type: 'science' });
+engine.deductionBoard.addGraphNode('case_01', { id: 'contra_broken_glove', label: '食指手套破洞汗印', type: 'contradiction' });
+engine.deductionBoard.addGraphNode('case_01', { id: 'suspect_01_wu', label: '吧台調配員吳冠宇', type: 'suspect' });
+
+engine.deductionBoard.addGraphEdge('case_01', 'ev_01_cup_lid', 'science_amygdalin', '激發螢光');
+engine.deductionBoard.addGraphEdge('case_01', 'science_amygdalin', 'contra_broken_glove', '戳破戴手套謊言');
+const closureRes = engine.deductionBoard.addGraphEdge('case_01', 'contra_broken_glove', 'suspect_01_wu', '鎖定真凶動機');
+
+assert(closureRes.closureStatus.isClosed, '有向思維導圖應成功形成邏輯閉環');
+assert(closureRes.closureStatus.eurekaTriggered, '達成邏輯閉環應觸發 Eureka 頓悟事件');
+console.log(`✅ [7.4] 有向思維導圖網閉環成功：${closureRes.closureStatus.eurekaTitle} ${closureRes.closureStatus.eurekaMessage}`);
 
 // ─── 階段 8：社區信賴度 Lv.1~Lv.5 與特區聲譽 ───
 const trustUp = engine.trustSystem.increaseNpcTrust('suspect_01_wang', 2);
