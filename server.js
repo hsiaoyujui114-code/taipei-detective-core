@@ -232,6 +232,38 @@ async function handleDetectiveRequest(req, res, customEngine = null) {
     return true;
   }
 
+  // 自由出示物證質詢 API (支援心理防線反唇相譏與音效反饋)
+  if (pathname === '/api/detective/dialogue/present' && req.method === 'POST') {
+    const body = await parseBody(req);
+    if (!body.evidenceId) {
+      sendJson(res, 400, { error: '缺少 evidenceId 參數' });
+      return true;
+    }
+    const sessionId = body.sessionId || 'session_web';
+    const result = engine.dialogueEngine.presentEvidenceDirectly(
+      sessionId,
+      body.evidenceId,
+      engine.investigator
+    );
+
+    // 附帶 Web 地圖音效反饋標籤
+    const soundFx = result.defenseChange > 0
+      ? 'sfx_suspect_smug'
+      : (result.isDefenseBroken ? 'sfx_breakdown' : (result.success ? 'sfx_confront_hit' : 'sfx_doubt'));
+
+    const responsePayload = {
+      ...result,
+      soundFx,
+      popupBubble: result.sarcasm || result.npcReply || '嫌犯神情微變...'
+    };
+
+    // 派發雙向協同事件至地圖系統
+    engine.bridge.dispatch('DETECTIVE:CONFRONTATION_FEEDBACK', responsePayload);
+
+    sendJson(res, 200, responsePayload);
+    return true;
+  }
+
   if (pathname === '/api/detective/suspects/dialogue-state' && req.method === 'GET') {
     const caseId = urlObj.searchParams.get('caseId');
     sendJson(res, 200, {
@@ -358,6 +390,68 @@ async function handleDetectiveRequest(req, res, customEngine = null) {
       success: true,
       venues: engine.mapCoordinator.getVenuesOnMap()
     });
+    return true;
+  }
+
+  // 4 大科普場館 108 課綱微任務問答 API (供地圖一鍵彈窗)
+  if (pathname === '/api/detective/venue/quiz' && req.method === 'GET') {
+    const venueId = urlObj.searchParams.get('venueId') || 'venue_sec';
+    const quiz = engine.investigator.inventory.getVenueQuiz(venueId);
+    sendJson(res, 200, {
+      success: true,
+      venueId,
+      quiz
+    });
+    return true;
+  }
+
+  // 雙北在地小吃生活補給食用 API (精準恢復體力值)
+  if (pathname === '/api/detective/inventory/eat-snack' && req.method === 'POST') {
+    const body = await parseBody(req);
+    const snackTarget = body.snack || body.snackName || '青草茶';
+    const result = engine.investigator.eatLocalDelicacy(snackTarget);
+    engine.bridge.dispatch('DETECTIVE:STAMINA_RECOVERED', result);
+    sendJson(res, 200, result);
+    return true;
+  }
+
+  // 即時天候狀態同步 API (接收來自 ai-engineer 的天候廣播)
+  if (pathname === '/api/detective/weather/sync' && req.method === 'POST') {
+    const body = await parseBody(req);
+    engine.currentWeather = {
+      weather: body.weather || 'clear',
+      temperatureC: Number(body.temperatureC) || 24,
+      humidityPercent: Number(body.humidityPercent) || 75,
+      updatedAt: new Date().toISOString()
+    };
+    engine.bridge.dispatch('WEATHER:UPDATED', engine.currentWeather);
+    sendJson(res, 200, {
+      success: true,
+      weather: engine.currentWeather,
+      message: `天候環境已更新為【${engine.currentWeather.weather}】(氣溫 ${engine.currentWeather.temperatureC}°C, 濕度 ${engine.currentWeather.humidityPercent}%)`
+    });
+    return true;
+  }
+
+  // 跨案件宏觀暗線思維導圖 API (Grand Conspiracy DAG)
+  if (pathname === '/api/detective/deduction/cross-case' && req.method === 'GET') {
+    sendJson(res, 200, {
+      success: true,
+      graph: engine.deductionBoard.getCrossCaseGraph()
+    });
+    return true;
+  }
+
+  if (pathname === '/api/detective/deduction/cross-case' && req.method === 'POST') {
+    const body = await parseBody(req);
+    const result = engine.deductionBoard.addCrossCaseEdge(
+      body.sourceCaseId,
+      body.sourceNodeId,
+      body.targetCaseId,
+      body.targetNodeId,
+      body.correlationNote || '跨案暗線關聯'
+    );
+    sendJson(res, 200, result);
     return true;
   }
 

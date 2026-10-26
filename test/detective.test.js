@@ -215,6 +215,14 @@ assert(validEgg.success, '親赴案發現場 50~100m 生活圈應成功發現並
 assert.strictEqual(validEgg.canPick, true);
 console.log(`✅ [4.3.3] 案發周圍 65m 生活圈親赴拾獲彩蛋成功：${validEgg.message}`);
 
+// 4.3.4 雙北在地小吃生活補給食用與體力精準恢復驗證 (契合 story 設定)
+engine.investigator.stamina = 50; // 模擬搜查疲勞剩餘 50 點體力
+const eatResult = engine.investigator.eatLocalDelicacy('萬華青草茶');
+assert(eatResult.success, '品嚐在地小吃應成功');
+assert.strictEqual(eatResult.staminaRestored, 30, '萬華青草茶應精準恢復 30 點體力');
+assert.strictEqual(engine.investigator.stamina, 80, '調查員體力應由 50 恢復至 80');
+console.log(`✅ [4.3.4] 雙北在地小吃補給驗證成功：${eatResult.message}`);
+
 // 4.4 🏢 建築進出標記親赴驗證 (企劃書 02.2 規格：可進建築大門提供進出，不可進建築無圖案阻擋盲探)
 const nearbyBldgs = engine.buildingSystem.getNearbyBuildings(engine.investigator.currentCoords, 850);
 assert(nearbyBldgs.length >= 2, '生活圈 850m 內應掃描到建築');
@@ -323,6 +331,17 @@ const closureRes = engine.deductionBoard.addGraphEdge('case_01', 'contra_broken_
 assert(closureRes.closureStatus.isClosed, '有向思維導圖應成功形成邏輯閉環');
 assert(closureRes.closureStatus.eurekaTriggered, '達成邏輯閉環應觸發 Eureka 頓悟事件');
 console.log(`✅ [7.4] 有向思維導圖網閉環成功：${closureRes.closureStatus.eurekaTitle} ${closureRes.closureStatus.eurekaMessage}`);
+
+// 7.5 跨案件宏觀暗線思維導圖 (Grand Conspiracy DAG) 驗證 (契合 story 篇章伏筆)
+const crossEdgeRes = engine.deductionBoard.addCrossCaseEdge(
+  'CASE-01', 'ev_01_cup_lid',
+  'CASE-26', 'clue_taipei_rail_switch',
+  '西門町毒咖啡杯蓋塗料與北平西路鐵路局機房失竊晶片暗線伏筆'
+);
+assert(crossEdgeRes.success, '建立跨案件思維引線應成功');
+const crossGraph = engine.deductionBoard.getCrossCaseGraph();
+assert(crossGraph.totalConnections >= 1, '跨案件網絡應至少包含 1 條跨篇章引線');
+console.log(`✅ [7.5] 跨案件宏觀暗線導圖成功：${crossEdgeRes.message}`);
 
 // ─── 階段 8：社區信賴度 Lv.1~Lv.5 與特區聲譽 ───
 const trustUp = engine.trustSystem.increaseNpcTrust('suspect_01_wang', 2);

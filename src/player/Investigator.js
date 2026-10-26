@@ -179,6 +179,49 @@ class Investigator {
   }
 
   /**
+   * 食用雙北在地小吃生活補給彩蛋 (精準恢復體力值，契合 story 生活化設定)
+   * 包含：萬華青草茶 (+30)、淡水阿給 (+45)、大稻埕杏仁茶配油條 (+35)、北投溫泉蛋 (+25)、新北深坑烤豆腐 (+30)
+   * @param {string|Object} snack - 小吃名稱或道具物件
+   * @returns {Object} 補給結算結果
+   */
+  eatLocalDelicacy(snack) {
+    const snackMap = {
+      '青草茶': { name: '萬華青草巷安民青草茶', stamina: 30, flavor: '清涼解熱，驅散夏日搜查疲勞！' },
+      '阿給': { name: '淡水老牌正宗阿給', stamina: 45, flavor: '飽滿冬粉與油豆腐，填飽肚子精神百倍！' },
+      '杏仁茶': { name: '大稻埕百年傳統杏仁茶配酥脆油條', stamina: 35, flavor: '濃郁溫潤，思考力大幅提升！' },
+      '溫泉蛋': { name: '北投溫泉地熱半熟蛋', stamina: 25, flavor: '微鹹溫熱，迅速補充蛋白質體力！' },
+      '深坑豆腐': { name: '深坑老街炭烤黑豆腐', stamina: 30, flavor: '特殊炭焙香氣，漫遊探索動力滿滿！' }
+    };
+
+    let snackKey = typeof snack === 'string' ? snack : (snack.id || snack.name || '');
+    let matched = null;
+    for (const [key, val] of Object.entries(snackMap)) {
+      if (snackKey.includes(key)) {
+        matched = val;
+        break;
+      }
+    }
+
+    const staminaRestored = matched ? matched.stamina : 25;
+    const snackName = matched ? matched.name : (typeof snack === 'string' ? snack : snack.name || '雙北在地生活補給');
+    const flavorText = matched ? matched.flavor : '品嚐雙北道地小吃，體力精神大幅回補！';
+
+    const prevStamina = this.stamina;
+    this.recoverStamina(staminaRestored);
+    const actualGained = this.stamina - prevStamina;
+
+    return {
+      success: true,
+      snackName,
+      staminaRestored: actualGained,
+      currentStamina: this.stamina,
+      maxStamina: this.maxStamina,
+      flavorText,
+      message: `品嚐了【${snackName}】！體力恢復 +${actualGained}（目前體力：${this.stamina}/${this.maxStamina}）。${flavorText}`
+    };
+  }
+
+  /**
    * 記錄線索至調查筆記本
    * @param {string} title
    * @param {string} content

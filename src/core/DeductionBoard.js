@@ -19,7 +19,69 @@ class DeductionBoard {
     this.caseLinks = new Map();         // caseId -> Array of links
     this.coldCaseArchive = new Map();   // caseId -> coldCaseRecord
     this.deductionGraphs = new Map();   // caseId -> { nodes: Map, edges: Array, eurekaTriggered: boolean }
+    this.crossCaseNetwork = {           // 跨案件宏觀暗線思維導圖 (Grand Conspiracy DAG)
+      nodes: new Map(),
+      edges: [],
+      eurekaTriggered: false
+    };
     this.safeViewingMosaic = true;      // 預設開啟防嚇馬賽克 (守護小六學生心理)
+  }
+
+  /**
+   * 建立跨案件暗線伏筆有向引線 (Cross-case Grand Deduction Edge)
+   * 專門用於串接 story 模組的篇章伏筆 (例如 CASE-01 咖啡店晶片 ➔ CASE-26 跨區鐵路局機房)
+   */
+  addCrossCaseEdge(sourceCaseId, sourceNodeId, targetCaseId, targetNodeId, correlationNote = '跨案暗線關聯') {
+    const srcKey = `${sourceCaseId}:${sourceNodeId}`;
+    const tgtKey = `${targetCaseId}:${targetNodeId}`;
+
+    if (!this.crossCaseNetwork.nodes.has(srcKey)) {
+      this.crossCaseNetwork.nodes.set(srcKey, {
+        id: srcKey,
+        caseId: sourceCaseId,
+        nodeId: sourceNodeId,
+        label: `${sourceCaseId}・${sourceNodeId}`
+      });
+    }
+
+    if (!this.crossCaseNetwork.nodes.has(tgtKey)) {
+      this.crossCaseNetwork.nodes.set(tgtKey, {
+        id: tgtKey,
+        caseId: targetCaseId,
+        nodeId: targetNodeId,
+        label: `${targetCaseId}・${targetNodeId}`
+      });
+    }
+
+    const edge = {
+      id: `cross_edge_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+      from: srcKey,
+      to: tgtKey,
+      sourceCaseId,
+      targetCaseId,
+      correlationNote,
+      createdAt: new Date().toISOString()
+    };
+
+    this.crossCaseNetwork.edges.push(edge);
+
+    return {
+      success: true,
+      edge,
+      totalCrossEdges: this.crossCaseNetwork.edges.length,
+      message: `成功建立跨案件思維引線：【${sourceCaseId}】➔【${targetCaseId}】(${correlationNote})`
+    };
+  }
+
+  /**
+   * 導出跨案件宏觀暗線網絡資料 (供地圖與思維導圖 UI 繪製)
+   */
+  getCrossCaseGraph() {
+    return {
+      nodes: Array.from(this.crossCaseNetwork.nodes.values()),
+      edges: this.crossCaseNetwork.edges,
+      totalConnections: this.crossCaseNetwork.edges.length
+    };
   }
 
   /**
