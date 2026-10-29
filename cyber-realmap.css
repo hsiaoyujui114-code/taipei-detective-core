@@ -1,0 +1,2424 @@
+/* ==========================================================================
+   NEO-TAIPEI 1:1 REAL HOLO-MAP (雙北全息科技地圖 - 附檔樣式表)
+   風格：賽博龐克・黑曜石深邃底板・全息霓虹光譜・高科技戰術 HUD
+   ========================================================================== */
+
+:root {
+  --bg-space: #070d24;
+  --panel-bg: rgba(13, 22, 45, 0.9);
+  --panel-border: rgba(0, 240, 255, 0.35);
+  --cyan-glow: #00f0ff;
+  --blue-neon: #0088ff;
+  --emerald-neon: #10b981;
+  --magenta-neon: #f43f5e;
+  --amber-neon: #f59e0b;
+  --text-main: #e2e8f0;
+  --text-dim: #94a3b8;
+  --font-mono: 'SF Mono', Monaco, Menlo, 'Consolas', 'Courier New', monospace;
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: var(--bg-space);
+  font-family: var(--font-sans);
+  color: var(--text-main);
+  user-select: none;
+}
+
+/* 1:1 真實 MapLibre / Leaflet 畫布容器 (深星空藍底色，絕不黑屏) */
+#map {
+  width: 100vw;
+  height: 100vh;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  background-color: #070d24;
+  transform: translateZ(0); /* 啟用獨立 GPU 渲染層 */
+  will-change: transform;
+}
+
+/* 頂部全息戰術導航條 (Top Tactical Navigation Bar) */
+.holo-top-bar {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  height: 52px;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--panel-bg);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  padding: 0 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7), inset 0 0 12px rgba(0, 240, 255, 0.08);
+}
+
+.brand-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.holo-badge-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(0, 240, 255, 0.2), rgba(0, 136, 255, 0.3));
+  border: 1px solid var(--cyan-glow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  box-shadow: 0 0 12px rgba(0, 240, 255, 0.4);
+  animation: pulse-border 2.5s infinite;
+}
+
+.brand-title-wrap {
+  display: flex;
+  flex-direction: column;
+}
+
+.brand-main-title {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 1.2px;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.companion-badge {
+  font-size: 10px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(16, 185, 129, 0.2);
+  border: 1px solid var(--emerald-neon);
+  color: #34d399;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.brand-sub-title {
+  font-size: 10px;
+  color: var(--cyan-glow);
+  letter-spacing: 0.5px;
+}
+
+/* 特區快速躍遷按鈕列 (Quick Jump Sectors Bar) */
+.jump-scroll-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  max-width: 58%;
+  padding: 4px 0;
+}
+
+.jump-scroll-wrap::-webkit-scrollbar {
+  display: none;
+}
+
+.jump-chip {
+  background: rgba(30, 41, 59, 0.85);
+  border: 1px solid rgba(0, 240, 255, 0.25);
+  color: #e2e8f0;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.jump-chip:hover {
+  background: rgba(0, 240, 255, 0.2);
+  border-color: var(--cyan-glow);
+  color: #ffffff;
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.4);
+  transform: translateY(-1px);
+}
+
+.jump-chip.active {
+  background: linear-gradient(135deg, rgba(2, 132, 199, 0.8), rgba(3, 105, 161, 0.9));
+  border-color: var(--cyan-glow);
+  color: #ffffff;
+  box-shadow: 0 0 12px rgba(0, 240, 255, 0.5);
+}
+
+/* 主附切換按鈕 */
+.dual-track-btn {
+  background: linear-gradient(135deg, #0284c7, #2563eb);
+  border: 1px solid #38bdf8;
+  color: #ffffff;
+  border-radius: 6px;
+  padding: 7px 14px;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 0 14px rgba(37, 99, 235, 0.5);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.dual-track-btn:hover {
+  background: linear-gradient(135deg, #0369a1, #1d4ed8);
+  border-color: #7dd3fc;
+  box-shadow: 0 0 18px rgba(0, 240, 255, 0.7);
+  transform: translateY(-1px);
+}
+
+/* 左側即時遙測 HUD 面板 (Left Telemetry Panel) */
+.left-telemetry-panel {
+  position: absolute;
+  top: 76px;
+  left: 12px;
+  width: 250px;
+  z-index: 100;
+  background: var(--panel-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+  font-family: var(--font-mono);
+  max-height: calc(100vh - 184px);
+  overflow-y: auto;
+}
+
+.panel-header {
+  font-size: 10px;
+  font-weight: 900;
+  color: var(--cyan-glow);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(0, 240, 255, 0.2);
+  padding-bottom: 6px;
+  margin-bottom: 10px;
+}
+
+.telemetry-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  margin-bottom: 7px;
+}
+
+.telemetry-label {
+  color: var(--text-dim);
+}
+
+.telemetry-val {
+  color: #38bdf8;
+  font-weight: 700;
+}
+
+.telemetry-val.highlight {
+  color: #4ade80;
+}
+
+/* 特區探測器大標籤 */
+.sector-detector-box {
+  margin-top: 10px;
+  padding: 8px 10px;
+  background: rgba(2, 6, 23, 0.6);
+  border: 1px dashed rgba(0, 240, 255, 0.3);
+  border-radius: 6px;
+}
+
+.sector-title {
+  font-size: 12px;
+  font-weight: 900;
+  color: #f8fafc;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sector-sub {
+  font-size: 10px;
+  color: var(--text-dim);
+  margin-top: 3px;
+}
+
+/* 右側戰術圖層控制與掃描工具箱 (Right Tactical Control Panel) */
+.right-tactical-panel {
+  position: absolute;
+  top: 76px;
+  right: 12px;
+  width: 220px;
+  z-index: 100;
+  background: var(--panel-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+  max-height: calc(100vh - 184px);
+  overflow-y: auto;
+}
+
+.tool-btn-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.tactical-tool-btn {
+  background: rgba(30, 41, 59, 0.85);
+  border: 1px solid rgba(0, 240, 255, 0.25);
+  color: #f1f5f9;
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all 0.2s ease;
+}
+
+.tactical-tool-btn:hover {
+  background: rgba(0, 240, 255, 0.2);
+  border-color: var(--cyan-glow);
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+}
+
+.tactical-tool-btn.active {
+  background: rgba(16, 185, 129, 0.25);
+  border-color: var(--emerald-neon);
+  color: #34d399;
+}
+
+/* 底部操作提示 (Bottom Hint Bar) */
+.bottom-hint-bar {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  background: var(--panel-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--panel-border);
+  border-radius: 20px;
+  padding: 6px 20px;
+  font-size: 11px;
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  pointer-events: none;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.7);
+}
+
+.hint-key {
+  color: var(--cyan-glow);
+  font-weight: 800;
+  font-family: var(--font-mono);
+}
+
+/* 全息雷達掃描動畫遮罩 (Radar Scan Wave) */
+.radar-scan-wave {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 50;
+  background: radial-gradient(circle at center, rgba(0, 240, 255, 0.15) 0%, rgba(0, 240, 255, 0.03) 40%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.radar-scan-wave.active {
+  opacity: 1;
+  animation: radar-pulse 2s infinite ease-out;
+}
+
+@keyframes radar-pulse {
+  0% { transform: scale(0.6); opacity: 0.8; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+@keyframes pulse-border {
+  0%, 100% { box-shadow: 0 0 8px rgba(0, 240, 255, 0.3); }
+  50% { box-shadow: 0 0 16px rgba(0, 240, 255, 0.7); }
+}
+
+/* MapLibre 彈窗高科技賽博樣式 (Holographic Store Popup) */
+.maplibregl-popup {
+  max-width: 300px !important;
+  z-index: 200;
+}
+
+.maplibregl-popup-content {
+  background: rgba(15, 23, 42, 0.95) !important;
+  border: 1px solid var(--cyan-glow) !important;
+  border-radius: 8px !important;
+  padding: 12px 14px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 16px rgba(0, 240, 255, 0.4) !important;
+  color: #f1f5f9 !important;
+}
+
+.maplibregl-popup-tip {
+  border-top-color: var(--cyan-glow) !important;
+}
+
+.maplibregl-popup-close-button {
+  color: var(--cyan-glow) !important;
+  font-size: 16px !important;
+  padding: 4px 8px !important;
+}
+
+.store-popup-header {
+  font-size: 13px;
+  font-weight: 900;
+  color: #38bdf8;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-bottom: 1px solid rgba(0, 240, 255, 0.2);
+  padding-bottom: 6px;
+  margin-bottom: 6px;
+}
+
+.store-popup-type {
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-weight: 800;
+}
+
+.type-wanjiafu {
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid #ef4444;
+  color: #f87171;
+}
+
+.type-lejiakang {
+  background: rgba(0, 240, 255, 0.2);
+  border: 1px solid var(--cyan-glow);
+  color: #38bdf8;
+}
+
+.type-cvs {
+  background: rgba(16, 185, 129, 0.2);
+  border: 1px solid var(--emerald-neon);
+  color: #34d399;
+}
+
+.store-popup-address {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+}
+
+.store-popup-supplies {
+  font-size: 10px;
+  background: rgba(2, 6, 23, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  padding: 6px 8px;
+  margin-top: 6px;
+}
+
+.supply-tag {
+  display: inline-block;
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid rgba(0, 240, 255, 0.2);
+  border-radius: 3px;
+  padding: 2px 6px;
+  margin: 2px 2px 2px 0;
+  color: #cbd5e1;
+}
+
+/* ─── 🚨 10 大生活科學探究示範案件跳轉條 (Top Strip) ─── */
+.cases-top-strip {
+  position: absolute;
+  top: 70px;
+  left: 12px;
+  right: 12px;
+  height: 42px;
+  z-index: 95;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(10, 18, 38, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(244, 63, 94, 0.35);
+  border-radius: 8px;
+  padding: 0 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+}
+
+.cases-strip-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 900;
+  color: #f43f5e;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.cases-chips-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  flex: 1;
+}
+.cases-chips-wrap::-webkit-scrollbar {
+  display: none;
+}
+
+.case-chip-btn {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  background: rgba(244, 63, 94, 0.12);
+  border: 1px solid rgba(244, 63, 94, 0.4);
+  border-radius: 6px;
+  color: #fda4af;
+  cursor: pointer;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.2s ease;
+}
+
+.case-chip-btn:hover, .case-chip-btn.active {
+  background: linear-gradient(135deg, rgba(244, 63, 94, 0.4), rgba(225, 29, 72, 0.6));
+  border-color: #f43f5e;
+  color: #ffffff;
+  box-shadow: 0 0 10px rgba(244, 63, 94, 0.6);
+  transform: translateY(-1px);
+}
+
+.case-chip-subject {
+  font-size: 9px;
+  padding: 1px 4px;
+  background: rgba(0, 240, 255, 0.2);
+  border-radius: 3px;
+  color: #67e8f9;
+}
+
+/* ─── 🚨 現場發光警報標記 (Beacon Marker) ─── */
+.crime-beacon-marker {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #f43f5e 40%, rgba(244, 63, 94, 0.2) 80%);
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 16px #f43f5e, 0 0 32px rgba(244, 63, 94, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  cursor: pointer;
+  position: relative;
+  animation: beacon-pulse 1.8s infinite ease-out;
+}
+
+@keyframes beacon-pulse {
+  0% { transform: scale(0.9); box-shadow: 0 0 8px #f43f5e; }
+  50% { transform: scale(1.15); box-shadow: 0 0 24px #f43f5e, 0 0 40px rgba(244, 63, 94, 0.7); }
+  100% { transform: scale(0.9); box-shadow: 0 0 8px #f43f5e; }
+}
+
+.crime-beacon-label {
+  position: absolute;
+  top: 34px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(3, 7, 18, 0.95);
+  border: 1px solid #f43f5e;
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 10px;
+  font-weight: 800;
+  color: #fecdd3;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+}
+
+/* ─── 案件戰術詳情彈窗 (Case Brief Modal) ─── */
+.case-brief-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 2500;
+  background: rgba(2, 6, 23, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.case-brief-card {
+  width: 100%;
+  max-width: 680px;
+  max-height: 85vh;
+  background: linear-gradient(145deg, #0f172a, #0b1120);
+  border: 1px solid var(--cyan-glow);
+  border-radius: 12px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9), 0 0 30px rgba(0, 240, 255, 0.3);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: modal-pop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modal-pop {
+  0% { opacity: 0; transform: scale(0.95); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.case-card-header {
+  padding: 16px 20px;
+  background: rgba(15, 23, 42, 0.95);
+  border-bottom: 1px solid rgba(0, 240, 255, 0.25);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.case-card-title-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.case-card-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 900;
+  color: #f43f5e;
+}
+
+.case-card-title {
+  font-size: 17px;
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: 0.5px;
+}
+
+.case-card-sub {
+  font-size: 12px;
+  color: #38bdf8;
+}
+
+.case-card-close {
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #cbd5e1;
+  font-size: 18px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+.case-card-close:hover {
+  background: #f43f5e;
+  border-color: #f43f5e;
+  color: #ffffff;
+}
+
+.case-card-body {
+  padding: 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.case-meta-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  background: rgba(2, 6, 23, 0.5);
+  border: 1px solid rgba(0, 240, 255, 0.15);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.case-meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.case-meta-label {
+  font-size: 11px;
+  color: var(--text-dim);
+  font-weight: 700;
+}
+.case-meta-val {
+  font-size: 12.5px;
+  color: #f1f5f9;
+  font-weight: 800;
+}
+
+.safe-kit-box {
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+.safe-kit-title {
+  color: #34d399;
+  font-weight: 900;
+  font-size: 12px;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.case-section-box {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+.case-section-title {
+  color: #38bdf8;
+  font-weight: 900;
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+
+.suspect-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 4px;
+  font-size: 12px;
+}
+.suspect-name {
+  color: #fbbf24;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.case-card-footer {
+  padding: 14px 20px;
+  background: rgba(15, 23, 42, 0.95);
+  border-top: 1px solid rgba(0, 240, 255, 0.2);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.btn-fly-to-scene {
+  background: linear-gradient(135deg, #0284c7, #00f0ff);
+  border: none;
+  color: #030712;
+  font-weight: 900;
+  padding: 8px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  box-shadow: 0 0 12px rgba(0, 240, 255, 0.5);
+  transition: all 0.2s;
+}
+.btn-fly-to-scene:hover {
+  transform: scale(1.03);
+  box-shadow: 0 0 18px rgba(0, 240, 255, 0.8);
+}
+
+/* ─── Leaflet 1:1 真實網路地圖賽博覆蓋樣式 (CARTO / OSM / 衛星) ─── */
+.leaflet-container {
+  background-color: #070d24 !important;
+  font-family: var(--font-sans) !important;
+  transform: translateZ(0);
+}
+
+.leaflet-pane {
+  will-change: transform;
+}
+
+.leaflet-tile {
+  /* 高畫質抗鋸齒街道渲染：保證在任何螢幕縮放與高解析度下，街道、巷弄與門牌線條平滑完整不消失 */
+  image-rendering: auto;
+}
+
+.leaflet-tile-pane {
+  /* 全彩高透亮街道渲染：提升全域明亮度與透光感，徹底消除暗沉感 */
+  filter: brightness(105%) saturate(106%);
+  transform: translateZ(0);
+}
+
+/* ──────────────────────────────────────────
+   ☀️ 各風格底圖全域高亮透徹化 (Map Tile Brightness Enhancements)
+   ────────────────────────────────────────── */
+body[data-map-theme="nlsc"] .leaflet-tile-pane,
+body[data-map-theme="esri_street"] .leaflet-tile-pane,
+body[data-map-theme="osm"] .leaflet-tile-pane {
+  filter: brightness(107%) contrast(102%) saturate(105%);
+}
+
+body[data-map-theme="satellite"] .leaflet-tile-pane {
+  filter: brightness(108%) contrast(104%) saturate(106%);
+}
+
+body[data-map-theme="dark"] .leaflet-tile-pane {
+  filter: brightness(112%) contrast(106%) saturate(110%);
+}
+
+/* 底層畫布自適應亮色，防止深色底透過切換與縫隙使地圖顯暗 */
+body[data-map-theme="nlsc"] #map,
+body[data-map-theme="esri_street"] #map,
+body[data-map-theme="osm"] #map {
+  background-color: #f8fafc !important;
+}
+
+body[data-map-theme="satellite"] #map {
+  background-color: #0f172a !important;
+}
+
+body[data-map-theme="dark"] #map {
+  background-color: #070d24 !important;
+}
+
+.leaflet-overlay-pane canvas {
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+.leaflet-bar {
+  border: 1px solid var(--panel-border) !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.6) !important;
+  border-radius: 6px !important;
+  overflow: hidden;
+}
+
+.leaflet-bar a {
+  background-color: rgba(15, 23, 42, 0.95) !important;
+  color: var(--cyan-glow) !important;
+  border-bottom: 1px solid rgba(0, 240, 255, 0.2) !important;
+  transition: all 0.2s;
+}
+
+.leaflet-bar a:hover {
+  background-color: rgba(2, 132, 199, 0.6) !important;
+  color: #ffffff !important;
+}
+
+.leaflet-popup-content-wrapper {
+  background: rgba(15, 23, 42, 0.96) !important;
+  border: 1px solid var(--cyan-glow) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 16px rgba(0, 240, 255, 0.4) !important;
+  color: #f1f5f9 !important;
+  padding: 0 !important;
+}
+
+.leaflet-popup-content {
+  margin: 12px 14px !important;
+  line-height: 1.4 !important;
+}
+
+.leaflet-popup-tip {
+  background: rgba(15, 23, 42, 0.96) !important;
+  border: 1px solid var(--cyan-glow) !important;
+}
+
+.leaflet-container a.leaflet-popup-close-button {
+  color: var(--cyan-glow) !important;
+  top: 8px !important;
+  right: 8px !important;
+  font-size: 16px !important;
+}
+
+/* 實體門市專屬官方品牌樣式標記 (Official Brand Style Signboard & Vector Pins) */
+.store-div-icon {
+  background: transparent !important;
+  border: none !important;
+}
+
+.store-holo-pin {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.65), 0 0 8px rgba(0,240,255,0.2);
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+  user-select: none;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.store-holo-pin:hover {
+  transform: scale(1.3) translateY(-4px);
+  z-index: 1000 !important;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.85), 0 0 16px rgba(0,240,255,0.7);
+}
+
+/* 1. 7-Eleven 正統官方綠框白底橘綠紅三色標誌 */
+.pin-seven {
+  background: #ffffff !important;
+  border: 1.5px solid #008054 !important;
+  box-shadow: 0 0 10px rgba(0, 128, 84, 0.4), 0 3px 8px rgba(0,0,0,0.6) !important;
+  width: 32px !important;
+  height: 22px !important;
+}
+.pin-seven svg {
+  width: 28px;
+  height: 18px;
+  display: block;
+}
+
+/* 2. FamilyMart 全家便利商店 官方藍綠雙色橫條招牌 */
+.pin-familymart {
+  background: #ffffff !important;
+  border: 1.5px solid #009944 !important;
+  box-shadow: 0 0 10px rgba(0, 153, 68, 0.4), 0 3px 8px rgba(0,0,0,0.6) !important;
+  width: 32px !important;
+  height: 22px !important;
+}
+.pin-familymart svg {
+  width: 30px;
+  height: 20px;
+  display: block;
+}
+
+/* 3. 家樂福 Carrefour 經典 45度菱形紅白雙翼白C標誌 */
+.pin-carrefour,
+.pin-wanjiafu,
+.pin-lejiakang {
+  background: #ffffff !important;
+  border: 1.5px solid #254F9B !important;
+  box-shadow: 0 0 10px rgba(37, 79, 155, 0.45), 0 3px 8px rgba(0,0,0,0.6) !important;
+  width: 32px !important;
+  height: 22px !important;
+  padding: 2px !important;
+}
+.pin-carrefour svg,
+.pin-wanjiafu svg,
+.pin-lejiakang svg {
+  width: 26px;
+  height: 17px;
+  display: block;
+}
+
+/* 4. 全聯福利中心 PX-Mart 經典深藍底雙環彩帶標誌 */
+.pin-pxmart {
+  background: #ffffff !important;
+  border: 1.5px solid #003da5 !important;
+  box-shadow: 0 0 10px rgba(0, 61, 165, 0.5), 0 3px 8px rgba(0,0,0,0.6) !important;
+  width: 32px !important;
+  height: 22px !important;
+}
+.pin-pxmart svg {
+  width: 28px;
+  height: 18px;
+  display: block;
+}
+
+/* 5. 麥當勞 McDonald's 經典紅底金黃雙拱門 M 標誌 */
+.pin-mcdonalds {
+  background: #da291c !important;
+  border: 1.5px solid #ffc72c !important;
+  box-shadow: 0 0 12px rgba(218, 41, 28, 0.6), 0 3px 8px rgba(0,0,0,0.6) !important;
+  width: 32px !important;
+  height: 22px !important;
+}
+.pin-mcdonalds svg {
+  width: 26px;
+  height: 18px;
+  display: block;
+}
+
+/* 6. 星巴克 Starbucks 經典深綠圓形海妖雙尾賽蓮標誌 */
+.pin-starbucks {
+  background: #006241 !important;
+  border: 1.5px solid #ffffff !important;
+  box-shadow: 0 0 12px rgba(0, 98, 65, 0.6), 0 3px 8px rgba(0,0,0,0.6) !important;
+  width: 26px !important;
+  height: 26px !important;
+  border-radius: 50% !important;
+}
+.pin-starbucks svg {
+  width: 22px;
+  height: 22px;
+  display: block;
+}
+
+/* 7. 摩斯漢堡 MOS Burger 官方紅底純白流線 M 標誌 */
+.pin-mosburger {
+  background: #d9251d !important;
+  border: 1.5px solid #ffffff !important;
+  box-shadow: 0 0 10px rgba(217, 37, 29, 0.5), 0 3px 8px rgba(0,0,0,0.6) !important;
+  width: 32px !important;
+  height: 22px !important;
+}
+.pin-mosburger svg {
+  width: 26px;
+  height: 18px;
+  display: block;
+}
+
+/* 8. 屈臣氏 Watsons 官方湖水青綠底純白字樣招牌 */
+.pin-watsons {
+  background: #009aa6 !important;
+  border: 1.5px solid #ffffff !important;
+  box-shadow: 0 0 10px rgba(0, 154, 166, 0.5), 0 3px 8px rgba(0,0,0,0.6) !important;
+  width: 34px !important;
+  height: 20px !important;
+}
+.pin-watsons svg {
+  width: 30px;
+  height: 16px;
+  display: block;
+}
+
+/* 9. 康是美 Cosmed 官方鮮橘底白紅蝶花十字標誌 */
+.pin-cosmed {
+  background: #ff6600 !important;
+  border: 1.5px solid #ffffff !important;
+  box-shadow: 0 0 10px rgba(255, 102, 0, 0.5), 0 3px 8px rgba(0,0,0,0.6) !important;
+  width: 26px !important;
+  height: 26px !important;
+}
+.pin-cosmed svg {
+  width: 22px;
+  height: 22px;
+  display: block;
+}
+
+/* 10. CoCo 都可手搖飲 官方溫暖亮橘圓角笑臉標誌 */
+.pin-coco {
+  background: #f97316 !important;
+  border: 1.5px solid #ffffff !important;
+  box-shadow: 0 0 10px rgba(249, 115, 22, 0.5), 0 3px 8px rgba(0,0,0,0.6) !important;
+  width: 32px !important;
+  height: 22px !important;
+}
+.pin-coco svg {
+  width: 28px;
+  height: 18px;
+  display: block;
+}
+
+/* 11. 雙北傳統市場與觀光夜市 經典金木牌樓與大紅燈籠樣式 */
+.pin-market {
+  background: linear-gradient(135deg, #78350f, #451a03) !important;
+  border: 1.5px solid #f59e0b !important;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.5), 0 3px 8px rgba(0,0,0,0.6) !important;
+  width: 30px !important;
+  height: 24px !important;
+}
+.pin-market svg {
+  width: 26px;
+  height: 20px;
+  display: block;
+}
+
+/* 12. 大眾運輸捷運/公車/臺鐵/高鐵 官方代表色標誌 */
+.pin-transport {
+  background: #0f172a !important;
+  border: 1.5px solid #38bdf8 !important;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.5), 0 3px 8px rgba(0,0,0,0.6) !important;
+  width: 28px !important;
+  height: 28px !important;
+  border-radius: 50% !important;
+}
+.pin-transport svg {
+  width: 22px;
+  height: 22px;
+  display: block;
+}
+
+/* 13. 文化歷史古蹟與名勝 */
+.pin-landmark {
+  background: linear-gradient(135deg, #1e293b, #0f172a) !important;
+  border: 1.5px solid #c084fc !important;
+  box-shadow: 0 0 12px rgba(192, 132, 252, 0.5), 0 3px 8px rgba(0,0,0,0.6) !important;
+  width: 28px !important;
+  height: 28px !important;
+  border-radius: 50% !important;
+}
+.pin-landmark svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
+/* 門市彈窗詳細卡片 */
+.store-popup-card {
+  min-width: 250px;
+  max-width: 320px;
+}
+.store-brand-pill {
+  font-size: 10px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  display: inline-block;
+  margin-right: 6px;
+}
+.store-coords-bar {
+  display: flex;
+  gap: 8px;
+  font-size: 9px;
+  font-family: var(--font-mono);
+  color: #38bdf8;
+  background: rgba(2, 6, 23, 0.7);
+  padding: 3px 6px;
+  border-radius: 4px;
+  margin: 4px 0 6px 0;
+  border: 1px dashed rgba(0, 240, 255, 0.3);
+}
+
+/* 品牌過濾快捷列 (Store Filter Strip) */
+.store-filter-strip {
+  position: absolute;
+  top: 118px;
+  left: 12px;
+  right: 12px;
+  height: 38px;
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(10, 18, 38, 0.9);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 240, 255, 0.25);
+  border-radius: 8px;
+  padding: 0 10px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.store-filter-strip::-webkit-scrollbar { display: none; }
+.store-filter-label {
+  font-size: 10px;
+  font-weight: 800;
+  color: #38bdf8;
+  white-space: nowrap;
+}
+.filter-chip-btn {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 5px;
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid rgba(0, 240, 255, 0.2);
+  color: #cbd5e1;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.filter-chip-btn:hover {
+  background: rgba(0, 240, 255, 0.25);
+  border-color: var(--cyan-glow);
+  color: #ffffff;
+}
+.filter-chip-btn.active {
+  background: linear-gradient(135deg, #0284c7, #2563eb);
+  border-color: #38bdf8;
+  color: #ffffff;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+}
+
+/* 街道高光與台灣經典路牌標籤 (Taiwan Street Name Tooltip) */
+.street-name-tooltip {
+  background: rgba(15, 23, 42, 0.95) !important;
+  border: 1px solid #38bdf8 !important;
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  font-size: 11px !important;
+  padding: 3px 8px !important;
+  border-radius: 4px !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.7), 0 0 10px rgba(0, 240, 255, 0.4) !important;
+  white-space: nowrap !important;
+}
+
+.street-name-tooltip::before {
+  border-top-color: #38bdf8 !important;
+}
+
+.road-badge-marker {
+  background: linear-gradient(135deg, #047857, #065f46);
+  border: 1.5px solid #a7f3d0;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 900;
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.8), 0 0 8px rgba(52, 211, 153, 0.5);
+  pointer-events: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.park-badge-marker {
+  background: linear-gradient(135deg, #059669, #065f46);
+  border: 1.5px solid #6ee7b7;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 900;
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.8), 0 0 8px rgba(16, 185, 129, 0.5);
+  pointer-events: auto;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  transition: transform 0.2s ease;
+}
+
+.park-badge-marker:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 12px rgba(52, 211, 153, 0.8);
+}
+
+/* 🚅 高鐵、🚆 臺鐵、🚇 捷運與 🚌 公車 Marker 專屬全息樣式 */
+.transit-badge-pin {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 900;
+  color: #fff;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
+  border: 1.5px solid #fff;
+  cursor: pointer;
+  transform: translate(-50%, -50%);
+  transition: transform 0.2s ease;
+}
+
+.transit-badge-pin:hover {
+  transform: translate(-50%, -50%) scale(1.15);
+  z-index: 1000 !important;
+}
+
+.pin-thsr {
+  background: linear-gradient(135deg, #ea580c, #c2410c);
+  border-color: #fdba74;
+  box-shadow: 0 0 10px rgba(234, 88, 12, 0.6);
+}
+
+.pin-tra {
+  background: linear-gradient(135deg, #0284c7, #0369a1);
+  border-color: #7dd3fc;
+  box-shadow: 0 0 10px rgba(2, 132, 199, 0.6);
+}
+
+.pin-mrt {
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  border-color: #00f0ff;
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+}
+
+/* 🚇 台北捷運超高畫質向量標記 (Taipei Metro High-Res Official Pin) */
+.pin-mrt-vector {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  background: rgba(15, 23, 42, 0.94) !important;
+  backdrop-filter: blur(8px) !important;
+  border: 1.8px solid #00f0ff !important;
+  border-radius: 20px !important;
+  padding: 3px 9px 3px 5px !important;
+  box-shadow: 0 0 14px rgba(0, 240, 255, 0.4), 0 4px 10px rgba(0,0,0,0.6) !important;
+  color: #ffffff !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  white-space: nowrap !important;
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease !important;
+}
+
+.pin-mrt-vector:hover {
+  transform: scale(1.18) translateY(-3px) !important;
+  box-shadow: 0 0 20px rgba(0, 240, 255, 0.75), 0 6px 14px rgba(0,0,0,0.85) !important;
+  z-index: 1000 !important;
+}
+
+.mrt-logo-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  background: #ffffff;
+  border-radius: 50%;
+  padding: 1px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+.mrt-logo-box svg {
+  width: 15px;
+  height: 15px;
+  display: block;
+}
+
+.mrt-line-pill {
+  font-size: 9px;
+  font-weight: 900;
+  padding: 1px 5px;
+  border-radius: 10px;
+  letter-spacing: 0.5px;
+}
+
+.mrt-station-title {
+  letter-spacing: 0.5px;
+}
+
+.pin-mrt-compact-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  box-shadow: 0 0 8px rgba(0, 240, 255, 0.7);
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.pin-mrt-compact-dot:hover {
+  transform: scale(2.0);
+  box-shadow: 0 0 14px rgba(0, 240, 255, 1.0);
+}
+
+.compact-dot-wrap {
+  width: 10px !important;
+  height: 10px !important;
+}
+
+.pin-ebus {
+  background: linear-gradient(135deg, #059669, #047857);
+  border-color: #6ee7b7;
+  box-shadow: 0 0 10px rgba(5, 150, 105, 0.6);
+}
+
+/* 🚌 大臺北公車即時檢索面板 (Taipei eBus Realtime Navigator Drawer) */
+.ebus-navigator-panel {
+  position: absolute;
+  top: 168px;
+  left: 274px;
+  width: 320px;
+  max-height: 480px;
+  background: rgba(15, 23, 42, 0.96);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--emerald-neon);
+  border-radius: 8px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.8), 0 0 20px rgba(16, 185, 129, 0.2);
+  z-index: 120;
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  font-family: var(--font-sans);
+}
+
+.ebus-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(16, 185, 129, 0.3);
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+}
+
+.ebus-panel-title {
+  font-size: 12px;
+  font-weight: 900;
+  color: #34d399;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ebus-search-input-wrap {
+  position: relative;
+  margin-bottom: 8px;
+}
+
+.ebus-search-input {
+  width: 100%;
+  background: rgba(30, 41, 59, 0.9);
+  border: 1px solid #10b981;
+  color: #ffffff;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.ebus-search-input:focus {
+  border-color: #34d399;
+  box-shadow: 0 0 8px rgba(52, 211, 153, 0.5);
+}
+
+.ebus-quick-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.ebus-chip-btn {
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid rgba(52, 211, 153, 0.3);
+  color: #cbd5e1;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.ebus-chip-btn:hover, .ebus-chip-btn.active {
+  background: rgba(16, 185, 129, 0.3);
+  border-color: #34d399;
+  color: #34d399;
+}
+
+.ebus-results-list {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-right: 4px;
+}
+
+.ebus-result-card {
+  background: rgba(30, 41, 59, 0.7);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 6px;
+  padding: 8px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.ebus-result-card:hover {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: #10b981;
+}
+
+.ebus-card-title {
+  font-size: 11px;
+  font-weight: 800;
+  color: #f8fafc;
+  display: flex;
+  justify-content: space-between;
+}
+
+.ebus-card-meta {
+  font-size: 10px;
+  color: #94a3b8;
+  margin-top: 3px;
+  line-height: 1.4;
+}
+
+.ebus-card-eta {
+  display: inline-block;
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+  border-radius: 3px;
+  padding: 1px 4px;
+  font-weight: 700;
+  font-size: 9px;
+  margin-top: 4px;
+}
+
+/* ──────────────────────────────────────────
+   🚦 台灣標準三色交通號誌樣式 (Traffic Light Signals)
+   ────────────────────────────────────────── */
+.traffic-light-signal-box {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(15, 23, 42, 0.95);
+  border: 1.5px solid #38bdf8;
+  border-radius: 16px;
+  padding: 3px 6px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.7);
+  cursor: pointer;
+  white-space: nowrap;
+  backdrop-filter: blur(8px);
+}
+
+.tl-housing {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  background: #020617;
+  padding: 2px 4px;
+  border-radius: 10px;
+  border: 1px solid #334155;
+}
+
+.tl-lamp {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  display: inline-block;
+  opacity: 0.22;
+  transition: all 0.25s ease;
+}
+
+.tl-lamp.tl-red { background: #ef4444; }
+.tl-lamp.tl-yellow { background: #eab308; }
+.tl-lamp.tl-green { background: #22c55e; }
+
+.tl-lamp.tl-red.active {
+  opacity: 1;
+  box-shadow: 0 0 10px #ef4444, 0 0 16px #ef4444;
+}
+
+.tl-lamp.tl-yellow.active {
+  opacity: 1;
+  box-shadow: 0 0 10px #eab308, 0 0 16px #eab308;
+}
+
+.tl-lamp.tl-green.active {
+  opacity: 1;
+  box-shadow: 0 0 10px #22c55e, 0 0 16px #22c55e;
+}
+
+.tl-countdown-pill {
+  font-size: 10px;
+  font-weight: 800;
+  padding: 1px 5px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.5);
+  font-family: monospace;
+}
+
+/* ──────────────────────────────────────────
+   🚧 興建中捷運站點標籤
+   ────────────────────────────────────────── */
+.pin-uc-station {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: rgba(15, 23, 42, 0.9);
+  color: #67e8f9;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 8px;
+  border: 1.5px dashed #06b6d4;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+}
+
+/* ──────────────────────────────────────────
+   🛣️ 國道高速公路編號盾牌
+   ────────────────────────────────────────── */
+.hwy-shield-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: #1e3a8a;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 900;
+  padding: 2px 7px;
+  border-radius: 6px;
+  border: 1.5px solid #60a5fa;
+  box-shadow: 0 2px 10px rgba(37, 99, 235, 0.4);
+  white-space: nowrap;
+}
+
+/* ──────────────────────────────────────────
+   🏢 國道客運轉運中樞標籤
+   ────────────────────────────────────────── */
+.coach-hub-pin {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: linear-gradient(135deg, #1e293b, #0f172a);
+  color: #f59e0b;
+  font-size: 10px;
+  font-weight: 900;
+  padding: 3px 8px;
+  border-radius: 12px;
+  border: 1.5px solid #f59e0b;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
+  white-space: nowrap;
+}
+
+/* ──────────────────────────────────────────
+   ⚡ 地圖介面極致簡化 ✕ 依按鈕按需啟用站名與路名標籤
+   ────────────────────────────────────────── */
+.mrt-pin-hybrid {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* 預設狀態 (未開按鈕)：全圖絕對簡潔！全面隱藏「中山國小」等冗長站名，僅顯示精緻微光點 */
+body:not(.show-station-labels) .mrt-pin-hybrid .pin-mrt-vector {
+  display: none !important;
+}
+body:not(.show-station-labels) .mrt-pin-hybrid .pin-mrt-compact-dot {
+  display: block !important;
+}
+body:not(.show-station-labels) .transit-badge-pin {
+  display: none !important;
+}
+
+/* 按下按鈕啟用：顯露捷運雙色標誌、路線膠囊與站名 */
+body.show-station-labels .mrt-pin-hybrid .pin-mrt-vector {
+  display: inline-flex !important;
+}
+body.show-station-labels .mrt-pin-hybrid .pin-mrt-compact-dot {
+  display: none !important;
+}
+body.show-station-labels .transit-badge-pin {
+  display: inline-flex !important;
+}
+
+/* 道路名稱標牌：預設簡潔隱藏，按下按鈕才顯露「民權東路」等綠底白字路牌 */
+body:not(.show-road-names) .road-badge-wrap {
+  display: none !important;
+}
+body.show-road-names .road-badge-wrap {
+  display: block !important;
+}
+
+/* ──────────────────────────────────────────
+   🔭 局部導航視野限制 (Local Navigation FoV Radar)
+   ────────────────────────────────────────── */
+.radar-fov-circle {
+  stroke: #00f0ff;
+  stroke-width: 1.5px;
+  stroke-dasharray: 6, 6;
+  animation: radarScanRotate 16s linear infinite;
+}
+@keyframes radarScanRotate {
+  0% { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: 72; }
+}
+
+/* ──────────────────────────────────────────
+   🏪 商圈密集門市聚類標籤 (MarkerCluster)
+   ────────────────────────────────────────── */
+.store-cluster-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  background: rgba(15, 23, 42, 0.94);
+  border: 2px solid #38bdf8;
+  border-radius: 18px;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 800;
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.6);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.store-cluster-badge:hover {
+  transform: scale(1.1);
+  border-color: #facc15;
+  box-shadow: 0 0 20px rgba(250, 204, 21, 0.8);
+}
+
+/* ──────────────────────────────────────────
+   🚀 硬體加速列車與公車移動平滑化
+   ────────────────────────────────────────── */
+.mrt-train-div-icon, .bus-fleet-div-icon {
+  will-change: transform;
+  transition: transform 0.4s linear;
+}
+
+/* ──────────────────────────────────────────
+   🚍 即時公車行止狀態微光樣式
+   ────────────────────────────────────────── */
+.moving-fleet-bus.bus-stopped {
+  animation: busStoppedPulse 1.8s infinite ease-in-out;
+}
+@keyframes busStoppedPulse {
+  0%, 100% { box-shadow: 0 0 10px rgba(239, 68, 68, 0.7); }
+  50% { box-shadow: 0 0 20px rgba(239, 68, 68, 1.0); }
+}
+
+.moving-fleet-bus.bus-cruising {
+  animation: busCruisingPulse 2.2s infinite ease-in-out;
+}
+@keyframes busCruisingPulse {
+  0%, 100% { box-shadow: 0 0 10px rgba(2, 132, 199, 0.6); }
+  50% { box-shadow: 0 0 18px rgba(56, 189, 248, 0.9); }
+}
+
+/* ──────────────────────────────────────────
+   🚧 施工狀態即時同步標籤樣式
+   ────────────────────────────────────────── */
+.construction-hazard-badge {
+  animation: hazardFlicker 2s infinite ease-in-out;
+  transition: transform 0.2s ease;
+}
+.construction-hazard-badge:hover {
+  transform: scale(1.12);
+}
+@keyframes hazardFlicker {
+  0%, 100% { border-color: #f59e0b; box-shadow: 0 0 10px rgba(245, 158, 11, 0.6); }
+  50% { border-color: #ef4444; box-shadow: 0 0 18px rgba(239, 68, 68, 0.9); }
+}
+
+.construction-clear-badge {
+  transition: transform 0.2s ease;
+}
+.construction-clear-badge:hover {
+  transform: scale(1.12);
+}
+
+/* ──────────────────────────────────────────
+   🧭 Google Maps 風格導航方位羅盤 (Compass HUD)
+   ────────────────────────────────────────── */
+.compass-rose-hud {
+  position: absolute;
+  top: 168px;
+  right: 244px;
+  z-index: 1000;
+  background: rgba(15, 23, 42, 0.94);
+  backdrop-filter: blur(8px);
+  border: 1.5px solid #38bdf8;
+  border-radius: 24px;
+  padding: 4px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6), 0 0 12px rgba(56, 189, 248, 0.45);
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.compass-rose-hud:hover {
+  transform: scale(1.08);
+  border-color: #facc15;
+  box-shadow: 0 4px 20px rgba(250, 204, 21, 0.65);
+}
+.compass-dial {
+  position: relative;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.compass-needle-n {
+  position: absolute;
+  top: 1px;
+  width: 0;
+  height: 0;
+  border-left: 3.5px solid transparent;
+  border-right: 3.5px solid transparent;
+  border-bottom: 9px solid #ef4444;
+}
+.compass-needle-s {
+  position: absolute;
+  bottom: 1px;
+  width: 0;
+  height: 0;
+  border-left: 3.5px solid transparent;
+  border-right: 3.5px solid transparent;
+  border-top: 9px solid #94a3b8;
+}
+.compass-pivot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #ffffff;
+  z-index: 3;
+  box-shadow: 0 0 3px rgba(0,0,0,0.8);
+}
+.compass-text {
+  font-size: 11px;
+  font-weight: 800;
+  color: #38bdf8;
+  white-space: nowrap;
+}
+
+/* ──────────────────────────────────────────
+   🎯 生活圈聚光暗角層 (Spotlight Vignette Overlay - 預設關閉無暗角)
+   ────────────────────────────────────────── */
+.vignette-spotlight-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 450;
+  opacity: 0;
+  background: none;
+  transition: opacity 0.35s ease;
+}
+
+/* ──────────────────────────────────────────
+   🏛️ 捷運轉乘樞紐大站「同心多色光環」 (Interchange Multi-Ring)
+   ────────────────────────────────────────── */
+.mrt-hub-concentric-dot {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.mrt-hub-concentric-dot:hover {
+  transform: scale(1.6);
+  z-index: 1000;
+}
+.mrt-hub-concentric-dot .hub-ring-outer {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border-width: 2.5px;
+  border-style: solid;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
+  animation: hubRingPulse 2.4s infinite ease-in-out;
+}
+.mrt-hub-concentric-dot .hub-ring-inner {
+  position: absolute;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  border-width: 2px;
+  border-style: solid;
+  background: rgba(15, 23, 42, 0.85);
+}
+.mrt-hub-concentric-dot .hub-dot-core {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  box-shadow: 0 0 6px #ffffff;
+}
+@keyframes hubRingPulse {
+  0%, 100% { transform: scale(1); opacity: 0.85; }
+  50% { transform: scale(1.22); opacity: 1; }
+}
+
+/* ──────────────────────────────────────────
+   🌊 大眾運輸微動態流向光條 (Transit Flow Ribbons)
+   ────────────────────────────────────────── */
+.transit-flow-line {
+  stroke-dasharray: 10, 16;
+  animation: transitFlowAnim 16s linear infinite;
+}
+@keyframes transitFlowAnim {
+  from { stroke-dashoffset: 0; }
+  to { stroke-dashoffset: -320; }
+}
+
+.bus-flow-line {
+  stroke-dasharray: 8, 14;
+  animation: busFlowAnim 14s linear infinite;
+}
+@keyframes busFlowAnim {
+  from { stroke-dashoffset: 0; }
+  to { stroke-dashoffset: -260; }
+}
+
+/* ──────────────────────────────────────────
+   🎨 各風格底圖之道路與標籤環境光動態適應 (Dynamic Theme Adaptations)
+   ────────────────────────────────────────── */
+body[data-map-theme="dark"] .road-badge-marker {
+  background: rgba(15, 23, 42, 0.95);
+  border-color: #00f0ff;
+  color: #00f0ff;
+  box-shadow: 0 0 12px rgba(0, 240, 255, 0.6);
+}
+
+body[data-map-theme="esri_street"] .road-badge-marker {
+  background: #ffffff;
+  border: 1.5px solid #059669;
+  color: #065f46;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  font-weight: 900;
+}
+
+body[data-map-theme="satellite"] .road-badge-marker {
+  background: #000000;
+  border: 2px solid #facc15;
+  color: #ffffff;
+  box-shadow: 0 0 14px rgba(250, 204, 21, 0.8), 0 4px 10px rgba(0,0,0,0.9);
+}
+
+body[data-map-theme="osm"] .road-badge-marker {
+  background: #f8fafc;
+  border: 1.5px solid #2563eb;
+  color: #1e3a8a;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+body[data-map-theme="nlsc"] .road-badge-marker {
+  background: #065f46;
+  border: 1.5px solid #a7f3d0;
+  color: #ffffff;
+}
+
+
+
+
+/* ──────────────────────────────────────────
+   🛰️ 雙北四軌即時出入境通報跑馬燈 (Live Transit Dispatch Ticker HUD)
+   ────────────────────────────────────────── */
+.transit-ticker-bar {
+  position: absolute;
+  top: 160px;
+  left: 12px;
+  right: 12px;
+  height: 26px;
+  background: rgba(15, 23, 42, 0.92);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  z-index: 999;
+  overflow: hidden;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.ticker-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 14px;
+  height: 100%;
+  background: linear-gradient(90deg, #0284c7 0%, #0369a1 100%);
+  color: #f8fafc;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.5);
+  z-index: 2;
+}
+
+.ticker-content-track {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  overflow: hidden;
+  padding-left: 20px;
+}
+
+.ticker-marquee-text {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  color: #38bdf8;
+  letter-spacing: 0.3px;
+  animation: marqueeRoll 32s linear infinite;
+}
+
+.ticker-marquee-text:hover {
+  animation-play-state: paused;
+}
+
+@keyframes marqueeRoll {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+}
+
+/* ──────────────────────────────────────────
+   🌫️ 親臨探索感應圈與迷霧機制 (Fog of War)
+   ────────────────────────────────────────── */
+.fog-locked-marker {
+  filter: grayscale(90%) opacity(0.38) !important;
+  transform: scale(0.85);
+  transition: all 0.4s ease-out;
+  cursor: pointer;
+}
+
+.fog-locked-marker:hover {
+  filter: grayscale(50%) opacity(0.7) !important;
+  transform: scale(0.95);
+}
+
+.fog-unlocked-marker {
+  filter: none !important;
+  transform: scale(1.1);
+  animation: unlockGlowPulse 2.2s infinite alternate ease-in-out;
+  transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  cursor: pointer;
+}
+
+@keyframes unlockGlowPulse {
+  0% {
+    box-shadow: 0 0 10px rgba(250, 204, 21, 0.6), 0 0 20px rgba(250, 204, 21, 0.3);
+  }
+  100% {
+    box-shadow: 0 0 22px rgba(250, 204, 21, 0.95), 0 0 35px rgba(245, 158, 11, 0.7);
+  }
+}
+
+.sense-radius-circle {
+  animation: senseRadiusPulse 3s infinite ease-in-out;
+}
+
+@keyframes senseRadiusPulse {
+  0% {
+    opacity: 0.2;
+    transform: scale(0.98);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.02);
+  }
+  100% {
+    opacity: 0.2;
+    transform: scale(0.98);
+  }
+}
+
+/* ──────────────────────────────────────────
+   🚶 實體人行步道導航流動霓虹虛線 (Walking Navigation Flowline)
+   ────────────────────────────────────────── */
+.walking-nav-flowline {
+  stroke-dasharray: 8, 10;
+  animation: flowlineDash 1.2s linear infinite;
+  filter: drop-shadow(0 0 6px #00f0ff);
+}
+
+@keyframes flowlineDash {
+  to {
+    stroke-dashoffset: -36;
+  }
+}
+
+.walking-nav-badge {
+  background: rgba(15, 23, 42, 0.95);
+  border: 1.5px solid #00f0ff;
+  color: #f8fafc;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  box-shadow: 0 0 16px rgba(0, 240, 255, 0.7);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* ──────────────────────────────────────────
+   📜 1935 昭和鐵道百年文史時空圖層樣式
+   ────────────────────────────────────────── */
+.history-station-pin {
+  width: 32px;
+  height: 32px;
+  background: radial-gradient(circle, #78350f 0%, #1c1917 100%);
+  border: 2px solid #f59e0b;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 14px rgba(245, 158, 11, 0.8), 0 2px 8px rgba(0, 0, 0, 0.7);
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.history-station-pin:hover {
+  transform: scale(1.25);
+  box-shadow: 0 0 22px rgba(251, 191, 36, 1);
+}
+
+.history-popup-container {
+  font-family: serif, 'Noto Serif TC', system-ui, sans-serif;
+  min-width: 290px;
+  color: #fef3c7;
+  background: #1c1917;
+  padding: 2px;
+}
+
+/* ──────────────────────────────────────────
+   🏙️ 雙北全域真實 3D 建築圖層樣式 (Real 3D Buildings ✕ 60 FPS)
+   ────────────────────────────────────────── */
+.building-3d-canvas-layer {
+  pointer-events: none;
+  z-index: 400;
+}
+
+.building-3d-pin-label {
+  background: rgba(15, 23, 42, 0.92);
+  border: 1px solid #38bdf8;
+  color: #f8fafc;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 800;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+  white-space: nowrap;
+  pointer-events: auto;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.building-3d-pin-label:hover {
+  transform: scale(1.15);
+  box-shadow: 0 0 18px rgba(0, 240, 255, 0.9);
+}
+
+/* ──────────────────────────────────────────
+   📱 響應式面板與視窗優化 (Responsive Panels & Modal Buttons)
+   徹底解決手機 320px/390px/768px 面板重疊與按鈕排版擁擠
+   ────────────────────────────────────────── */
+.mobile-panel-toggles {
+  display: none;
+}
+
+.mobile-panel-close-btn {
+  display: none;
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.6);
+  color: #f87171;
+  font-size: 11px;
+  font-weight: 800;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 🏷️ 捷運站點標籤 LOD 視距分級 (避免廣域 1280px / 13.0x 標籤互相疊加遮蓋) */
+/* Zoom < 13: 樞紐站與非樞紐站標題皆隱藏，消除 1280px 預設畫面標籤互疊 (待修正 3/10) */
+body:not(.map-zoom-mid) .station-marker-wrap.is-hub .mrt-station-title {
+  display: none;
+}
+
+body:not(.map-zoom-near) .station-marker-wrap:not(.is-hub) .mrt-station-title {
+  display: none;
+}
+body:not(.map-zoom-near) .station-marker-wrap:not(.is-hub) .pin-mrt-vector {
+  padding: 1px 4px;
+}
+body:not(.map-zoom-near) .station-marker-wrap:not(.is-hub) .mrt-logo-box {
+  display: none;
+}
+body.map-zoom-near .station-marker-wrap .mrt-station-title {
+  display: inline;
+}
+
+@media (max-width: 768px) {
+  /* 🚌 公車導航面板手機版防超出螢幕 (待修正 1/10) */
+  .ebus-navigator-panel {
+    left: 10px !important;
+    right: 10px !important;
+    width: auto !important;
+    top: 96px !important;
+    max-height: 60vh !important;
+    overflow-y: auto !important;
+  }
+
+  /* 📱 面板切換浮動條嵌入頂部導航第4列，永不重疊壓字 (待修正 1/10) */
+  .holo-top-bar .mobile-panel-toggles {
+    order: 4 !important;
+    width: 100% !important;
+    position: static !important;
+    display: flex !important;
+    justify-content: flex-end !important;
+    margin-top: 4px !important;
+    gap: 6px !important;
+  }
+
+  /* 頂部全息標題列防截斷縮放 */
+  .holo-top-bar {
+    height: auto !important;
+    padding: 6px 10px !important;
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+  }
+  .brand-section {
+    max-width: 100% !important;
+  }
+  .brand-main-title {
+    font-size: 13px !important;
+    flex-wrap: wrap !important;
+  }
+  .brand-sub-title {
+    display: none !important; /* 手機端隱藏超長裝飾性副標，保證主標題 100% 完整無截斷 */
+  }
+  .companion-badge {
+    font-size: 9px !important;
+    padding: 1px 4px !important;
+  }
+  .jump-scroll-wrap {
+    order: 3 !important;
+    width: 100% !important;
+    margin: 2px 0 !important;
+  }
+  .dual-track-btn {
+    font-size: 10px !important;
+    padding: 3px 6px !important;
+  }
+
+  /* 跑馬燈移至底部或緊湊顯示，避免壓迫地圖視野 */
+  .transit-ticker-bar {
+    top: auto !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    z-index: 1200 !important;
+    border-radius: 0 !important;
+  }
+
+  .cases-top-strip, .store-filter-strip {
+    display: none !important; /* 避免手機端垂直推疊過多橫條吃滿螢幕 */
+  }
+
+  /* 手機端左右側面板防重疊：預設收合，提供切換按鈕，單次僅能開啟一個 */
+  .mobile-panel-toggles {
+    display: flex !important;
+    position: absolute;
+    top: 52px;
+    right: 10px;
+    z-index: 1100;
+    gap: 6px;
+  }
+
+  .mobile-toggle-btn {
+    background: rgba(15, 23, 42, 0.9);
+    border: 1px solid #00f0ff;
+    color: #38bdf8;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(0, 240, 255, 0.4);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
+  .mobile-toggle-btn.active {
+    background: linear-gradient(135deg, #0284c7, #00f0ff);
+    color: #030712;
+  }
+
+  .left-telemetry-panel,
+  .right-tactical-panel {
+    top: 90px !important;
+    left: 10px !important;
+    right: 10px !important;
+    width: auto !important;
+    max-width: 360px !important;
+    margin: 0 auto;
+    max-height: 60vh !important;
+    display: none !important;
+    z-index: 1500 !important;
+  }
+
+  .left-telemetry-panel.mobile-active,
+  .right-tactical-panel.mobile-active {
+    display: block !important;
+  }
+
+  .mobile-panel-close-btn {
+    display: inline-flex !important;
+  }
+}
+
+@media (max-width: 600px) {
+  /* 案件戰術簡報彈窗底部按鈕：雙欄網格佈局，徹底解決 390px/320px 直排擠壓 */
+  .case-card-footer {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+    padding: 10px 12px !important;
+  }
+  .case-card-footer .case-card-close-btn {
+    grid-column: span 2 !important;
+  }
+  .case-card-footer button,
+  .case-card-footer a,
+  .case-card-footer .case-card-close-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-height: 46px !important;
+    box-sizing: border-box !important;
+    padding: 13px 8px !important;
+    font-size: 11px !important;
+    white-space: normal !important;
+    line-height: 1.3 !important;
+  }
+
+  /* 📱 Leaflet 彈窗手機版防裁切 (待修正 2/10) */
+  .leaflet-popup-content {
+    max-width: calc(100vw - 56px) !important;
+  }
+  .leaflet-popup-content > div {
+    min-width: 0 !important;
+  }
+}
+
+
+/* ─── 🚌 巴視達 (BusTa) 風格：公車即時軌跡與沿線站牌看板樣式 ─── */
+.busta-route-panel {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 320px;
+  max-width: calc(100vw - 32px);
+  max-height: 480px;
+  background: rgba(15, 23, 42, 0.94);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6), 0 0 20px rgba(56, 189, 248, 0.25);
+  border-radius: 12px;
+  z-index: 1800;
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+  font-family: var(--font-mono, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
+  animation: bustaSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes bustaSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.busta-pin-wrap {
+  background: transparent;
+  border: none;
+}
+
+.busta-stop-pin {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #0284c7;
+  border: 2px solid #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  box-shadow: 0 0 10px rgba(2, 132, 199, 0.8), 0 2px 5px rgba(0,0,0,0.5);
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.busta-stop-pin:hover {
+  transform: scale(1.3);
+  background: #38bdf8;
+}
+
+.busta-stop-pin.next-stop {
+  background: #ef4444 !important;
+  border-color: #fef08a !important;
+  box-shadow: 0 0 16px #ef4444, 0 0 28px rgba(239, 68, 68, 0.8);
+  animation: bustaNextPulse 1.2s infinite ease-in-out;
+}
+
+@keyframes bustaNextPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.35); }
+  100% { transform: scale(1); }
+}
+
+.busta-stop-row {
+  transition: background 0.15s ease;
+}
+
+.busta-stop-row:hover {
+  background: rgba(56, 189, 248, 0.15) !important;
+}
+
+.busta-stop-row.is-next {
+  background: rgba(239, 68, 68, 0.18) !important;
+  border-left: 3px solid #ef4444 !important;
+}
+
+.busta-stop-row.is-passed {
+  opacity: 0.6;
+}
+
+@media (max-width: 600px) {
+  .busta-route-panel {
+    bottom: 12px;
+    right: 8px;
+    left: 8px;
+    width: auto;
+    max-height: 45vh;
+  }
+}
