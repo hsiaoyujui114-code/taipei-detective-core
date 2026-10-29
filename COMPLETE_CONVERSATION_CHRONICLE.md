@@ -4172,3 +4172,137 @@ flowchart TD
 
 #### 5. 4 大專案倉庫全面同步推送
 - `city-pulse-detective`、`taipei-metro-detective-rpg`、`taipei-detective-rpg`、`taipei-detective-core` 四個倉庫之 `cyber-realmap.js`、`cyber-realmap.html`、`cyber-realmap.css` 與文件全誌全面同步，並推送至 GitHub 遠端 main 分支。
+
+---
+
+### 第 121 輪對話全誌：地圖問題欄五大待修正項目 100% 徹底修復與全平台實測驗收 (2026-10-29 傍晚)
+
+#### 1. 任務核心指令與方針
+- **委託人最高鐵則**：
+  1. 叫 project 把最新紀錄抓下來（Git pull origin main 對齊 Round 120）。
+  2. 閱讀問題欄（`https://files.instinct.com/ju4sf6hj7efj-agy`）並將裡面列出的問題全數修好。
+  3. 每次修改完成後，100% 自動 `git add`、`commit` 並 `push` 到 GitHub。
+- **嚴守四大憲法紅線**：
+  1. 0 少年偵探（全面稱「都會調查員」或「市民」）。
+  2. 0 益碩／藝碩。
+  3. 0 地圖瞬移（遵循曼哈頓人行折角步道與大眾運輸真實等車移轉）。
+  4. 0 歷史廢除職稱。
+
+#### 2. 地圖問題欄 5 大項目修復對照
+
+##### 【待修正 1／5：斷線新鮮度追蹤接線完成】—— 通過
+- **根本原因**：`sourceLastOkMs` 宣告後在整個代碼庫中零處寫入，導致所有來源被 `isSourceStale()` 判為過期，HUD 恆亮黃燈「(過期)」。
+- **修復措施**：
+  - 在通道 B（`syncLiveTransitData` 瀏覽器直連端點）中，於各來源（公車 `rawBusList`、客運 `rawInterCity`、北捷 `trtcJson`、桃捷 `tymcJson`、台鐵 `traJson`、高鐵 `thsrJson`）拉取成功時，各自記錄獨立 `fetchMs` 時間戳記至 `sourceLastOkMs`。
+  - 在通道 A（本地私服聚合端點）中，成功回傳時亦將 `nowMs` 同步寫入各來源時間表。
+  - 嚴格保留新鮮度閥值（公車/捷運/台鐵 60 秒、高鐵 15 分鐘），正常時亮綠燈，斷線超過 60 秒自動如實轉為黃燈「離線推算」。
+- **CDP 實測驗證**：
+  - 初始載入實測：`sourceLastOkMs` 成功寫入，HUD 顯示 `🟢公車 🟢捷運 🟢台鐵 🟢高鐵`，公車計數顯示 `X 輛 (官方GPS) ＋ Y 輛 (班距模擬)`。
+  - 逾時模擬實測：將時間戳回撥 70 秒後，HUD 即刻如實轉黃 `🟡台鐵(過期)`，公車計數轉為 `1880 輛 (資料過期)`。
+
+##### 【待修正 2／5：捷運站名 LOD 接線完成與樞紐站正常顯示】—— 通過
+- **根本原因**：`updateMrtLODVisibility()` 過去僅維護 `map-zoom-near`（zoom >= 14），全專案從未設置 `map-zoom-mid` class，導致 CSS 中 `body:not(.map-zoom-mid) .station-marker-wrap.is-hub .mrt-station-title { display: none; }` 恆成立，32 個特等與轉乘樞紐站名在任何層級均被隱藏；且初始化時未主動觸發。
+- **修復措施**：
+  - 在 `updateMrtLODVisibility()` 補齊中間門檻：`const isMid = map.getZoom() >= 13.0; document.body.classList.toggle('map-zoom-mid', isMid);`。
+  - 在地圖初始化 `initCyberRealMap()` 於 `zoomend` 監聽註冊後立即主動調用一次 `updateMrtLODVisibility()`。
+- **CDP 實測驗證**：
+  - Zoom 12：`bodyClasses: ""`，樞紐站與非樞紐站名皆為 `display: none`（消除廣域覆蓋，僅留幾何光點）。
+  - Zoom 13：`bodyClasses: "map-zoom-mid"`，頂埔、府中、板橋、西門、台北車站等樞紐站名為 `display: inline`，非樞紐站名隱藏。
+  - Zoom 14+：`bodyClasses: "map-zoom-mid map-zoom-near"`，全雙北所有捷運站名皆為 `display: inline`。
+  - 初始載入：重整後不碰地圖即刻呈現對應層級正確顯示。
+
+##### 【待修正 3／5：手機頁首橫向溢出 100% 收進 100vw】—— 通過
+- **根本原因**：手機版 `.holo-top-bar` 內部 `.jump-scroll-wrap` 缺乏 `min-width: 0`；同時右側切換按鈕群缺少包裝容器折行約束，導致 320px / 390px 視口寬度下撐出 420px 的橫向滾動。
+- **修復措施**：
+  - 在 `@media (max-width: 768px)` 中為 `.jump-scroll-wrap` 補上 `order: 3 !important; width: 100% !important; max-width: 100% !important; min-width: 0 !important; flex: 1 1 auto !important; margin: 2px 0 !important;`。
+  - 為頂部按鈕列增設 `.top-nav-actions`，在手機端指定 `order: 2 !important; width: 100% !important; display: flex !important; flex-wrap: wrap !important; gap: 4px !important;`，按鈕本體設為 `flex: 1 1 auto; min-width: 0`。
+- **CDP 實測驗證**：
+  - 320px：`scrollWidth === clientWidth === 320`（isOverflow: false）。
+  - 390px：`scrollWidth === clientWidth === 390`（isOverflow: false）。
+  - 768px：`scrollWidth === clientWidth === 768`（isOverflow: false）。
+  - 1280px：`scrollWidth === clientWidth === 1280`（isOverflow: false）。
+  - 全視口下 100% 消除水平滾動條，頁首按鈕與特區快速跳轉條均完美受控於螢幕內！
+
+##### 【待修正 4／5：殘留「即時」字樣徹底清理與 Y 線回歸】—— 通過
+- **根本原因**：部分無真實 GPS 的軌道推算系統與看板界面殘留「即時」詞彙。
+- **修復措施**：
+  - `cyber-realmap.html` 頂部跑馬燈徽章由「🛰️ 雙北四軌即時出入境通報」修正為「🛰️ 雙北四軌動態通報」。
+  - `cyber-realmap.js` 跑馬燈文本由「雙北四軌即時走廊」修正為「雙北四軌動態走廊」。
+  - 遙測 HUD 標籤將北捷/台鐵/高鐵修正為「推算列車」。
+  - 捷運列車彈窗狀態由「🚇 即時行駛：…」修正為「🚇 推算行駛：…」，「🚇 即時進站中：…」修正為「🚇 推算進站中：…」。
+  - 右側戰術圖層開關由「🚄 捷運線上即時列車」修正為「🚇 捷運班距推算列車」。
+  - 恪守鐵則：「官方即時」嚴格僅保留給具備真實車機 GPS 的來源（公車 GetBusData.gz 與公路客運）。
+- **Y 線回歸觀察**：
+  - 列車物件帶有完整 `sourceTrace` 標記（本地伺服器回傳 `web_metro_taipei_live`；離線/直連為 `headway-sim`），未再發現假冒 LiveBoard 之異常車組。
+
+##### 【待修正 5／5：全車隊 1,900+ 輛公車與列車標籤互疊（LOD 視距分級）】—— 通過
+- **根本原因**：全量公車上線後同場 ~1,900 輛公車在 Zoom 12~14 產生大量車牌文字標籤互疊，遮蔽街廓視野。
+- **修復措施**：
+  - **公車視距分級**：
+    - Zoom < 15：公車以無文字之高性能 Canvas 圓點渲染（點擊與懸浮可查看路線、車牌、卡片與巴視達軌跡），僅高亮選中車顯示文字徽章。
+    - Zoom >= 15：視野內公車展開完整動態文字徽章（車號+車牌+速度）。
+    - 絕不刪除車輛、絕不關閉全車隊功能，保留 1,888+ 輛全雙北車隊！
+  - **軌道列車視距分級**：
+    - Zoom < 13：軌道列車在廣域視野下簡化標籤，隱藏速度副標籤，消除文字互疊。
+- **CDP 實測數據**：
+  - Zoom 12：公車標籤數 0，公車圓點數 1,877（清爽流暢，街廓完全可讀）。
+  - Zoom 13：公車標籤數 0，公車圓點數 1,877。
+  - Zoom 15：公車標籤數 350（視野內展開），公車圓點數 1,527（視野外或密集區緩衝）。
+
+#### 3. 專案倉庫鏡像同步與 Git 推送
+- 本地雙倉庫 (`city-pulse-detective` ✕ `taipei-metro-detective-rpg`) 程式碼 100% 鏡像同步。
+- 嚴格落實委託人最高鐵則：已執行 `git add`、`commit` 並成功 `push` 至 GitHub 遠端 main 分支。
+---
+
+### 第 122 輪對話全誌：code ✕ story 跨端深度協同討論大會（50 案資料庫與偵探核心 100% 雙向對齊 ✕ 地圖問題欄第 74 條閉環 ✕ 憲法禁忌合規）(2026-10-29 晚間)
+
+#### 1. 會議緣起與委託人最高指示
+- **時間戳**：2026-10-29 20:37
+- **委託人原始指示**：
+  > 「請你叫code和story互相討論，因為他們兩個做東西息息相關」
+- **調度主持**：Leader（專案協同與跨端調度長）
+- **出席代表**：
+  - 💻 **`code`**：獨立偵探核心引擎開發者（維護倉庫：[`taipei-detective-core`](https://github.com/hsiaoyujui114-code/taipei-detective-core)）
+  - 📜 **`story`**：企劃與 50 大案劇本作者（維護倉庫：[`taipei-detective-rpg`](https://github.com/hsiaoyujui114-code/taipei-detective-rpg)）
+
+#### 2. 四大核心交集議題深度協商實況
+
+##### 議題一：50 案全集資料結構與偵探核心引擎的 100% 雙向對齊
+- **`code` 提出**：
+  - 偵探核心引擎（`taipei-detective-core`）先前使用的是舊版 16 欄位 `fifty_cases.json`（436KB），而 `story` 最新的 `cases.json`（534KB）已擴充包含 `chapter`（5 大篇章）、`diy_experiment`（學童可操作之家庭微實驗）與 `cross_case_clue`（跨案暗線與失落的臺北城密碼）。
+  - 需要將 `story` 的最新版本完整鏡像同步至 `src/data/cases/fifty_cases.json`，並由 `StoryLoader.js` 自動解析新欄位，透過 REST API `/api/detective/cases` 與 `/api/detective/case/:id` 開放給前端與工作台。
+- **`story` 回應與承諾**：
+  - 全力支持！50 案全集已精準涵蓋雙北 41 特區，每一案都綁定一項生活科學鑑識原理（如草酸鈣結晶、熱敏變色墨水、虹吸管水壓、天平浮力阿基米德、摩斯電碼與旗語、幾何光學反射、壓強與受力面積等），完全對齊國小自然科學課綱。
+  - `story` 將確保每次更新案件文本時，保持 JSON 語法 100% 合規，絕不在代碼中寫死，維持 Data-Driven 模組化。
+
+##### 議題二：地圖問題欄第 74 條「案件 1–10 標題與編號一致性」徹底閉環
+- **爭議現況檢討**：
+  - 地圖問題欄指出：早期寫在 `shared-data.js` 的 `DEMO_10_CASES` 標題（如「西門老牌連鎖咖啡雙倍濃縮拿鐵案」、「北車忠孝西路地下道虹吸水壓失衡案」）與 `cases.json` 的正式名稱（如「西門町連鎖咖啡店拿鐵中毒案」、「台北車站三鐵連通長廊水力延時案」）存在微小文字命名差異。
+- **`code` 與 `story` 達成共識**：
+  - **唯一真理來源（Single Source of Truth）**：以 `story` 的 `cases.json` 為最高權威！
+  - `demo_cases.json` 與 `shared-data.js` 中的 10 大示範案件全面以 `cases.json` 中的 CASE-01 ~ CASE-10 正式標準名稱為準。
+  - `code` 的 `StoryLoader.js` 的多重別名機制（支援 `CASE-01`、`case_01`、`CASE-2026-001`、純數字 `1`、以及標題模糊比對）已全面相容，雙向查詢 100% 命中，絕不因歷史命名差異而產生 404 或資料斷裂！
+
+##### 議題三：口供筆錄、物證打臉與有向因果思維導圖 (DAG Eureka Moment) 協同
+- **`code` 提出**：
+  - 核心引擎已實裝「心理防線值 (100% ➔ 0%)」機制：當調查員出示關鍵物證、或是透過鑑識實驗（如滴定試紙變深紅顯示強酸）戳破嫌犯不在場證明時，嫌犯心理防線會斷崖式崩潰，並解鎖關鍵自白（Eureka Moment）。
+  - 需要 `story` 在設計劇本時，明確指定「哪一項證物」能擊破「哪一個嫌疑人的哪一段證詞」，形成有向無環圖 (DAG)。
+- **`story` 回應與承諾**：
+  - 在 `cases.json` 與 `CASES_50_FULL_SPEC.md` 中，每一案皆有設計 3 位關係人（例如 CASE-01 中的副店長高智敏、兼職員工陳佩君、熟客林志誠），並在 `characters` 與 `deposition` 中精確記載其嫌疑點與真犯人露出破綻的關鍵證物（如咖啡渣中的草酸晶體、手套破損滲漏汗液印痕等）。
+  - `story` 與 `code` 約定在物證對質表（`cross_examination_matrix`）中固化擊破關聯，讓推理過程嚴謹可驗證，絕無邏輯死角。
+
+##### 議題四：全域四大最高憲法級絕對禁忌交叉稽核與修正
+- **`code` 的自動化掃描發現**：
+  - `code` 的 `npm test` 階段 10 執行全檔案正則掃描時，在 `story` 的 `cases.json` 發現 3 處殘留之歷史職稱用語（`CASE-14` 展館實習生、`CASE-44` 華山展場值班工讀生、`CASE-50` 兩名工讀生共同在場證詞）。
+- **`story` 即刻更正**：
+  - `CASE-14` 修正為「展館助理研究員」。
+  - `CASE-44` 修正為「華山展場值班助理員」。
+  - `CASE-50` 修正為「兩名值班助理共同在場證詞」。
+  - `CASES_50_FULL_SPEC.md` 與 `cases.html` 同步修復！
+- **重跑測試結果**：
+  - `taipei-detective-core` 執行 `npm test`，10 大階段、50 案全集驗證、憲法紅線掃描 100% 通過（0 違規）！
+
+#### 3. 專案倉庫鏡像同步與 Git 推送
+- **`taipei-detective-core`**：更新 `src/data/cases/fifty_cases.json` 至 50 案全集完整版，`npm test` 100% 通過。
+- **`taipei-detective-rpg`**：修復 `cases.json`、`cases.html`、`CASES_50_FULL_SPEC.md` 歷史職稱殘留，確保 100% 憲法級合規。
+- 嚴格恪守委託人最高鐵則：修改後 100% 自動執行 `git add`、`commit` 並推送至 GitHub 遠端 main 分支。
