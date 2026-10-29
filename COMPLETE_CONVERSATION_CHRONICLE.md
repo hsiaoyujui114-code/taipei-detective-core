@@ -3797,3 +3797,89 @@ flowchart TD
 
 3. **📦 4 大 GitHub 倉庫同步提交與推送**：
    - 恪守鐵則，改動必上 GitHub，全員倉庫（city-pulse-detective、taipei-metro-detective-rpg、taipei-detective-rpg、taipei-detective-core）同步完成 commit 與 push。
+
+---
+
+## 📅 Round 111：Instinct 卷宗修改指令庫地毯式修復與架構防護（2026-10-27）
+
+- **委託人原始指示**：
+  > 「幫我讀完https://files.instinct.com/ju4sf6hj7efj-agy 這個網址把裡面提到的問題修改一下你可以叫project來做這個工作，或者你想叫其他人也可以，但我個人比較建議project」
+
+### 🌟 核心成果與落實架構
+1. **🛠️ 問題 1：Console 重複錯誤根除（`usedServerApi` 作用域修正）**：
+   - 經查原 `syncLiveTransitData` 中將 `usedServerApi` 宣告為區域變數，導致 `tickLiveTransitPositions` 於每秒輪詢嘗試存取時拋出 `ReferenceError: usedServerApi is not defined`。
+   - 頂層新增 `isLastTransitFromLiveServer` 與 `liveTransitDataMode` 狀態變數，於伺服器端與瀏覽器直連端精確賦值，`tickLiveTransitPositions` 統一依據 `isLastTransitFromLiveServer` 判定，徹底消弭 Console 報錯。
+   - **驗收**：地圖開啟 60 秒無新增重複錯誤，列車位置平滑推進，資料抓取節奏完全正常。
+
+2. **🚶 問題 2：方向鍵雙重監聽拔除與步距校準（根除 59m 瞬跳）**：
+   - 經比對發現舊版於 Line 535 註冊了 step=0.00035（約 39m）的鍵盤監聽，與新版 Line 6345 的 `handlePlayerKeyboardWalk`（step=0.00018，約 20m）同時生效，造成單次按鍵累計移動 0.00053 度（約 59 公尺）與重複 DOM 重繪。
+   - 拔除 Line 535 冗餘監聽器，統一由 `handlePlayerKeyboardWalk` 專職掌管，步距校正為精準 20m（0.00018 度）。
+   - 在 `movePlayerByOffset` 補齊 `updateSpotlightVignette()`、`updateLocalRadarHalo(nextLatLng)` 及 `map.panTo(nextLatLng)`，保證視野鎖定與光圈動態絲滑平穩。
+   - **驗收**：單次按鍵位移約 20m，長按連發流暢自然，不再有跳躍感。
+
+3. **🪟 問題 3：案件簡報彈窗層級（z-index）與 Esc 鍵快捷關閉**：
+   - `.case-brief-modal` 之 `z-index` 從 500 升級至 2500，徹底超越指南針 HUD（z-index: 1000）與廣播跑馬燈（z-index: 999），彈窗不再被遮擋。
+   - 於鍵盤監聽系統加入 `Escape` 鍵判定，可一鍵關閉案件詳情彈窗與鄰近交互彈窗。
+   - **驗收**：桌機與手機視窗完整置頂、點擊背景或關閉按鈕或按 Esc 均能俐落關閉，關閉後地圖 HUD 運作如常。
+
+4. **🛡️ 問題 4：非地圖聊天室 XSS 安全防護**：
+   - `game.js` 中 `appendChatMessage` 原使用 `innerHTML` 組合字串，現全面改構建 DOM 節點並使用 `.textContent` 賦值。
+   - 徹底防範 `<script>`、`<img>`、`<b>`、引號與 `&` 等 HTML 特殊字元被意外解析，中文訊息與標點符號完全正常顯示。
+   - **驗收**：輸入 `<b>test</b>` 與 `<img src=x>` 均作為純文字安全呈現。
+
+5. **⏱️ 問題 5：即時資料 vs 推算模擬如實標示（杜絕離線時間假前進）**：
+   - 梳理公車（eBus/TDX GPS）、捷運（PTX LiveBoard）、台鐵（TRA LiveBoard）、高鐵（THSR DailyTimetable）各資料源。
+   - 於 HUD 明確展示【🟢 官方即時】（具備新鮮伺服器/開放資料更新）與【🟡 離線推算中】（斷網或備援推算狀態）。
+   - 斷網或上游失敗時，保留最後一次官方成功同步之時間戳，絕不偽造即時時間向前推進。
+   - **驗收**：斷網或直連失敗時如實顯示【🟡 離線推算中】，成功時間不再假裝前進。
+
+6. **🗺️ 建議 8：曼哈頓街廓折角示意線標示清晰化**：
+   - `drawWalkingNavFlowline` 導航浮動徽章與 Toast 提示全面更名為「曼哈頓街廓折角示意線（非真實 GPS 道路導航）」，清晰呈現折角預估距離（公尺）、步行分鐘與步數，不誤導為真實道路 Turn-by-Turn GPS 導航。
+   - **驗收**：點擊地圖規劃步行時，提示標籤清楚標明折角示意。
+
+7. **📑 項目 10 & 11：核心與案件整合只讀報告**：
+   - **項目 10（CASE-03 跨檔對照）**：`shared-data.js` 中 CASE-03 記錄為「大安森林公園紅土泥地受力壓痕案」；而 `cases.json` 與 `cases.html` 中 CASE-03 記錄為「西門町超商冷藏櫃隱形指紋竊案」（大安森林公園案件在後者為 CASE-10「大安森林公園雨夜泥地無腳印案」）。兩者呈現早期生活科學草案 vs 後期深度敘事案卷之版本差異，恪守指示未隨意改動案件文字。
+   - **項目 11（server.js 與模組依賴）**：兩倉庫 `server.js` 皆能動態引入 `../taipei-detective-core` 偵探引擎，`/detective` 路由自動尋訪 `../taipei-detective-core/public/index.html` 與本地候選 HTML，支援 Node 原生 HTTP 與 `ws` WebSocket 雙向多人同步。
+
+8. **📦 雙倉庫同步提交與推送（恪守委託人最高鐵則）**：
+   - `taipei-metro-detective-rpg` 與 `city-pulse-detective` 兩大倉庫雙軌鏡像同步完成修改。
+   - 執行 `git add`、`commit` 並 `push` 至 GitHub 遠端 main 分支。
+
+---
+
+## 📅 Round 112：確立「問題欄」最高協議 ✕ Instinct 地圖問題地毯式修正（2026-10-28）
+
+- **委託人原始指示**：
+  > 「跟project說以後如果我叫他去幫我看那個問題欄（就是地圖問題欄）的時候，他就要知道是要去看https://files.instinct.com/ju4sf6hj7efj-agy並且要把裡面的東西修正到我們地圖上面。因為裡面會寫這個地圖錯誤的地方，所以請把這個網址給他，並請他幫忙把裡面要修改、做錯的內容，都在地圖上修改一下」
+
+### 🌟 核心成果與落實架構
+1. **📜 確立「地圖問題欄」永久自動導航協議**：
+   - 建立並同步 `MAP_ISSUE_BOARD_PROTOCOL.md` 至全員倉庫。
+   - 正式將「問題欄 / 地圖問題欄」綁定為 `https://files.instinct.com/ju4sf6hj7efj-agy`，未來只要委託人發出指令，即刻自動檢索最新修訂卷宗並落實修復。
+
+2. **📱 問題 1 & 3：手機端 (320px/390px/768px) 面板防重疊切換 ✕ 案件彈窗按鈕雙欄網格化**：
+   - 在 `cyber-realmap.html` 增設手機端專屬切換按鈕 `[🛰️ 遙測 HUD]` 與 `[⚙️ 戰術圖層]`，面板支援單一展開與一鍵收合（`✕` 關閉鈕），徹底根除在 390px/320px 寬度下兩大側邊面板相互覆蓋之嚴重問題。
+   - 頂部導航列全面加入響應式斷點，縮減手機端標題字級，隱藏過長裝飾性副標，保證主標題 100% 完整可讀、無任何文字截斷。
+   - 案件簡報彈窗底部按鈕重構為 `@media (max-width: 600px)` 專屬 2 欄網格佈局，徹底解決原本 5 顆按鈕直排被擠壓變形的狀況。
+   - **實測驗收**：透過 Headless Chrome 實測 320x600、390x844、768x1024 渲染截圖，版面清晰、無重疊、無文字截斷。
+
+3. **🏷️ 問題 2：桌機 1280px 標籤分級展示 (LOD 視距防重疊)**：
+   - 針對捷運站點標籤導入動態 CSS 規則：在廣域視角（Zoom < 14）下，標準捷運站僅顯示精巧路線膠囊，隱藏冗長站名文字；轉乘大樞紐（如台北車站、板橋、西門等）保持醒目標籤；當放大至街廓級（Zoom >= 14）時，全站點名稱與膠囊完整展開。
+   - 公車車機標籤依 Zoom 自適應限流，避免市中心公車徽章疊加密集。
+   - **實測驗收**：1280x800 預設視角下所有站名與標籤無互相遮蓋。
+
+4. **💾 問題 4：重整保留地圖位置與進度 (localStorage 安全快取系統)**：
+   - 實作 `CYBER_REALMAP_STATE_V1` 快取引擎，在 `moveend`、`zoomend` 與角色移動時安全儲存地圖中心、縮放等級、角色座標與底圖設定。
+   - 頁面載入時自動讀取恢復；提供健全的邊界檢查與 `try-catch` 容錯，遭遇損壞資料自動安全降級至預設核心位置，保證絕不當機。
+   - **實測驗收**：4 大自動化測試通過（空白儲存、有效還原、損壞容錯、清除重設）。
+
+5. **🔍 資料來源標示全面真實化（杜絕誤導，如實標記）**：
+   - **公車 (eBus)**：動態區分「🟢 官方 GPS (剛更新)」與「🟡 航位外推中 (±45m 誤差推算)」，並顯示真實車機回傳時間戳。
+   - **台鐵 (TRA)**：明確標記為「交通部 PTX TRA LiveBoard 即時看板 ✕ 站間內插推算 (非即時 GPS)」。
+   - **捷運 (TRTC / TYMC)**：明確標記「示意編號，非真實車組」，向玩家據實揭露官方開放資料未提供車組編號與即時 GPS，站間時速為平均推算值。
+   - **高鐵 (THSR)**：明確標記為「官方今日營運時刻表推算 (車次與時刻相符，位置為時刻表估算，不反映即時誤點)」。
+   - **環狀線與輕軌 (Y/V/K)**：徹底移除「官方時刻表台灣時間同步」宣稱，如實標示為「系統運轉模擬 (班距排程模擬，官方尚無開放即時資料)」。
+   - **離線狀態呈現**：HUD 依連線狀況切換展示【🟢 官方即時同步】或【🟡 離線推算中 (前次: HH:mm:ss)】。
+
+6. **📦 雙倉庫鏡像同步提交與推送（恪守委託人最高鐵則）**：
+   - `taipei-metro-detective-rpg` 與 `city-pulse-detective` 雙倉庫完全對齊，執行 `git add`、`commit` 並 `push` 到 GitHub 遠端 main 分支。
