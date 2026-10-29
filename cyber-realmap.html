@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NEO-TAIPEI 1:1 REAL HOLO-MAP 雙北全息科技地圖 (附檔) ✕ 1:1 真實網路地圖純實體</title>
+  
+  <!-- Leaflet CSS (本機 vendor 優先，CDN 備援，支援 1:1 真實網路地圖 OSM/CARTO/衛星) -->
+  <link rel="stylesheet" href="vendor/leaflet/leaflet.css" onerror="this.onerror=null;this.href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';">
+  
+  <!-- 專屬全息賽博樣式表 -->
+  <link rel="stylesheet" href="cyber-realmap.css">
+  
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌐</text></svg>">
+</head>
+<body>
+
+  <!-- 全息雷達掃描遮罩動畫 -->
+  <div class="radar-scan-wave" id="radarScanWave"></div>
+
+  <!-- 1:1 真實網路圖資畫布 (Leaflet 支援 OSM / CARTO / 衛星 / 巷弄門牌) -->
+  <div id="map"></div>
+  <div id="vignetteSpotlight" class="vignette-spotlight-layer"></div>
+
+  <!-- 🧭 Google Maps 風格導航方位羅盤 (Compass HUD) -->
+  <div class="compass-rose-hud" id="compassRoseHud" onclick="resetMapOrientation()" title="🧭 點擊校準重置為正北方向 (0° N)">
+    <div class="compass-dial" id="compassDial">
+      <div class="compass-needle-n"></div>
+      <div class="compass-needle-s"></div>
+      <div class="compass-pivot"></div>
+    </div>
+    <div class="compass-text" id="compassDegreeText">正北 (N)</div>
+  </div>
+
+  <!-- 頂部全息戰術導航條 (Top Tactical Navigation Bar) -->
+  <header class="holo-top-bar">
+    <div class="brand-section">
+      <div class="holo-badge-icon">🌐</div>
+      <div class="brand-title-wrap">
+        <div class="brand-main-title">
+          <span>NEO-TAIPEI 1:1 REAL MAP</span>
+          <span class="companion-badge">附檔・真實圖資</span>
+        </div>
+        <div class="brand-sub-title">雙北全境 41 行政特區 ✕ 380+ 實體門市 ✕ 100% 真實網路地圖</div>
+      </div>
+    </div>
+
+    <!-- 特區快速躍遷晶片列 -->
+    <div class="jump-scroll-wrap" id="jumpScrollWrap">
+      <!-- 由 JS 動態注入 -->
+    </div>
+
+    <!-- 雙軌與偵探切換按鈕 -->
+    <div style="display:flex; gap:8px;">
+      <a href="cases.html" target="_blank" class="dual-track-btn" id="btnCasesAll" style="border-color:rgba(251,191,36,0.5); color:#fbbf24; background:rgba(217,119,6,0.18);" title="開啟 50 宗歷史風情與生活科學案件全集展示手冊">
+        <span>📂 50 宗科學案件全集</span>
+      </a>
+      <a href="/detective" target="_blank" class="dual-track-btn" id="btnDetectiveHud" style="border-color:rgba(56,189,248,0.5); color:#38bdf8; background:rgba(2,132,199,0.18);" title="開啟都會調查員偵探工作台">
+        <span>🕵️ 都會調查員・偵探核心</span>
+      </a>
+      <a href="index.html" class="dual-track-btn" id="btnSwitchToMain">
+        <span>🎮 返回全息戰術沙盤 (主檔)</span>
+      </a>
+    </div>
+      <!-- 📱 手機端專屬面板切換浮動條 (移入頂部導航列，自動折行於最後一列防壓字重疊) -->
+    <div class="mobile-panel-toggles" id="mobilePanelToggles">
+      <button class="mobile-toggle-btn" id="btnToggleLeftPanel" onclick="toggleMobilePanel('left')">🛰️ 遙測 HUD</button>
+      <button class="mobile-toggle-btn" id="btnToggleRightPanel" onclick="toggleMobilePanel('right')">⚙️ 戰術圖層</button>
+    </div>
+  </header>
+
+  <!-- 🚨 10 大生活科學探究示範案件跳轉條 (落實評審顧問 50 建議) -->
+  <div class="cases-top-strip" id="casesTopStrip">
+    <div class="cases-strip-label">🚨 10大自然科學探究案:</div>
+    <div class="cases-chips-wrap" id="casesChipsWrap">
+      <!-- 由 JS 動態依 DEMO_10_CASES 產生 -->
+    </div>
+    <a href="cases.html" target="_blank" class="case-chip-btn" style="border-color:#fbbf24; color:#fbbf24; background:rgba(245,158,11,0.18); margin-left:auto; text-decoration:none; white-space:nowrap; display:inline-flex; align-items:center; gap:4px; font-weight:800;" title="點擊檢視 50 宗完整歷史生活科學案件全集檔案庫">📂 完整 50 案全集 ➔</a>
+  </div>
+
+  <!-- 🏪 門市品牌篩選條 (落實委託人指示：全品牌真實官方樣式，放大檢視、縮小隱藏避擠) -->
+  <div class="store-filter-strip" id="storeFilterStrip">
+    <span class="store-filter-label">🏪 門市篩選:</span>
+    <button class="filter-chip-btn active" data-filter="all" onclick="filterStoreMarkers('all', this)">🌐 全部 (380+)</button>
+    <button class="filter-chip-btn" data-filter="wanjiafu" onclick="filterStoreMarkers('wanjiafu', this)">🛒 萬家福/樂家康 (量販/便利購)</button>
+    <button class="filter-chip-btn" data-filter="pxmart" onclick="filterStoreMarkers('pxmart', this)">🔵 全聯福利中心</button>
+    <button class="filter-chip-btn" data-filter="seven" onclick="filterStoreMarkers('seven', this)">🟢 7-Eleven</button>
+    <button class="filter-chip-btn" data-filter="familymart" onclick="filterStoreMarkers('familymart', this)">🔵 全家 FamilyMart</button>
+    <button class="filter-chip-btn" data-filter="mcdonalds" onclick="filterStoreMarkers('mcdonalds', this)">🍟 麥當勞</button>
+    <button class="filter-chip-btn" data-filter="starbucks" onclick="filterStoreMarkers('starbucks', this)">☕ 星巴克</button>
+    <button class="filter-chip-btn" data-filter="mosburger" onclick="filterStoreMarkers('mosburger', this)">🍔 摩斯漢堡</button>
+    <button class="filter-chip-btn" data-filter="watsons" onclick="filterStoreMarkers('watsons', this)">💊 屈臣氏</button>
+    <button class="filter-chip-btn" data-filter="cosmed" onclick="filterStoreMarkers('cosmed', this)">🌸 康是美</button>
+    <button class="filter-chip-btn" data-filter="coco" onclick="filterStoreMarkers('coco', this)">🧋 CoCo 都可</button>
+    <button class="filter-chip-btn" data-filter="market" onclick="filterStoreMarkers('market', this)">🏮 傳統市場/夜市</button>
+    <button class="filter-chip-btn" data-filter="parks" onclick="filterStoreMarkers('parks', this)">🌲 41區真實公園</button>
+    <button class="filter-chip-btn" data-filter="transport" onclick="filterStoreMarkers('transport', this)">🚇 大眾運輸/站點</button>
+    <button class="filter-chip-btn" data-filter="cases" onclick="filterStoreMarkers('cases', this)">🚨 10大示範案件</button>
+  </div>
+
+  <!-- 🛰️ 雙北四軌即時出入境通報跑馬燈 HUD (Live Transit Dispatch Ticker HUD) -->
+  <div class="transit-ticker-bar" id="transitTickerBar">
+    <div class="ticker-badge">🛰️ 雙北四軌即時出入境通報</div>
+    <div class="ticker-content-track" id="tickerContentTrack">
+      <span class="ticker-marquee-text" id="tickerMarqueeText">📡 即時交通走廊連線中：高鐵出入境走廊、台鐵縱貫線北段、捷運66列在線列車、307幹線真實車隊同步運轉中...</span>
+    </div>
+  </div>
+
+  
+
+  <!-- 左側即時遙測 HUD 面板 (Left Telemetry Panel) -->
+  <aside class="left-telemetry-panel" id="leftTelemetryPanel" style="top:194px;">
+    <div class="panel-header">
+      <span>🛰️ SATELLITE TELEMETRY</span>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span style="color:#4ade80;">ONLINE</span>
+        <button class="mobile-panel-close-btn" onclick="toggleMobilePanel('left')" title="收合面板">✕</button>
+      </div>
+    </div>
+    
+    <div class="telemetry-row">
+      <span class="telemetry-label">經度 LON (E):</span>
+      <span class="telemetry-val" id="hudLon">121.51700°</span>
+    </div>
+    <div class="telemetry-row">
+      <span class="telemetry-label">緯度 LAT (N):</span>
+      <span class="telemetry-val" id="hudLat">25.04500°</span>
+    </div>
+    <div class="telemetry-row">
+      <span class="telemetry-label">全息縮放 ZOOM:</span>
+      <span class="telemetry-val highlight" id="hudZoom">13.0x</span>
+    </div>
+    <div class="telemetry-row">
+      <span class="telemetry-label">圖資來源 SOURCE:</span>
+      <span class="telemetry-val highlight" id="hudSource">臺灣通用電子地圖 (NLSC 繁中街道全圖)</span>
+    </div>
+    <div class="telemetry-row">
+      <span class="telemetry-label">可視門市數 STORES:</span>
+      <span class="telemetry-val highlight" id="hudStoreCount">380+ 處</span>
+    </div>
+    <div class="telemetry-row">
+      <span class="telemetry-label">即時公車 GPS LIVE:</span>
+      <span class="telemetry-val highlight" id="hudLiveBusCount" style="color:#22c55e;">連線同步中</span>
+    </div>
+    <div class="telemetry-row">
+      <span class="telemetry-label">即時捷運列車 MRT:</span>
+      <span class="telemetry-val highlight" id="hudLiveMrtCount" style="color:#38bdf8;">連線同步中</span>
+    </div>
+    <div class="telemetry-row">
+      <span class="telemetry-label">即時臺鐵列車 TRA:</span>
+      <span class="telemetry-val highlight" id="hudLiveTraCount" style="color:#60a5fa;">連線同步中</span>
+    </div>
+    <div class="telemetry-row">
+      <span class="telemetry-label">即時高鐵列車 THSR:</span>
+      <span class="telemetry-val highlight" id="hudLiveThsrCount" style="color:#f97316;">連線同步中</span>
+    </div>
+    <div class="telemetry-row">
+      <span class="telemetry-label">3D 建物可視負載:</span>
+      <span class="telemetry-val highlight" id="hud3DBuildingCount" style="color:#38bdf8;">0 棟 (60 FPS)</span>
+    </div>
+    <div class="telemetry-row">
+      <span class="telemetry-label">官方同步時間 SYNC:</span>
+      <span class="telemetry-val" id="hudLiveSyncTime" style="color:#a7f3d0; font-size:10px;">網路抓取中...</span>
+    </div>
+
+    <!-- 特區探測器 -->
+    <div class="sector-detector-box">
+      <div class="sector-title" id="currentSectorTitle">TPE-CC｜中正核心樞紐</div>
+      <div class="sector-sub" id="currentSectorSub">政治中樞・台北車站・站前商圈 ✕ 古蹟群</div>
+    </div>
+  </aside>
+
+  <!-- 右側戰術圖層控制與工具箱 (Right Tactical Control Panel) -->
+  <aside class="right-tactical-panel" id="rightTacticalPanel" style="top:194px;">
+    <div class="panel-header">
+      <span>⚙️ TACTICAL GIS</span>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span>1:1 REAL</span>
+        <button class="mobile-panel-close-btn" onclick="toggleMobilePanel('right')" title="收合面板">✕</button>
+      </div>
+    </div>
+
+    <div style="font-size:10px; color:#38bdf8; font-weight:800; margin-bottom:4px;">🗺️ 1:1 真實網路圖資切換 (高清街道保證・放大不模糊):</div>
+    <select id="tileSelect" onchange="switchBaseLayer(this.value)" style="width:100%; background:rgba(30,41,59,0.9); border:1px solid #00f0ff; color:#fff; padding:6px; border-radius:4px; font-size:11px; margin-bottom:10px; outline:none; cursor:pointer;">
+      <option value="nlsc" selected>🇹🇼 臺灣通用電子地圖 (內政部國土測繪 繁中街道全圖・最清晰)</option>
+      <option value="esri_street">🗺️ Esri 真實街道全景圖 (高對比街廓・中文路名清楚標註)</option>
+      <option value="osm">🌐 OpenStreetMap 繁體中文標準街道 (高覆蓋率巷弄路網)</option>
+      <option value="dark">🛰️ 賽博暗黑夜間圖 (黑曜石底圖 ✕ 高對比霓虹街道複合)</option>
+      <option value="satellite">🌍 1:1 實體高空衛星 ✕ 真實街道路網全息複合圖層</option>
+    </select>
+
+    <div style="font-size:10px; color:#34d399; font-weight:800; margin:8px 0 4px 0;">🚊 雙北大眾運輸四軌與實時交通圖層:</div>
+    <div class="tool-btn-grid">
+      <!-- 🌟 雙北全域 3D 真實建築物系統 (60FPS 視錐剔除 ✕ 空間網格 ✕ LOD 批次合併) -->
+      <button class="tactical-tool-btn active" id="btnToggle3DBuildings" onclick="toggle3DBuildingsLayer()">
+        <span>🏙️ 雙北全域 3D 建築 (60FPS)</span>
+        <span style="color:#38bdf8;">??潮爸 ON</span>
+      </button>
+
+      <!-- 🌟 老街親臨感應圈 (Fog of War) -->
+      <button class="tactical-tool-btn active" id="btnToggleFogOfWar" onclick="toggleFogOfWar()">
+        <span>🌫️ 老街親臨感應 (100m)</span>
+        <span style="color:#f59e0b;">FOG ON</span>
+      </button>
+
+      <!-- 🌟 百年文史時空圖層 (1935 昭和鐵道 ✕ 現代捷運) -->
+      <button class="tactical-tool-btn" id="btnToggleHistory1935" onclick="toggleHistorical1935Layer()">
+        <span>📜 1935 昭和鐵道百年文史</span>
+        <span style="color:#94a3b8;">OFF</span>
+      </button>
+
+      <!-- 🌟 曼哈頓人行折角示意線 (禁止瞬移・曼哈頓街廓折角示意) -->
+      <button class="tactical-tool-btn active" id="btnToggleWalkNav" onclick="toggleWalkNavFlowline()">
+        <span>🚶 曼哈頓人行折角示意線</span>
+        <span style="color:#00f0ff;">ACTIVE</span>
+      </button>
+
+      <!-- 🌟 即時交通音場 (北捷進站音樂/高鐵/鳴笛) -->
+      <button class="tactical-tool-btn active" id="btnToggleAudio" onclick="toggleAudioFx()">
+        <span>🔊 交通進站音場 (北捷/高鐵)</span>
+        <span style="color:#22c55e;">AUDIO ON</span>
+      </button>
+
+      <!-- 🌟 大眾運輸即時同步 (車機停則停、到站則到站) -->
+      <button class="tactical-tool-btn active" id="btnLiveTransitSync" onclick="toggleTransitLiveSync()">
+        <span>📡 大眾運輸即時同步 (TDX/eBus)</span>
+        <span style="color:#22c55e;">LIVE ON</span>
+      </button>
+
+      <!-- 🌟 地圖介面極致簡化 (預設隱藏冗贅文字標牌，按鈕按需啟用) -->
+      <button class="tactical-tool-btn" id="btnToggleStationLabels" onclick="toggleStationLabels()">
+        <span>🏷️ 捷運站名標籤</span>
+        <span style="color:#94a3b8;">預設隱藏</span>
+      </button>
+      <button class="tactical-tool-btn" id="btnToggleRoadNames" onclick="toggleRoadNames()">
+        <span>🛣️ 道路名稱標牌</span>
+        <span style="color:#94a3b8;">預設隱藏</span>
+      </button>
+
+      <!-- 🌟 施工狀態即時同步 (真實世界停止施工則遊戲跟著停止施工) -->
+      <button class="tactical-tool-btn active" id="btnToggleConstructionSync" onclick="toggleConstructionSync()">
+        <span>🚧 施工狀態即時同步</span>
+        <span style="color:#06b6d4;">SYNC ON</span>
+      </button>
+
+      <!-- 🌟 視野限制與局部導航 (防止一次放太大，專注周遭認路) -->
+      <button class="tactical-tool-btn" id="btnToggleFoV" onclick="toggleLocalFoV()">
+        <span>🌐 全區總覽 (解鎖宏觀視角)</span>
+        <span style="color:#94a3b8;">UNLOCKED</span>
+      </button>
+
+      <!-- 🌟 生活圈聚光暗角 (預設關閉，保持全域地圖 100% 明亮透徹) -->
+      <button class="tactical-tool-btn" id="btnToggleSpotlight" onclick="toggleSpotlight()">
+        <span>🎯 生活圈聚光暗角</span>
+        <span style="color:#94a3b8;">OFF</span>
+      </button>
+
+      <button class="tactical-tool-btn active" id="btnToggleTrafficLights" onclick="toggleTrafficLightsLayer()">
+        <span>🚦 規律交通號誌 (紅黃綠)</span>
+        <span style="color:#22c55e;">ON</span>
+      </button>
+      <button class="tactical-tool-btn active" id="btnToggleThsr" onclick="toggleThsrLayer()">
+        <span>🚅 台灣高鐵 (THSR)</span>
+        <span style="color:#ea580c;">ON</span>
+      </button>
+      <button class="tactical-tool-btn active" id="btnToggleTra" onclick="toggleTraLayer()">
+        <span>🚆 臺灣鐵路 (TRA 28站全線)</span>
+        <span style="color:#38bdf8;">ON</span>
+      </button>
+      <button class="tactical-tool-btn active" id="btnToggleMrt" onclick="toggleMrtLayer()">
+        <span>🚇 台北捷運 (9大路線無異常線)</span>
+        <span style="color:#00f0ff;">ON</span>
+      </button>
+      <button class="tactical-tool-btn active" id="btnToggleMrtTrains" onclick="toggleMrtTrainsLayer()">
+        <span>🚄 捷運真實動態列車 (平滑加減速)</span>
+        <span style="color:#38bdf8;">ACTIVE</span>
+      </button>
+      <button class="tactical-tool-btn active" id="btnToggleUnderConstruction" onclick="toggleUnderConstructionLayer()">
+        <span>🚧 興建中捷運 (三鶯/萬大線)</span>
+        <span style="color:#06b6d4;">ON</span>
+      </button>
+      <button class="tactical-tool-btn active" id="btnToggleBus" onclick="toggleBusLayer()">
+        <span>🚌 大臺北公車 (eBus)</span>
+        <span style="color:#4ade80;">ON</span>
+      </button>
+      <button class="tactical-tool-btn" id="btnShuangbeiBusOverview" onclick="zoomToShuangbeiBusOverview()" title="一鍵俯瞰雙北全境 2,000+ 輛奔馳公車" style="background:rgba(2,132,199,0.3); border-color:#38bdf8;">
+        <span>🎯 雙北公車全覽</span><span style="color:#38bdf8; font-size:10px;">ALL</span>
+      </button>
+      <button class="tactical-tool-btn active" id="btnToggleBusFleet" onclick="toggleBusFleetLayer()">
+        <span>🚍 公車巡航 (紅燈強制停等)</span>
+        <span style="color:#f59e0b;">DISPATCH</span>
+      </button>
+      <button class="tactical-tool-btn active" id="btnToggleExpressways" onclick="toggleExpresswaysLayer()">
+        <span>🛣️ 國道高速公路 (國1/3/5)</span>
+        <span style="color:#3b82f6;">ON</span>
+      </button>
+      <button class="tactical-tool-btn active" id="btnToggleCoachHubs" onclick="toggleCoachHubsLayer()">
+        <span>🏢 國道客運轉運站 (京站/市府)</span>
+        <span style="color:#f59e0b;">ON</span>
+      </button>
+      <button class="tactical-tool-btn" id="btnOpenEBusNavigator" onclick="toggleEBusNavigator()">
+        <span>🔍 搜尋 1037 條公車</span>
+        <span style="color:#f59e0b;">OPEN</span>
+      </button>
+      <button class="tactical-tool-btn" id="btnToggleStreets" onclick="toggleStreetsLayer()">
+        <span>🛣️ 雙北真實街道高光</span>
+        <span style="color:#94a3b8;">OFF</span>
+      </button>
+      <button class="tactical-tool-btn active" id="btnToggleParks" onclick="toggleParksLayer()">
+        <span>🌲 雙北真實公園綠地</span>
+        <span style="color:#10b981;">ON</span>
+      </button>
+      <button class="tactical-tool-btn" id="btnRadarScan" onclick="triggerRadarScan()">
+        <span>📡 全息雷達掃描</span>
+        <span style="color:#94a3b8;">STANDBY</span>
+      </button>
+      <button class="tactical-tool-btn" id="btnFocusPlayer" onclick="togglePlayerFocusMode()">
+        <span>👤 超微觀角色特寫 20x</span>
+        <span style="color:#00f0ff;">ZOOM</span>
+      </button>
+      <button class="tactical-tool-btn" id="btnFitBounds" onclick="resetShuangbeiBounds()">
+        <span>🔭 雙北全景居中</span>
+        <span style="color:#38bdf8;">RESET</span>
+      </button>
+    </div>
+
+    <!-- 品牌標記圖例 (Legend) -->
+    <div style="margin-top:12px; border-top:1px solid rgba(0,240,255,0.2); padding-top:8px; font-size:10px; color:#94a3b8;">
+      <div style="margin-bottom:4px; font-weight:800; color:#38bdf8;">📍 大眾運輸與實體圖例 (100% 真實座標):</div>
+      <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+        <span style="display:inline-block; width:12px; height:12px; border-radius:3px; background:#059669; border:1px solid #6ee7b7;"></span>
+        <span>🌲 雙北 1:1 真實公園綠地 (41 行政特區全覆蓋)</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+        <span style="display:inline-block; width:12px; height:12px; border-radius:3px; background:#ea580c; border:1px solid #fdba74;"></span>
+        <span>🚅 台灣高鐵 (南港/台北/板橋 特等站)</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+        <span style="display:inline-block; width:12px; height:12px; border-radius:3px; background:#0284c7; border:1px solid #7dd3fc;"></span>
+        <span>🚆 臺灣鐵路 (縱貫線北段 ✕ 宜蘭線 ✕ 平溪/深澳 28大站)</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+        <span style="display:inline-block; width:12px; height:3px; background:#0070bd; box-shadow:0 0 4px #0070bd;"></span>
+        <span>🚇 台北捷運 9 大路線 (板南/紅/綠/橘/文湖/環狀/機捷/輕軌)</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+        <span style="display:inline-block; width:10px; height:10px; border-radius:2px; background:#0284c7; border:1px solid #fff;"></span>
+        <span>🚄 捷運固定班距動態巡航列車 (BL/R/G/O/Y 雙向固定班次)</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+        <span style="display:inline-block; width:12px; height:3px; background:#10b981; box-shadow:0 0 4px #10b981;"></span>
+        <span>🚌 大臺北公車 (ebus.gov.taipei 1037條官方路線)</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+        <span style="display:inline-block; width:10px; height:10px; border-radius:2px; background:#f97316; border:1px solid #fff;"></span>
+        <span>🚍 連續派發動態公車車隊 (656、307、9006基隆客運、2088等)</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+        <span style="display:inline-block; width:12px; height:12px; border-radius:3px; background:#254F9B; border:1px solid #C20016;"></span>
+        <span>萬家福大賣場旗艦 / 樂家康生鮮超市 (放大顯示)</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:6px;">
+        <span style="display:inline-block; width:12px; height:12px; border-radius:50%; background:#ea580c;"></span>
+        <span>7-11 / 全家便利超商 / 傳統市場夜市</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- 🚌 大臺北公車即時檢索與動態面板 (Taipei eBus Realtime Navigator) -->
+  <aside class="ebus-navigator-panel" id="ebusNavigatorPanel" style="display:none;">
+    <div class="ebus-panel-header">
+      <div class="ebus-panel-title">
+        <span>🚌 大臺北公車即時檢索 (1037線 ✕ 基隆跨市)</span>
+      </div>
+      <button onclick="toggleEBusNavigator()" style="background:none; border:none; color:#94a3b8; font-size:14px; cursor:pointer;">✕</button>
+    </div>
+    <div style="font-size:10px; color:#94a3b8; margin-bottom:6px;">
+      依據 <a href="https://ebus.gov.taipei/EBus2/RouteList2" target="_blank" style="color:#34d399; text-decoration:underline;">ebus.gov.taipei</a> 官方目錄整合 (雙北全線與基隆開進雙北公車)
+    </div>
+    <div class="ebus-search-input-wrap">
+      <input type="text" class="ebus-search-input" id="ebusSearchInput" placeholder="輸入路線 (如 656, 307, 基隆, 9006, 2088, 99...)" oninput="handleEBusSearch(this.value)">
+    </div>
+    <div class="ebus-quick-chips">
+      <button class="ebus-chip-btn active" onclick="quickSelectEBus('bus_656')">656海山</button>
+      <button class="ebus-chip-btn" onclick="quickSelectEBus('bus_307')">307幹線</button>
+      <button class="ebus-chip-btn" onclick="quickSelectEBus('bus_9006')">9006基隆</button>
+      <button class="ebus-chip-btn" onclick="quickSelectEBus('bus_2088')">2088快捷</button>
+      <button class="ebus-chip-btn" onclick="quickSelectEBus('bus_99')">99學府路</button>
+      <button class="ebus-chip-btn" onclick="quickSelectEBus('bus_299')">299幹線</button>
+      <button class="ebus-chip-btn" onclick="quickSelectEBus('bus_965')">965九份</button>
+      <button class="ebus-chip-btn" onclick="quickSelectEBus('bus_1802')">1802國光</button>
+    </div>
+    <div class="ebus-results-list" id="ebusResultsList">
+      <!-- 由 JS 動態注入 -->
+    </div>
+  </aside>
+
+  <!-- 案件戰術詳情彈窗 (Case Tactical Brief Modal) -->
+  <div class="case-brief-modal" id="caseBriefModal" style="display:none;" onclick="if(event.target===this)closeCaseModal();">
+    <div class="case-brief-card" id="caseBriefCard">
+      <!-- 由 JS 動態注入 -->
+    </div>
+  </div>
+
+  <!-- 底部操作提示 (Bottom Hint Bar) -->
+  <div class="bottom-hint-bar">
+    <span><span class="hint-key">[滑鼠滾輪 / 雙指縮放]</span> 1:1 無級縮放到雙北真實巷弄門牌</span>
+    <span><span class="hint-key">[拖曳平移]</span> 自由探索雙北 41 行政特區</span>
+    <span><span class="hint-key">[點擊門市 / 站牌 / 🚨警報]</span> 即時調取真實門牌、公車到站預報與自然科學案情</span>
+  </div>
+
+  <!-- 雙軌 SSOT 單一資料源 -->
+  <script src="shared-data.js"></script>
+  <!-- 雙北大眾運輸四軌 SSOT (高鐵 ✕ 台鐵 ✕ 捷運 ✕ eBus公車) -->
+  <script src="transit-data.js"></script>
+  <!-- 大臺北公車官方 1037 條完整路線檢索目錄 (ebus.gov.taipei) -->
+  <script src="ebus-directory.js"></script>
+
+  <!-- Leaflet JS (本機 vendor 優先，CDN 備援) -->
+  <script src="vendor/leaflet/leaflet.js" onerror="this.onerror=null;this.src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';"></script>
+  
+  <!-- 核心地圖邏輯腳本 (1:1 真實網路地圖純實體) -->
+  <script src="cyber-realmap.js"></script>
+</body>
+</html>
