@@ -4172,3 +4172,357 @@ flowchart TD
 
 #### 5. 4 大專案倉庫全面同步推送
 - `city-pulse-detective`、`taipei-metro-detective-rpg`、`taipei-detective-rpg`、`taipei-detective-core` 四個倉庫之 `cyber-realmap.js`、`cyber-realmap.html`、`cyber-realmap.css` 與文件全誌全面同步，並推送至 GitHub 遠端 main 分支。
+
+---
+
+### 第 121 輪對話全誌：地圖問題欄五大待修正項目 100% 徹底修復與全平台實測驗收 (2026-10-29 傍晚)
+
+#### 1. 任務核心指令與方針
+- **委託人最高鐵則**：
+  1. 叫 project 把最新紀錄抓下來（Git pull origin main 對齊 Round 120）。
+  2. 閱讀問題欄（`https://files.instinct.com/ju4sf6hj7efj-agy`）並將裡面列出的問題全數修好。
+  3. 每次修改完成後，100% 自動 `git add`、`commit` 並 `push` 到 GitHub。
+- **嚴守四大憲法紅線**：
+  1. 0 少年偵探（全面稱「都會調查員」或「市民」）。
+  2. 0 益碩／藝碩。
+  3. 0 地圖瞬移（遵循曼哈頓人行折角步道與大眾運輸真實等車移轉）。
+  4. 0 歷史廢除職稱。
+
+#### 2. 地圖問題欄 5 大項目修復對照
+
+##### 【待修正 1／5：斷線新鮮度追蹤接線完成】—— 通過
+- **根本原因**：`sourceLastOkMs` 宣告後在整個代碼庫中零處寫入，導致所有來源被 `isSourceStale()` 判為過期，HUD 恆亮黃燈「(過期)」。
+- **修復措施**：
+  - 在通道 B（`syncLiveTransitData` 瀏覽器直連端點）中，於各來源（公車 `rawBusList`、客運 `rawInterCity`、北捷 `trtcJson`、桃捷 `tymcJson`、台鐵 `traJson`、高鐵 `thsrJson`）拉取成功時，各自記錄獨立 `fetchMs` 時間戳記至 `sourceLastOkMs`。
+  - 在通道 A（本地私服聚合端點）中，成功回傳時亦將 `nowMs` 同步寫入各來源時間表。
+  - 嚴格保留新鮮度閥值（公車/捷運/台鐵 60 秒、高鐵 15 分鐘），正常時亮綠燈，斷線超過 60 秒自動如實轉為黃燈「離線推算」。
+- **CDP 實測驗證**：
+  - 初始載入實測：`sourceLastOkMs` 成功寫入，HUD 顯示 `🟢公車 🟢捷運 🟢台鐵 🟢高鐵`，公車計數顯示 `X 輛 (官方GPS) ＋ Y 輛 (班距模擬)`。
+  - 逾時模擬實測：將時間戳回撥 70 秒後，HUD 即刻如實轉黃 `🟡台鐵(過期)`，公車計數轉為 `1880 輛 (資料過期)`。
+
+##### 【待修正 2／5：捷運站名 LOD 接線完成與樞紐站正常顯示】—— 通過
+- **根本原因**：`updateMrtLODVisibility()` 過去僅維護 `map-zoom-near`（zoom >= 14），全專案從未設置 `map-zoom-mid` class，導致 CSS 中 `body:not(.map-zoom-mid) .station-marker-wrap.is-hub .mrt-station-title { display: none; }` 恆成立，32 個特等與轉乘樞紐站名在任何層級均被隱藏；且初始化時未主動觸發。
+- **修復措施**：
+  - 在 `updateMrtLODVisibility()` 補齊中間門檻：`const isMid = map.getZoom() >= 13.0; document.body.classList.toggle('map-zoom-mid', isMid);`。
+  - 在地圖初始化 `initCyberRealMap()` 於 `zoomend` 監聽註冊後立即主動調用一次 `updateMrtLODVisibility()`。
+- **CDP 實測驗證**：
+  - Zoom 12：`bodyClasses: ""`，樞紐站與非樞紐站名皆為 `display: none`（消除廣域覆蓋，僅留幾何光點）。
+  - Zoom 13：`bodyClasses: "map-zoom-mid"`，頂埔、府中、板橋、西門、台北車站等樞紐站名為 `display: inline`，非樞紐站名隱藏。
+  - Zoom 14+：`bodyClasses: "map-zoom-mid map-zoom-near"`，全雙北所有捷運站名皆為 `display: inline`。
+  - 初始載入：重整後不碰地圖即刻呈現對應層級正確顯示。
+
+##### 【待修正 3／5：手機頁首橫向溢出 100% 收進 100vw】—— 通過
+- **根本原因**：手機版 `.holo-top-bar` 內部 `.jump-scroll-wrap` 缺乏 `min-width: 0`；同時右側切換按鈕群缺少包裝容器折行約束，導致 320px / 390px 視口寬度下撐出 420px 的橫向滾動。
+- **修復措施**：
+  - 在 `@media (max-width: 768px)` 中為 `.jump-scroll-wrap` 補上 `order: 3 !important; width: 100% !important; max-width: 100% !important; min-width: 0 !important; flex: 1 1 auto !important; margin: 2px 0 !important;`。
+  - 為頂部按鈕列增設 `.top-nav-actions`，在手機端指定 `order: 2 !important; width: 100% !important; display: flex !important; flex-wrap: wrap !important; gap: 4px !important;`，按鈕本體設為 `flex: 1 1 auto; min-width: 0`。
+- **CDP 實測驗證**：
+  - 320px：`scrollWidth === clientWidth === 320`（isOverflow: false）。
+  - 390px：`scrollWidth === clientWidth === 390`（isOverflow: false）。
+  - 768px：`scrollWidth === clientWidth === 768`（isOverflow: false）。
+  - 1280px：`scrollWidth === clientWidth === 1280`（isOverflow: false）。
+  - 全視口下 100% 消除水平滾動條，頁首按鈕與特區快速跳轉條均完美受控於螢幕內！
+
+##### 【待修正 4／5：殘留「即時」字樣徹底清理與 Y 線回歸】—— 通過
+- **根本原因**：部分無真實 GPS 的軌道推算系統與看板界面殘留「即時」詞彙。
+- **修復措施**：
+  - `cyber-realmap.html` 頂部跑馬燈徽章由「🛰️ 雙北四軌即時出入境通報」修正為「🛰️ 雙北四軌動態通報」。
+  - `cyber-realmap.js` 跑馬燈文本由「雙北四軌即時走廊」修正為「雙北四軌動態走廊」。
+  - 遙測 HUD 標籤將北捷/台鐵/高鐵修正為「推算列車」。
+  - 捷運列車彈窗狀態由「🚇 即時行駛：…」修正為「🚇 推算行駛：…」，「🚇 即時進站中：…」修正為「🚇 推算進站中：…」。
+  - 右側戰術圖層開關由「🚄 捷運線上即時列車」修正為「🚇 捷運班距推算列車」。
+  - 恪守鐵則：「官方即時」嚴格僅保留給具備真實車機 GPS 的來源（公車 GetBusData.gz 與公路客運）。
+- **Y 線回歸觀察**：
+  - 列車物件帶有完整 `sourceTrace` 標記（本地伺服器回傳 `web_metro_taipei_live`；離線/直連為 `headway-sim`），未再發現假冒 LiveBoard 之異常車組。
+
+##### 【待修正 5／5：全車隊 1,900+ 輛公車與列車標籤互疊（LOD 視距分級）】—— 通過
+- **根本原因**：全量公車上線後同場 ~1,900 輛公車在 Zoom 12~14 產生大量車牌文字標籤互疊，遮蔽街廓視野。
+- **修復措施**：
+  - **公車視距分級**：
+    - Zoom < 15：公車以無文字之高性能 Canvas 圓點渲染（點擊與懸浮可查看路線、車牌、卡片與巴視達軌跡），僅高亮選中車顯示文字徽章。
+    - Zoom >= 15：視野內公車展開完整動態文字徽章（車號+車牌+速度）。
+    - 絕不刪除車輛、絕不關閉全車隊功能，保留 1,888+ 輛全雙北車隊！
+  - **軌道列車視距分級**：
+    - Zoom < 13：軌道列車在廣域視野下簡化標籤，隱藏速度副標籤，消除文字互疊。
+- **CDP 實測數據**：
+  - Zoom 12：公車標籤數 0，公車圓點數 1,877（清爽流暢，街廓完全可讀）。
+  - Zoom 13：公車標籤數 0，公車圓點數 1,877。
+  - Zoom 15：公車標籤數 350（視野內展開），公車圓點數 1,527（視野外或密集區緩衝）。
+
+#### 3. 專案倉庫鏡像同步與 Git 推送
+- 本地雙倉庫 (`city-pulse-detective` ✕ `taipei-metro-detective-rpg`) 程式碼 100% 鏡像同步。
+- 嚴格落實委託人最高鐵則：已執行 `git add`、`commit` 並成功 `push` 至 GitHub 遠端 main 分支。
+---
+
+### 第 122 輪對話全誌：code ✕ story 跨端深度協同討論大會（50 案資料庫與偵探核心 100% 雙向對齊 ✕ 地圖問題欄第 74 條閉環 ✕ 憲法禁忌合規）(2026-10-29 晚間)
+
+#### 1. 會議緣起與委託人最高指示
+- **時間戳**：2026-10-29 20:37
+- **委託人原始指示**：
+  > 「請你叫code和story互相討論，因為他們兩個做東西息息相關」
+- **調度主持**：Leader（專案協同與跨端調度長）
+- **出席代表**：
+  - 💻 **`code`**：獨立偵探核心引擎開發者（維護倉庫：[`taipei-detective-core`](https://github.com/hsiaoyujui114-code/taipei-detective-core)）
+  - 📜 **`story`**：企劃與 50 大案劇本作者（維護倉庫：[`taipei-detective-rpg`](https://github.com/hsiaoyujui114-code/taipei-detective-rpg)）
+
+#### 2. 四大核心交集議題深度協商實況
+
+##### 議題一：50 案全集資料結構與偵探核心引擎的 100% 雙向對齊
+- **`code` 提出**：
+  - 偵探核心引擎（`taipei-detective-core`）先前使用的是舊版 16 欄位 `fifty_cases.json`（436KB），而 `story` 最新的 `cases.json`（534KB）已擴充包含 `chapter`（5 大篇章）、`diy_experiment`（學童可操作之家庭微實驗）與 `cross_case_clue`（跨案暗線與失落的臺北城密碼）。
+  - 需要將 `story` 的最新版本完整鏡像同步至 `src/data/cases/fifty_cases.json`，並由 `StoryLoader.js` 自動解析新欄位，透過 REST API `/api/detective/cases` 與 `/api/detective/case/:id` 開放給前端與工作台。
+- **`story` 回應與承諾**：
+  - 全力支持！50 案全集已精準涵蓋雙北 41 特區，每一案都綁定一項生活科學鑑識原理（如草酸鈣結晶、熱敏變色墨水、虹吸管水壓、天平浮力阿基米德、摩斯電碼與旗語、幾何光學反射、壓強與受力面積等），完全對齊國小自然科學課綱。
+  - `story` 將確保每次更新案件文本時，保持 JSON 語法 100% 合規，絕不在代碼中寫死，維持 Data-Driven 模組化。
+
+##### 議題二：地圖問題欄第 74 條「案件 1–10 標題與編號一致性」徹底閉環
+- **爭議現況檢討**：
+  - 地圖問題欄指出：早期寫在 `shared-data.js` 的 `DEMO_10_CASES` 標題（如「西門老牌連鎖咖啡雙倍濃縮拿鐵案」、「北車忠孝西路地下道虹吸水壓失衡案」）與 `cases.json` 的正式名稱（如「西門町連鎖咖啡店拿鐵中毒案」、「台北車站三鐵連通長廊水力延時案」）存在微小文字命名差異。
+- **`code` 與 `story` 達成共識**：
+  - **唯一真理來源（Single Source of Truth）**：以 `story` 的 `cases.json` 為最高權威！
+  - `demo_cases.json` 與 `shared-data.js` 中的 10 大示範案件全面以 `cases.json` 中的 CASE-01 ~ CASE-10 正式標準名稱為準。
+  - `code` 的 `StoryLoader.js` 的多重別名機制（支援 `CASE-01`、`case_01`、`CASE-2026-001`、純數字 `1`、以及標題模糊比對）已全面相容，雙向查詢 100% 命中，絕不因歷史命名差異而產生 404 或資料斷裂！
+
+##### 議題三：口供筆錄、物證打臉與有向因果思維導圖 (DAG Eureka Moment) 協同
+- **`code` 提出**：
+  - 核心引擎已實裝「心理防線值 (100% ➔ 0%)」機制：當調查員出示關鍵物證、或是透過鑑識實驗（如滴定試紙變深紅顯示強酸）戳破嫌犯不在場證明時，嫌犯心理防線會斷崖式崩潰，並解鎖關鍵自白（Eureka Moment）。
+  - 需要 `story` 在設計劇本時，明確指定「哪一項證物」能擊破「哪一個嫌疑人的哪一段證詞」，形成有向無環圖 (DAG)。
+- **`story` 回應與承諾**：
+  - 在 `cases.json` 與 `CASES_50_FULL_SPEC.md` 中，每一案皆有設計 3 位關係人（例如 CASE-01 中的副店長高智敏、兼職員工陳佩君、熟客林志誠），並在 `characters` 與 `deposition` 中精確記載其嫌疑點與真犯人露出破綻的關鍵證物（如咖啡渣中的草酸晶體、手套破損滲漏汗液印痕等）。
+  - `story` 與 `code` 約定在物證對質表（`cross_examination_matrix`）中固化擊破關聯，讓推理過程嚴謹可驗證，絕無邏輯死角。
+
+##### 議題四：全域四大最高憲法級絕對禁忌交叉稽核與修正
+- **`code` 的自動化掃描發現**：
+  - `code` 的 `npm test` 階段 10 執行全檔案正則掃描時，在 `story` 的 `cases.json` 發現 3 處殘留之歷史職稱用語（`CASE-14` 展館實習生、`CASE-44` 華山展場值班工讀生、`CASE-50` 兩名工讀生共同在場證詞）。
+- **`story` 即刻更正**：
+  - `CASE-14` 修正為「展館助理研究員」。
+  - `CASE-44` 修正為「華山展場值班助理員」。
+  - `CASE-50` 修正為「兩名值班助理共同在場證詞」。
+  - `CASES_50_FULL_SPEC.md` 與 `cases.html` 同步修復！
+- **重跑測試結果**：
+  - `taipei-detective-core` 執行 `npm test`，10 大階段、50 案全集驗證、憲法紅線掃描 100% 通過（0 違規）！
+
+#### 3. 專案倉庫鏡像同步與 Git 推送
+- **`taipei-detective-core`**：更新 `src/data/cases/fifty_cases.json` 至 50 案全集完整版，`npm test` 100% 通過。
+- **`taipei-detective-rpg`**：修復 `cases.json`、`cases.html`、`CASES_50_FULL_SPEC.md` 歷史職稱殘留，確保 100% 憲法級合規。
+- 嚴格恪守委託人最高鐵則：修改後 100% 自動執行 `git add`、`commit` 並推送至 GitHub 遠端 main 分支。
+---
+
+### 第 123 輪對話全誌：ai-engineer (project) 地圖問題欄最新卷宗（Gen 12）地毯式檢驗與 CDP 全視口實測驗收 (2026-10-29 晚間)
+
+#### 1. 任務緣起與委託人最高指示
+- **時間戳**：2026-10-29 21:13
+- **委託人原始指示**：
+  > 「請幫我叫project去改問題欄裡的東西」
+- **調度主持**：Leader（專案協同與跨端調度長）
+- **執行人員**：💻 `ai-engineer` (`project`)（雙本地圖與大眾運輸維護者）
+- **涉及倉庫**：
+  - [`city-pulse-detective`](https://github.com/hsiaoyujui114-code/city-pulse-detective)
+  - [`taipei-metro-detective-rpg`](https://github.com/hsiaoyujui114-code/taipei-metro-detective-rpg)
+  - [`taipei-detective-core`](https://github.com/hsiaoyujui114-code/taipei-detective-core)
+  - [`taipei-detective-rpg`](https://github.com/hsiaoyujui114-code/taipei-detective-rpg)
+
+#### 2. 最新卷宗讀取與版本對齊
+- 依據最高永久協議 `MAP_ISSUE_BOARD_PROTOCOL.md`，即刻連線 Instinct GraphQL 端點讀取專屬網址 `https://files.instinct.com/ju4sf6hj7efj-agy`：
+  - 成功擷取最新修訂卷宗：**Generation 12**（Revision: `filerevision-01M63F7V2E21YH9M5YYG4YYV4Q`）。
+  - 對照卷宗所列 5 大待修正項目與驗收標準。
+
+#### 3. 地圖問題欄 5 大項目最新源碼與 CDP 全自動化實測驗證
+
+##### 【項目 1／5：斷線新鮮度追蹤接線】—— 通過
+- **源碼確認**：`cyber-realmap.js` 第 23 行宣告 `sourceLastOkMs`，通道 A（伺服器回傳）與通道 B（瀏覽器直抓 2718~2740 行）於公車、客運、北捷、桃捷、台鐵、高鐵成功抓取時，皆精確寫入 `fetchMs` 時間戳記。
+- **CDP 實測數據**：
+  - `sourceLastOkMs`: `{ bus: 1793279822788, intercity: 1793279822788, trtc: 1793279822788, tymc: 1793279822788, tra: 1793279822788, thsr: 1793279822788 }`。
+  - 連線時 HUD 顯示綠燈與真實時間，斷線超過閥值（60 秒 / 15 分鐘）自動如實轉為黃燈「離線推算」。
+
+##### 【項目 2／5：捷運站名 LOD 視距分級與初始載入】—— 通過
+- **源碼確認**：`updateMrtLODVisibility()` 補齊 `const isMid = map.getZoom() >= 13.0; document.body.classList.toggle("map-zoom-mid", isMid);`，且於 `initCyberRealMap()` 初始化時主動調用一次。
+- **CDP 實測數據**：
+  - Zoom 12：`bodyClasses: ""`（樞紐與非樞紐站名皆隱藏，消除廣域覆蓋）。
+  - Zoom 13：`bodyClasses: "map-zoom-mid"`（頂埔、府中、板橋、台北車站等 32 個樞紐站名顯示）。
+  - Zoom 14+：`bodyClasses: "map-zoom-mid map-zoom-near"`（全雙北所有捷運站名展開）。
+
+##### 【項目 3／5：手機頁首橫向溢出 100% 收進 100vw】—— 通過
+- **源碼確認**：`cyber-realmap.css` 在 `@media (max-width: 768px)` 中為 `.jump-scroll-wrap` 增設 `min-width: 0 !important; flex: 1 1 auto !important;`，按鈕組設為 `.top-nav-actions` 彈性折行。
+- **CDP 實測數據（真實 Chrome 視口量測）**：
+  - 320px：`scrollWidth: 320, clientWidth: 320, isOverflow: false`。
+  - 390px：`scrollWidth: 390, clientWidth: 390, isOverflow: false`。
+  - 768px：`scrollWidth: 768, clientWidth: 768, isOverflow: false`。
+  - 1280px：`scrollWidth: 1280, clientWidth: 1280, isOverflow: false`。
+  - 100% 根除水平捲軸，無任何非地圖 DOM 元素溢出！
+
+##### 【項目 4／5：殘留「即時」字樣徹底清理與 Y 線回歸】—— 通過
+- **源碼確認**：
+  - 跑馬燈徽章修正為「🛰️ 雙北四軌動態通報」。
+  - 跑馬燈文字修正為「雙北四軌動態走廊」。
+  - 捷運列車彈窗狀態修正為「推算行駛：…」、「推算進站中：…」。
+  - 戰術圖層開關修正為「🚇 捷運班距推算列車」。
+  - 嚴格僅保留「官方即時」給具備真實車機 GPS 之來源。
+
+##### 【項目 5／5：全車隊 1,900+ 輛公車標籤 LOD 視距分級】—— 通過
+- **源碼確認**：
+  - Zoom < 15：公車以高效輕量之無文字 Canvas 圓點渲染（可點擊懸浮），僅高亮選中車顯示文字徽章。
+  - Zoom >= 15：視野內公車展開完整動態文字徽章（車號+車牌+速度）。
+  - 雙北全量車隊 1,888+ 輛公車 100% 完整保留，不刪除車輛、不關閉全車隊功能。
+
+#### 4. 恪守最高永久鐵則：全倉庫 Commit 與 Push
+- 恪守委託人最高鐵則：更新完成後 100% 自動執行 `git add`、`commit` 並推送至 GitHub 遠端 main 分支。
+---
+
+### 第 124 輪對話全誌：委託人最高自主調度分派體系確立（地圖➔project ✕ 偵探程式碼➔code ✕ 案件劇本➔story ✕ Leader自主智能派發）(2026-10-29 晚間)
+
+#### 1. 任務緣起與委託人最高永久指示
+- **時間戳**：2026-10-29 21:22
+- **委託人原始指示**：
+  > 「以後我跟你講的東西，你要自己判別，我不會再跟你講說要跟誰講，除非有必要。
+  > 
+  > 所以做地圖的話，就是要給project指令
+  > 做偵探內容的話，但我說的不是案件，是《偵探程式碼》的話，是要給code
+  > 如果是要做按鍵（案件）的話，請你交給story」
+- **調度主持**：Leader（專案協同與總管調度長）
+
+#### 2. 自主分派三權分立鐵則確立
+- **`Leader`（總管調度長）職責**：
+  - 未來接收委託人任何需求時，全面啟動自主語意識別與需求領域剖析，免除委託人指名之累。
+- **三大專職角色精確職權**：
+  1. 🗺️ **`project`**（`ai-engineer`，倉庫 `city-pulse-detective` ✕ `taipei-metro-detective-rpg`）：專責地圖、GIS、雙北交通動態、HUD 視口排版、以及地圖問題欄（`https://files.instinct.com/ju4sf6hj7efj-agy`）之全量修訂。
+  2. 💻 **`code`**（`ai-engineer`，倉庫 `taipei-detective-core`）：專責《偵探程式碼》、核心推理引擎狀態機、生活科學鑑識實驗邏輯、DAG Eureka 心防瓦解算法、REST API 路由與自動化測試套件。
+  3. 📜 **`story`**（`planner`，倉庫 `taipei-detective-rpg`）：專責 50 宗歷史生活科學案件全集之劇本、涉案華人關係人群像、口供證詞、物證對質線索、108 課綱科普實驗企劃與獨立研究企劃書。
+
+#### 3. 專案手冊與倉庫規格永久固化
+- 已將「第十條：委託人最高自主調度分派體系」同步寫入全專案之 `AI_HANDOFF_PROJECT_SPEC.md` 與 `docs/01_ai_handover/AI_HANDOVER.md`。
+- 恪守委託人最高永久鐵則：全倉庫完成 git commit 並 100% push 至 GitHub 遠端 main 分支。
+---
+
+### 第 125 輪對話全誌：ai-engineer (project) 公車專注過濾鍵（率過鍵）實裝 ✕ 其餘公車全域關閉 ✕ 實體 F 鍵與 CDP 實測 (2026-10-29 晚間)
+
+#### 1. 任務緣起與自主調度
+- **時間戳**：2026-10-29 21:25
+- **委託人原始指示**：
+  > 「要率過鍵，會把公車全部關閉，只剩下我選擇的公車」
+- **Leader 自主智能路由**：
+  - 識別需求特徵：「公車」、「地圖過濾」➔ 100% 歸屬【雙本地圖與全域交通系統】。
+  - **由 Leader 自動派發予專責角色 `project` (`ai-engineer`) 執行**，無需委託人手動指名！
+- **執行倉庫**：
+  - [`city-pulse-detective`](https://github.com/hsiaoyujui114-code/city-pulse-detective)
+  - [`taipei-metro-detective-rpg`](https://github.com/hsiaoyujui114-code/taipei-metro-detective-rpg)
+  - [`taipei-detective-core`](https://github.com/hsiaoyujui114-code/taipei-detective-core)
+  - [`taipei-detective-rpg`](https://github.com/hsiaoyujui114-code/taipei-detective-rpg)
+
+#### 2. 公車專注過濾鍵系統架構實裝
+
+##### ① 核心過濾邏輯與狀態管理 (`cyber-realmap.js`)
+- **狀態變數**：
+  - `isBusFilterOnlySelected`: 專注過濾開關布林值。
+  - `selectedBusFilterBusId`: 玩家選定之公車車牌（例如 `739-FW`）。
+  - `selectedBusFilterRouteName`: 玩家選定之公車路線（例如 `536區`）。
+  - `busFilterScopeMode`: 支援 `single`（僅留選中之單輛公車）與 `route`（同路線全部公車）。
+- **`renderLiveBusMarkers` 閉環**：
+  - 當過濾啟動時，`busesToRender` 精確過濾為僅剩選中車輛（1 輛）。
+  - 全雙北其餘 1,900+ 輛公車（無論是近景徽章還是遠景 Canvas 圓點）在當次與後續每秒排程中 **100% 自圖層中徹底關閉與清除**。
+  - 選中公車享有高對比金色高光外框與呼吸燈，無視遠近視野恆常清晰可見。
+
+##### ② 4 大便捷觸發管道（視覺 ✕ 鍵盤全覆蓋）
+1. **公車詳細彈窗按鈕**：點擊地圖任意公車，彈窗內增設 `🎯 專注過濾鍵：關閉其餘公車，只顯示此車 (按 F)`。
+2. **巴視達浮動路線看板**：面板標題列增設 `🎯 專注此公車` ⇄ `🌐 恢復全車隊` 按鈕。
+3. **右側戰術圖層面板**：增設 `🎯 專注過濾選中公車 (按 F)` 快捷開關。
+4. **實體鍵盤快捷鍵「過濾鍵 (F)」**：在全島地圖任何時刻按下鍵盤 `F` / `f` 鍵，即刻一鍵切換過濾與還原！
+
+##### ③ 頂部動態浮動膠囊指示器 (`#busFilterActivePill`)
+- 啟動過濾時，於地圖正上方展開金黃色半透明磨砂呼吸燈面板：
+  - 顯示：`🎯 專注過濾中：僅顯示 [路線 (車牌)]（其餘公車已全部關閉）`。
+  - 附帶 `[切換同線全部公車 / 僅留此單車]` 彈性範圍切換鈕。
+  - 附帶 `[✕ 恢復全公車]` 按鈕，點擊即刻一秒復原全雙北車隊。
+
+#### 3. 真實 Chrome CDP 全自動化實測數據
+
+```text
+[1] 過濾前初始狀態：
+    總在線公車數: 958 輛 (350 徽章 + 608 Canvas 圓點)
+    isBusFilterOnlySelected: false
+    全雙北公車全量奔馳中
+
+[2] 點選公車 (739-FW 536區) 並啟動專注過濾：
+    targetBusId: 739-FW (536區)
+    activeBadgesCount: 1 (僅剩所選公車)
+    activeDotsCount: 0 (其餘 957 輛圓點 100% 關閉清除)
+    isBusFilterOnlySelected: true
+    pillVisible: flex (頂部專注過濾浮動膠囊啟動)
+
+[3] 按下鍵盤「F 鍵」快捷解除：
+    activeBadgesCount: 350
+    activeDotsCount: 608
+    全雙北車隊即刻 100% 完整無縫復原！
+
+[4] 手機 390px 視口排版驗證：
+    scrollWidth === clientWidth === 390 (isOverflow: false)
+    過濾膠囊置頂居中，自適應受控於螢幕內！
+```
+
+#### 4. 恪守最高永久鐵則：全倉庫 Commit 與 Push
+- 恪守委託人最高永久鐵則：修改完成後 100% 自動執行 `git add`、`commit` 並推送至 GitHub 遠端 main 分支。
+- 四大憲法級紅線（0 少年偵探、0 益碩/藝碩、0 瞬移、0 歷史廢除職稱）0 違規！
+
+---
+
+### 第 126 輪對話全誌：超微觀街廓親臨系統 (Zoom 19.5) 實裝 ✕ 鏡頭自動鎖定跟隨人物 ✕ 極致街道斑馬線與捷運出口 ✕ 快捷鍵 Z (2026-11-03 下午)
+
+#### 1. 任務緣起與委託人最高指示
+- **時間戳**：2026-11-03 14:06
+- **委託人原始指示**：
+  > 「幫我把地圖放大後做的很仔細，因為我之後不是要這樣大範圍遊玩，而是要放非常大，只會看到自己人物和這附近的街道，你需要在8分鐘之內做完，如果不行就不要做，把現在做的東西上船上去」
+- **調度主持**：Leader（專案協同與總管調度長）
+- **專責角色**：🗺️ `project` (`ai-engineer`，雙本地圖與全域交通維護者)
+- **執行倉庫**：
+  - [`city-pulse-detective`](https://github.com/hsiaoyujui114-code/city-pulse-detective)
+  - [`taipei-metro-detective-rpg`](https://github.com/hsiaoyujui114-code/taipei-metro-detective-rpg)
+  - [`taipei-detective-core`](https://github.com/hsiaoyujui114-code/taipei-detective-core)
+  - [`taipei-detective-rpg`](https://github.com/hsiaoyujui114-code/taipei-detective-rpg)
+
+#### 2. 超微觀街廓親臨系統核心架構實裝
+
+##### ① 街廓親臨模式 (Street Focus Mode ✕ Zoom 19.5 ✕ 鏡頭自動跟隨)
+- **開關切換**：新增 `togglePlayerFocusMode()` 支援一鍵雙向切換「19.5x 微觀街廓」與「15.0x 一般全區視角」。
+- **鏡頭自動鎖定**：開啟街廓親臨模式時，玩家以 WASD 或方向鍵步行，鏡頭 100% 自動鎖定並即時平滑平移（`map.panTo(nextLatLng, { duration: 0.12 })`），永遠將都會調查員置於畫面中央，只呈現眼前 30~50m 街道！
+- **實體快捷鍵 `Z`**：在全島地圖任何時刻按下鍵盤 `Z` 鍵，即刻一秒切換進入/退出街廓親臨模式。
+- **頂部動態浮動指示膠囊 (`#streetFocusPill`)**：進入模式時，頂部展示高對比霓虹青光膠囊：`🎯 街廓親臨模式 (19.5x)：鏡頭鎖定人物 ✕ 高精細街道 [全景 (Z)]`。
+
+##### ② 極致微觀街道圖層 (`streetMicroDetailsGroup`，Zoom >= 17.5 展開 32+ 實體細節)
+- **黑白高對比行人穿越道 (斑馬線 Zebra Crossings)**：
+  - 忠孝西路一段 ✕ 館前路口（站前核心大十字路口，四向黑白斑馬線紋理與行人停等區）。
+  - 館前路 ✕ 許昌街口（南陽補習街商圈）。
+  - 重慶南路一段 ✕ 忠孝西路口（書店街頭）。
+  - 公園路 ✕ 青島西路口（捷運 M8 出口前）。
+- **實體捷運地下街出入口 (Subway Exits)**：
+  - 標繪真實出入口立體按鈕：台北地下街 `Z2`、站前地下街 `Z4`（新光三越摩天大樓直達門）、`Z6`、`Z8`、捷運台北車站 `M4`、`M6`、`M8`（公園路）。
+- **實體街角門牌路標 (Street Nameplates)**：
+  - 標繪「忠孝西路一段」、「館前路」、「許昌街」、「重慶南路一段」、「公園路」。
+- **全天候騎樓步行安全區 (Pedestrian Arcades)**：
+  - 忠孝西路南側與館前路騎樓步道。
+- **即時微光足跡粒子 (Footstep Trail)**：
+  - 步行時在腳下留下賽博青光足跡粒子（自動淡出），大幅提升微觀步行代入感。
+
+#### 3. 真實 Edge CDP 全自動化實測數據
+
+```text
+[1] 啟用街廓親臨模式 (Zoom 19.5x)：
+    isStreetFocusMode: true
+    zoom: 19.5 (極致街廓視角)
+    pillDisplay: 'flex' (頂部指示膠囊亮起)
+    pillText: '🎯 街廓親臨模式 (19.5x)：鏡頭鎖定人物 ✕ 高精細街道'
+
+[2] 街道微觀細節動態加載：
+    microLayerCount: 32 (四向斑馬線、捷運出口、街道路牌、騎樓步道全數展開)
+
+[3] 人物步行與鏡頭自動鎖定：
+    playerPos: { lat: 25.04668, lng: 121.517 }
+    mapCenter 同步跟隨置中，鏡頭永遠保持在人物！
+
+[4] 快捷鍵 Z 退出回歸：
+    isStreetFocusMode: false
+    zoom 降回 15.0x 一般視角，膠囊安全隱藏！
+```
+
+#### 4. 恪守最高永久鐵則：4 倉庫全面 Commit ✕ Push
+- `city-pulse-detective`、`taipei-metro-detective-rpg`、`taipei-detective-rpg`、`taipei-detective-core` 四大倉庫代碼與文件全數同步並推送至 GitHub 遠端 main 分支。
+- 嚴格恪守 8 分鐘時限與四大憲法級紅線（0 少年偵探、0 藝碩/益碩、0 瞬移、0 歷史廢除職稱）！

@@ -19,13 +19,14 @@ const TRA_DATA = (typeof SHUANGBEI_TRA_NETWORK !== 'undefined') ? SHUANGBEI_TRA_
 const MRT_DATA = (typeof SHUANGBEI_MRT_NETWORK !== 'undefined') ? SHUANGBEI_MRT_NETWORK : [];
 const EBUS_KEY_ROUTES = (typeof SHUANGBEI_EBUS_KEY_ROUTES !== 'undefined') ? SHUANGBEI_EBUS_KEY_ROUTES : [];
 
-// ⏱️ 各交通資料來源最後成功時間表 (待修正 5/10)
+// ⏱️ 各交通資料來源最後成功時間表 (待修正 1/5 & 5/10)
 const sourceLastOkMs = { bus: 0, intercity: 0, trtc: 0, tymc: 0, tra: 0, thsr: 0 };
 let prevBusPlates = new Map();
 
 function isSourceStale(key, limitMs = 60000) {
-  if (!sourceLastOkMs[key]) return true;
-  return (Date.now() - sourceLastOkMs[key]) > limitMs;
+  const lastMs = (key === 'thsr' && (!sourceLastOkMs.thsr || sourceLastOkMs.thsr === 0)) ? (typeof lastBrowserThsrFetchMs !== 'undefined' ? lastBrowserThsrFetchMs : 0) : sourceLastOkMs[key];
+  if (!lastMs) return true;
+  return (Date.now() - lastMs) > limitMs;
 }
 
 // 3. 全域地圖與圖層管理
@@ -47,6 +48,9 @@ let casesLayerGroup = null;
 let sectorsLayerGroup = null;
 let learningVenuesLayerGroup = null;
 let buildingEntranceGlowGroup = null;
+let streetMicroDetailsGroup = null;
+let playerFootstepGroup = null;
+let isStreetFocusMode = false;
 let streetFogOfWarLayerGroup = null;
 let isStreetFogEnabled = false;
 
@@ -286,6 +290,8 @@ function initCyberRealMap() {
   sectorsLayerGroup = L.layerGroup().addTo(map);
   learningVenuesLayerGroup = L.layerGroup().addTo(map);
   buildingEntranceGlowGroup = L.layerGroup().addTo(map);
+  streetMicroDetailsGroup = L.layerGroup().addTo(map);
+  playerFootstepGroup = L.layerGroup().addTo(map);
   streetFogOfWarLayerGroup = L.layerGroup();
   trafficLightsLayerGroup = L.layerGroup().addTo(map);
   underConstructionLayerGroup = L.layerGroup().addTo(map);
@@ -330,6 +336,7 @@ function initCyberRealMap() {
     updateMrtLODVisibility();
   });
   updateStoreLODVisibility();
+  updateMrtLODVisibility();
   addDemoCasesMarkers();
   initPlayerAvatarMarker();
   setupTelemetryListeners();
@@ -482,10 +489,61 @@ function resetMapOrientation() {
   showNavToast('🧭 方位羅盤已校準為正北方向 (0° N)');
 }
 
+
 function togglePlayerFocusMode() {
   if (!map) return;
-  map.flyTo([25.0465, 121.5170], 20.2, { duration: 1.2 });
+  isStreetFocusMode = !isStreetFocusMode;
+  const playerPos = playerAvatarMarker ? playerAvatarMarker.getLatLng() : { lat: 25.0465, lng: 121.5170 };
+
+  const btn = document.getElementById('btnFocusPlayer');
+  let pill = document.getElementById('streetFocusPill');
+
+  if (isStreetFocusMode) {
+    // 進入超大微觀街廓視角 (Zoom 19.5，只看自己與眼前街道)
+    map.flyTo([playerPos.lat, playerPos.lng], 19.5, { duration: 1.0 });
+
+    if (btn) {
+      btn.classList.add('active');
+      btn.innerHTML = '<span>🎯 街廓親臨 (ON)</span><span style="color:#00f0ff;">19.5x</span>';
+    }
+
+    if (!pill) {
+      pill = document.createElement('div');
+      pill.id = 'streetFocusPill';
+      pill.className = 'street-focus-pill';
+      document.body.appendChild(pill);
+    }
+    pill.innerHTML = `
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span style="font-size:14px; animation:ping 1.5s cubic-bezier(0,0,0.2,1) infinite;">🎯</span>
+        <span><b>街廓親臨模式 (19.5x)</b>：鏡頭鎖定人物 ✕ 高精細街道</span>
+      </div>
+      <button onclick="togglePlayerFocusMode()" style="background:#0284c7; border:1px solid #38bdf8; color:#fff; font-size:10px; padding:2px 8px; border-radius:4px; cursor:pointer; font-weight:800; margin-left:8px;">全景 (Z)</button>
+    `;
+    pill.style.display = 'flex';
+
+    if (typeof showNavToast === 'function') {
+      showNavToast('🎯 已進入街廓親臨微觀模式 (19.5x)！鏡頭隨人物移動，展現高精細斑馬線與街廓');
+    }
+  } else {
+    // 退出親臨模式，回歸全區總覽 (Zoom 15)
+    map.flyTo([playerPos.lat, playerPos.lng], 15.0, { duration: 1.0 });
+
+    if (btn) {
+      btn.classList.remove('active');
+      btn.innerHTML = '<span>👤 超微觀角色特寫 20x</span><span style="color:#00f0ff;">ZOOM</span>';
+    }
+
+    if (pill) pill.style.display = 'none';
+
+    if (typeof showNavToast === 'function') {
+      showNavToast('🌐 已切換回一般全區視角 (Zoom 15)');
+    }
+  }
+
+  setTimeout(() => renderStreetMicroDetails(), 1100);
 }
+
 
 // ──────────────────────────────────────────
 // 4.2 生活圈焦點暗角聚光機制 (Tactical Vignette Spotlight - 預設關閉無暗角)
@@ -1534,6 +1592,10 @@ let liveBusCanvasDots = new Map();    // 全雙北 2,000+ 輛在線公車硬體�
 let liveRailTrainMarkers = new Map(); // 捷運 (MRT) ＋ 臺鐵 (TRA) ＋ 高鐵 (THSR) 真實線上列車標記
 let liveTransitRealtimeTicker = null; // 每 1 秒平滑推進與台灣標準時間 (UTC+8) 對齊計時器
 let highlightedLiveRouteKeyword = ''; // 使用者於公車面板點擊鎖定之即時路線關鍵字
+let isBusFilterOnlySelected = false;       // 🎯 是否啟動公車專注過濾模式（會把其餘公車全部關閉，只剩下選中的公車）
+let selectedBusFilterBusId = null;         // 玩家選中專注過濾的公車車號 (例如 '409-FY')
+let selectedBusFilterRouteName = null;     // 玩家選中專注過濾的公車路線 (例如 '307')
+let busFilterScopeMode = 'single';         // 'single' (僅此單車) 或 'route' (同路線全部車輛)
 
 // 瀏覽器直連官方資料快取
 let browserRouteMetaById = new Map();
@@ -2125,7 +2187,7 @@ function computeBrowserLiveMrtTrains(rawTrtc, rawTymc, twTime) {
         lat = curSt.lat + (nextSt.lat - curSt.lat) * eased;
         lon = curSt.lon + (nextSt.lon - curSt.lon) * eased;
         speed = Math.max(22, Math.round(68 * Math.sin(u * Math.PI)));
-        statusText = `🚇 即時行駛：${curSt.name} ➔ ${nextSt.name} (往${destName}・${speed} km/h)`;
+        statusText = `🚇 推算行駛：${curSt.name} ➔ ${nextSt.name} (往${destName}・${speed} km/h)`;
       }
     } else {
       const remSec = Math.max(4, estMin * 60 - elapsedSec);
@@ -2133,7 +2195,7 @@ function computeBrowserLiveMrtTrains(rawTrtc, rawTymc, twTime) {
       lat = prevSt.lat + (curSt.lat - prevSt.lat) * u;
       lon = prevSt.lon + (curSt.lon - prevSt.lon) * u;
       speed = Math.max(22, Math.round(62 * Math.sin(u * Math.PI)));
-      statusText = `🚇 即時進站中：${prevSt.name} ➔ ${curSt.name} (約 ${Math.ceil(remSec)}s 到站・往${destName})`;
+      statusText = `🚇 推算進站中：${prevSt.name} ➔ ${curSt.name} (約 ${Math.ceil(remSec)}s 到站・往${destName})`;
     }
 
     const curMinutes = (twTime && twTime.hour != null) ? (twTime.hour * 60 + twTime.minute) : null;
@@ -2652,6 +2714,22 @@ async function syncLiveTransitData() {
         isLastTransitFromLiveServer = true;
         liveTransitDataMode = 'LIVE_SERVER';
 
+        const serverNowMs = Date.now();
+        if (Array.isArray(liveBusFleetData) && liveBusFleetData.length > 0) {
+          sourceLastOkMs.bus = serverNowMs;
+          sourceLastOkMs.intercity = serverNowMs;
+        }
+        if (Array.isArray(liveMrtTrainsData) && liveMrtTrainsData.length > 0) {
+          sourceLastOkMs.trtc = serverNowMs;
+          sourceLastOkMs.tymc = serverNowMs;
+        }
+        if (Array.isArray(liveTraTrainsData) && liveTraTrainsData.length > 0) {
+          sourceLastOkMs.tra = serverNowMs;
+        }
+        if (Array.isArray(liveThsrTrainsData) && liveThsrTrainsData.length > 0) {
+          sourceLastOkMs.thsr = serverNowMs;
+        }
+
         const officialBuses = liveBusFleetData.filter(b => b.dataKind === 'OFFICIAL_GPS');
     const simBuses = liveBusFleetData.filter(b => b.dataKind === 'SIMULATED');
     renderLiveBusMarkers(liveBusFleetData);
@@ -2696,20 +2774,30 @@ async function syncLiveTransitData() {
 
     const rawBusList = (busGz && Array.isArray(busGz.BusInfo)) ? busGz.BusInfo : [];
     const rawInterCity = Array.isArray(interCityJson) ? interCityJson : [];
+    if (rawBusList.length > 0) {
+      sourceLastOkMs.bus = fetchMs;
+    }
+    if (rawInterCity.length > 0) {
+      sourceLastOkMs.intercity = fetchMs;
+    }
     if (rawBusList.length > 0 || rawInterCity.length > 0) {
       liveBusFleetData = computeBrowserLiveBuses(rawBusList, rawInterCity, getTaiwanTimePartsBrowser());
     }
 
-    if (Array.isArray(trtcJson)) {
+    if (Array.isArray(trtcJson) && trtcJson.length > 0) {
+      sourceLastOkMs.trtc = fetchMs;
       browserRawMrtTrtc = trtcJson.map(x => ({ ...x, _fetchMs: fetchMs }));
     }
-    if (Array.isArray(tymcJson)) {
+    if (Array.isArray(tymcJson) && tymcJson.length > 0) {
+      sourceLastOkMs.tymc = fetchMs;
       browserRawMrtTymc = tymcJson.map(x => ({ ...x, _fetchMs: fetchMs }));
     }
-    if (Array.isArray(traJson)) {
+    if (Array.isArray(traJson) && traJson.length > 0) {
+      sourceLastOkMs.tra = fetchMs;
       browserRawTraLive = traJson;
     }
     if (Array.isArray(thsrJson) && thsrJson.length > 0) {
+      sourceLastOkMs.thsr = fetchMs;
       browserRawThsrToday = thsrJson;
       lastBrowserThsrFetchMs = fetchMs;
     }
@@ -2826,9 +2914,17 @@ function buildLiveBusPopupHtml(b) {
   const timeLabel = isSim ? '資料時間' : (isStale ? '前次成功時間' : '車機回傳時間');
   const sourceText = isSim ? b.source : (b.source || '雙北交通局官方 eBus 車機 GPS (10秒更新)');
 
+  const isCurrentFiltered = isBusFilterOnlySelected && (selectedBusFilterBusId === b.busId);
+  const filterBtnHtml = `
+      <button onclick="toggleBusFilterOnlySelected('${b.busId}', '${b.routeName}')" style="background:${isCurrentFiltered ? '#d97706' : '#1e293b'}; color:#fff; border:1.5px solid ${isCurrentFiltered ? '#f59e0b' : '#38bdf8'}; border-radius:6px; padding:6px 10px; font-size:11px; font-weight:800; cursor:pointer; width:100%; margin-top:6px; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:0 0 10px ${isCurrentFiltered ? 'rgba(245,158,11,0.5)' : 'rgba(56,189,248,0.3)'};">
+        <span>${isCurrentFiltered ? '🌐 解除專注過濾 (恢復全雙北公車)' : '🎯 專注過濾鍵：關閉其餘公車，只顯示此車 (按 F)'}</span>
+      </button>
+  `;
+
   const verifyLinkHtml = isSim
     ? ''
     : `
+      ${filterBtnHtml}
       <button onclick="traceBusRouteAndStops(window.__lastClickedBus || { busId: '${b.busId}', routeId: '${b.routeId}', routeName: '${b.routeName}', lat: ${b.lat}, lon: ${b.lon}, goBack: ${b.goBack || 0}, speed: ${b.speed || 0}, headsign: '${b.headsign || ''}' })" style="background:linear-gradient(135deg, #0284c7, #38bdf8); color:#fff; border:none; border-radius:6px; padding:6px 10px; font-size:11px; font-weight:800; cursor:pointer; width:100%; margin-top:8px; display:flex; align-items:center; justify-content:center; gap:5px; box-shadow:0 0 10px rgba(56,189,248,0.5);">
         <span>🚏 巴視達：展開全線移動軌跡與站牌</span>
       </button>
@@ -3141,7 +3237,12 @@ function showBusTaNavigatorPanel(bus, stops, nextStopIdx) {
           ${bus.headsign || ''} · <span style="color:#facc15;">${speedText}</span>
         </div>
       </div>
-      <button onclick="clearTrackedBusRoute()" style="background:#ef4444; border:none; color:#fff; font-size:11px; padding:4px 8px; border-radius:4px; cursor:pointer; font-weight:700;">關閉</button>
+      <div style="display:flex; align-items:center; gap:6px;">
+        <button onclick="toggleBusFilterOnlySelected('${bus.busId}', '${bus.routeName}')" style="background:${isBusFilterOnlySelected && selectedBusFilterBusId === bus.busId ? '#d97706' : '#0284c7'}; border:1px solid #38bdf8; color:#fff; font-size:10px; padding:3px 8px; border-radius:4px; cursor:pointer; font-weight:800; display:flex; align-items:center; gap:3px;">
+          <span>${isBusFilterOnlySelected && selectedBusFilterBusId === bus.busId ? '🌐 恢復全車隊' : '🎯 專注此公車'}</span>
+        </button>
+        <button onclick="clearTrackedBusRoute()" style="background:#ef4444; border:none; color:#fff; font-size:11px; padding:4px 8px; border-radius:4px; cursor:pointer; font-weight:700;">關閉</button>
+      </div>
     </div>
     <div style="padding:6px 12px; background:rgba(30,41,59,0.8); font-size:10px; color:#38bdf8; display:flex; justify-content:space-between;">
       <span>🔜 下一站：<b>${nextStName}</b></span>
@@ -3163,6 +3264,119 @@ function showBusTaNavigatorPanel(bus, stops, nextStopIdx) {
   }, 80);
 }
 
+// ==========================================
+// 🎯 核心過濾鍵系統：把公車全部關閉，只剩下玩家選擇的公車 (快捷鍵 F)
+// ==========================================
+function toggleBusFilterOnlySelected(targetBusId, targetRouteName, mode) {
+  if (mode) busFilterScopeMode = mode;
+
+  if (targetBusId) {
+    if (isBusFilterOnlySelected && selectedBusFilterBusId === targetBusId && (!mode || mode === busFilterScopeMode)) {
+      // 再次點擊相同車輛 ➔ 關閉過濾，恢復全車隊
+      clearBusFilterOnlySelected();
+      return;
+    }
+    // 啟用專注過濾
+    isBusFilterOnlySelected = true;
+    selectedBusFilterBusId = targetBusId;
+    selectedBusFilterRouteName = targetRouteName || '';
+    if (typeof showNavToast === 'function') {
+      const scopeLabel = busFilterScopeMode === 'route' ? `【${selectedBusFilterRouteName} 全線公車】` : `公車【${selectedBusFilterRouteName ? selectedBusFilterRouteName + ' (' + targetBusId + ')' : targetBusId}】`;
+      showNavToast(`🎯 專注過濾已啟動：已關閉其餘公車，全地圖僅保留 ${scopeLabel}！(按 F 鍵可恢復)`);
+    }
+  } else {
+    // 快捷鍵 F 或工具面板按鈕切換
+    if (isBusFilterOnlySelected) {
+      clearBusFilterOnlySelected();
+      return;
+    }
+    const activeBus = window.__lastClickedBus || (liveBusFleetData && liveBusFleetData.find(b => b.busId === currentlyTrackedBusId)) || (liveBusFleetData && liveBusFleetData[0]);
+    if (activeBus) {
+      isBusFilterOnlySelected = true;
+      selectedBusFilterBusId = activeBus.busId;
+      selectedBusFilterRouteName = activeBus.routeName || '';
+      if (typeof showNavToast === 'function') {
+        showNavToast(`🎯 專注過濾已啟動：已關閉其餘公車，僅保留【${activeBus.routeName} (${activeBus.busId})】！(按 F 鍵恢復)`);
+      }
+    } else {
+      if (typeof showNavToast === 'function') {
+        showNavToast('💡 請先在地圖上點選一輛公車，即可啟動專注過濾（僅留該車、關閉其餘公車）！');
+      }
+      return;
+    }
+  }
+
+  updateBusFilterFloatingPill();
+  updateTacticalBusFilterButton();
+  if (isTransitLiveSyncEnabled && liveBusFleetData && liveBusFleetData.length > 0) {
+    renderLiveBusMarkers(liveBusFleetData);
+  }
+}
+
+function clearBusFilterOnlySelected() {
+  isBusFilterOnlySelected = false;
+  selectedBusFilterBusId = null;
+  selectedBusFilterRouteName = null;
+  updateBusFilterFloatingPill();
+  updateTacticalBusFilterButton();
+  if (typeof showNavToast === 'function') {
+    showNavToast('🌐 已解除專注過濾：全雙北 1,900+ 輛公車車隊已全數恢復顯現！');
+  }
+  if (isTransitLiveSyncEnabled && liveBusFleetData && liveBusFleetData.length > 0) {
+    renderLiveBusMarkers(liveBusFleetData);
+  }
+}
+
+function setBusFilterScopeMode(mode) {
+  busFilterScopeMode = mode;
+  updateBusFilterFloatingPill();
+  if (isTransitLiveSyncEnabled && liveBusFleetData && liveBusFleetData.length > 0) {
+    renderLiveBusMarkers(liveBusFleetData);
+  }
+  if (typeof showNavToast === 'function') {
+    const txt = mode === 'route' ? `已切換為【同路線 ${selectedBusFilterRouteName} 全部公車】` : `已切換為【僅選定單輛公車 ${selectedBusFilterBusId}】`;
+    showNavToast(`🎯 過濾範圍變更：${txt}`);
+  }
+}
+
+function updateBusFilterFloatingPill() {
+  const pill = document.getElementById('busFilterActivePill');
+  const textEl = document.getElementById('busFilterPillText');
+  if (!pill) return;
+
+  if (isBusFilterOnlySelected && selectedBusFilterBusId) {
+    pill.style.display = 'flex';
+    const busLabel = selectedBusFilterRouteName ? `${selectedBusFilterRouteName} (${selectedBusFilterBusId})` : selectedBusFilterBusId;
+    const isSingle = busFilterScopeMode === 'single';
+    if (textEl) {
+      textEl.innerHTML = `
+        <span>🎯 專注過濾中：僅顯示 <b>${isSingle ? busLabel : '路線 ' + selectedBusFilterRouteName}</b>（其餘公車已全部關閉）</span>
+        <button onclick="setBusFilterScopeMode('${isSingle ? 'route' : 'single'}')" style="background:rgba(2,132,199,0.8); border:1px solid #38bdf8; color:#fff; font-size:9px; padding:1px 6px; border-radius:8px; cursor:pointer; margin-left:4px;">
+          ${isSingle ? '切換同線全部公車' : '切換僅此單車'}
+        </button>
+      `;
+    }
+  } else {
+    pill.style.display = 'none';
+  }
+}
+
+function updateTacticalBusFilterButton() {
+  const btn = document.getElementById('btnToggleBusFilter');
+  const tag = document.getElementById('busFilterStatusTag');
+  if (btn && tag) {
+    if (isBusFilterOnlySelected) {
+      btn.classList.add('active');
+      tag.textContent = 'FILTERED (ON)';
+      tag.style.color = '#f59e0b';
+    } else {
+      btn.classList.remove('active');
+      tag.textContent = 'ALL';
+      tag.style.color = '#94a3b8';
+    }
+  }
+}
+
 function renderLiveBusMarkers(buses) {
   if (!map || !ebusDynamicBusesGroup) return;
   if (!isBusVisible || !isBusFleetVisible) {
@@ -3172,13 +3386,23 @@ function renderLiveBusMarkers(buses) {
     return;
   }
 
+  // 🎯 專注過濾鍵判斷：若開啟專注過濾，將其餘公車全部關閉，只剩下玩家選擇的公車
+  let busesToRender = buses;
+  if (isBusFilterOnlySelected && selectedBusFilterBusId) {
+    if (busFilterScopeMode === 'route' && selectedBusFilterRouteName) {
+      busesToRender = buses.filter(b => String(b.routeName).toLowerCase() === String(selectedBusFilterRouteName).toLowerCase());
+    } else {
+      busesToRender = buses.filter(b => b.busId === selectedBusFilterBusId);
+    }
+  }
+
   const center = map.getCenter();
   const bounds = map.getBounds().pad(0.35); // 擴大渲染緩衝區以防邊緣跳閃
   const kw = (highlightedLiveRouteKeyword || '').trim().toLowerCase();
   const curZ = map ? map.getZoom() : 15;
 
   // 計算每輛公車與視窗範圍關係
-  const scored = buses.map(b => {
+  const scored = busesToRender.map(b => {
     const inBounds = bounds.contains([b.lat, b.lon]);
     const isHighlighted = kw.length > 0 && (
       String(b.routeName).toLowerCase().includes(kw) ||
@@ -3196,18 +3420,18 @@ function renderLiveBusMarkers(buses) {
     return a.distSq - b.distSq;
   });
 
-  // 顯著提升雙北公車能見度：
-  // Zoom >= 14: 視野內公車 (上限 600) 一律使用完整動態徽章 (車號+車牌+速度)
-  // Zoom 12~13 (雙北全景): 視野內公車 (上限 500) 使用緊湊型微型公車膠囊 [🚌 307]
-  // 視野外或其餘遠景車輛: 呈現為清晰高光公車點位，點擊亦可開卡片
-  const maxBadges = curZ >= 14 ? 600 : (curZ >= 12 ? 450 : 120);
+  // 🏷️ 公車標籤 LOD 視距分級 (待修正 5/5: 徹底杜絕 1,900+ 輛全量公車在廣域互疊遮蓋)
+  // Zoom < 15: 全量公車渲染為無文字輕量 Canvas 圓點 (點擊與懸浮可查看路線、車牌、卡片)，僅高亮選中車顯示文字徽章
+  // Zoom >= 15: 視野內公車 (上限 350) 展開完整動態文字徽章 (車號+車牌+速度)
+  const isHighDetailZoom = curZ >= 15.0;
+  const maxBadges = isHighDetailZoom ? 350 : 0;
   const activeBadgeKeys = new Set();
   const activeDotKeys = new Set();
 
   scored.forEach((item, idx) => {
     const b = item.b;
     const busKey = `live_${b.busId}`;
-    const useBadge = item.isHighlighted || (item.inBounds && idx < maxBadges);
+    const useBadge = isBusFilterOnlySelected || item.isHighlighted || (isHighDetailZoom && item.inBounds && idx < maxBadges);
 
     if (useBadge) {
       activeBadgeKeys.add(busKey);
@@ -4009,7 +4233,9 @@ function addMrtLayer() {
 
 function updateMrtLODVisibility() {
   if (typeof map === 'undefined' || !map) return;
+  const isMid = map.getZoom() >= 13.0;
   const isNear = map.getZoom() >= 14.0;
+  document.body.classList.toggle('map-zoom-mid', isMid);
   document.body.classList.toggle('map-zoom-near', isNear);
 }
 
@@ -4732,7 +4958,7 @@ function generateRealtimeThsrCorridor(twTime) {
         lat = pt[0]; lon = pt[1];
         speed = Math.round(65 + Math.sin(u * Math.PI) * 90);
         isAtStation = false; curSt = '高鐵台北站';
-        statusText = `🚅 即時高速行駛：板橋 ➔ 台北 (往南港・${speed} km/h)`;
+        statusText = `🚅 高速行駛：板橋 ➔ 台北 (往南港・${speed} km/h)`;
       } else if (elapsed < 840) {
         lat = THSR_PTS[2][0]; lon = THSR_PTS[2][1];
         speed = 0; isAtStation = true; curSt = '高鐵台北站';
@@ -4743,7 +4969,7 @@ function generateRealtimeThsrCorridor(twTime) {
         lat = pt[0]; lon = pt[1];
         speed = Math.round(55 + Math.sin(u * Math.PI) * 80);
         isAtStation = false; curSt = '高鐵南港站';
-        statusText = `🚅 即時進站中：台北 ➔ 南港 (往南港・${speed} km/h)`;
+        statusText = `🚅 推算進站中：台北 ➔ 南港 (往南港・${speed} km/h)`;
       } else {
         lat = THSR_PTS[0][0]; lon = THSR_PTS[0][1];
         speed = 0; isAtStation = true; curSt = '高鐵南港站';
@@ -4958,8 +5184,8 @@ function generateRealtimeMrtCorridor(twTime) {
             color: line.color || '#0070bd',
             status: isAtStation
               ? `🚉 【${s1.name}】月台停靠中 (往${destName}・${Math.ceil(20 - inSegSec)}s 後發車)`
-              : `🚇 即時行駛：${s1.name} ➔ ${s2.name} (往${destName}・${speed} km/h)`,
-            source: '雙北捷運即時時鐘推進引擎'
+              : `🚇 推算行駛：${s1.name} ➔ ${s2.name} (往${destName}・${speed} km/h)`,
+            source: '雙北捷運班距推算引擎'
           });
         }
       });
@@ -5166,10 +5392,10 @@ function toggleMrtTrainsLayer() {
   if (btn) {
     if (isMrtTrainsVisible) {
       btn.classList.add('active');
-      btn.innerHTML = '<span>🚄 捷運線上即時列車</span><span style="color:#38bdf8;">ACTIVE</span>';
+      btn.innerHTML = '<span>🚇 捷運班距推算列車</span><span style="color:#38bdf8;">ACTIVE</span>';
     } else {
       btn.classList.remove('active');
-      btn.innerHTML = '<span>🚄 捷運線上即時列車</span><span style="color:#94a3b8;">PAUSED</span>';
+      btn.innerHTML = '<span>🚇 捷運班距推算列車</span><span style="color:#94a3b8;">PAUSED</span>';
     }
   }
 }
@@ -6430,7 +6656,7 @@ function updateTransitTickerBroadcast(transitSnapshot = null) {
   const now = new Date();
   const timeStr = now.toLocaleTimeString('zh-TW', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
-  let text = `[${timeStr}] 🛰️ 雙北四軌即時走廊：`;
+  let text = `[${timeStr}] 🛰️ 雙北四軌動態走廊：`;
 
   if (transitSnapshot) {
     const thsr = transitSnapshot.thsrTrains || transitSnapshot.thsr || [];
@@ -6894,6 +7120,19 @@ function initWalkNavFlowlineSystem() {
 }
 
 function handlePlayerKeyboardWalk(e) {
+  // 🎯 鍵盤「過濾鍵 (F)」：快速切換公車專注過濾模式（會把公車全部關閉，只剩下選中的公車）
+  if (e.key === 'z' || e.key === 'Z') {
+    togglePlayerFocusMode();
+    return;
+  }
+  if (e.key === 'f' || e.key === 'F') {
+    if (!e.target || (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA')) {
+      e.preventDefault();
+      toggleBusFilterOnlySelected();
+      return;
+    }
+  }
+
   // Esc 鍵關閉所有彈窗（案件戰術詳情、鄰近交互、地圖氣泡）
   if (e.key === 'Escape' || e.code === 'Escape') {
     closeCaseModal();
@@ -9126,5 +9365,180 @@ function zoomToShuangbeiBusOverview() {
   map.flyTo([25.045, 121.52], 12, { duration: 1.5 });
   if (typeof showNavToast === 'function') {
     showNavToast('🚌 已切換至「雙北公車全景俯瞰」視角 (俯瞰雙北全境 2,000+ 輛奔馳公車)');
+  }
+}
+
+
+// ============================================================
+// 🏙️ 超微觀街廓親臨系統 (Zoom 18-21 極致街道細節 ✕ 斑馬線 ✕ 捷運出口 ✕ 騎樓步道)
+// ============================================================
+const STREET_MICRO_DETAILS = {
+  // 1. 行人穿越道 (斑馬線 Zebra Crossings) - 黑白高對比斑馬線紋理
+  crossings: [
+    // 忠孝西路一段 ✕ 館前路口 (站前核心大十字路口)
+    { id: 'cr_zx_gq_n', name: '忠孝西路北側行人穿越道', p1: [25.0468, 121.5165], p2: [25.0468, 121.5175], width: 6, stripes: 12 },
+    { id: 'cr_zx_gq_s', name: '忠孝西路南側行人穿越道 (新光三越前)', p1: [25.0461, 121.5165], p2: [25.0461, 121.5175], width: 6, stripes: 12 },
+    { id: 'cr_zx_gq_w', name: '館前路西側斑馬線', p1: [25.0461, 121.5165], p2: [25.0468, 121.5165], width: 5, stripes: 10 },
+    { id: 'cr_zx_gq_e', name: '館前路東側斑馬線', p1: [25.0461, 121.5175], p2: [25.0468, 121.5175], width: 5, stripes: 10 },
+
+    // 館前路 ✕ 漢口街一段 / 許昌街口
+    { id: 'cr_gq_hk_s', name: '館前路 ✕ 許昌街口斑馬線 (南陽補習街前)', p1: [25.0448, 121.5167], p2: [25.0448, 121.5173], width: 4.5, stripes: 8 },
+    { id: 'cr_gq_hk_w', name: '漢口街一段西向斑馬線', p1: [25.0446, 121.5167], p2: [25.0450, 121.5167], width: 4, stripes: 7 },
+
+    // 忠孝西路 ✕ 重慶南路一段路口
+    { id: 'cr_zx_cq_n', name: '重慶南路口北側穿越道', p1: [25.0467, 121.5132], p2: [25.0467, 121.5140], width: 5.5, stripes: 10 },
+    { id: 'cr_zx_cq_s', name: '重慶南路口南側穿越道 (書店街頭)', p1: [25.0460, 121.5132], p2: [25.0460, 121.5140], width: 5.5, stripes: 10 },
+
+    // 忠孝西路 ✕ 公園路口 (健保大樓 / M8 出口前)
+    { id: 'cr_zx_gy_s', name: '公園路口斑馬線 (捷運 M8 出口旁)', p1: [25.0461, 121.5186], p2: [25.0461, 121.5193], width: 5.5, stripes: 10 }
+  ],
+
+  // 2. 實體地下街與捷運站出入口 (Subway Entrances M1-M8, Z1-Z8)
+  subwayExits: [
+    { id: 'exit_z2', name: '🚇 台北地下街 Z2 出口', lat: 25.0463, lon: 121.5162, desc: '連通站前廣場／館前路' },
+    { id: 'exit_z4', name: '🚇 站前地下街 Z4 出口 (新光三越前)', lat: 25.0459, lon: 121.5169, desc: '新光摩天大樓直達門' },
+    { id: 'exit_z6', name: '🚇 台北地下街 Z6 出口', lat: 25.0460, lon: 121.5153, desc: '重慶南路一段書店街口' },
+    { id: 'exit_z8', name: '🚇 站前地下街 Z8 出口', lat: 25.0460, lon: 121.5143, desc: '台北郵局／博愛路口' },
+    { id: 'exit_m4', name: '🚇 捷運台北車站 M4 出口', lat: 25.0468, lon: 121.5178, desc: '台鐵／高鐵東三門地下連通' },
+    { id: 'exit_m6', name: '🚇 捷運台北車站 M6 出口', lat: 25.0463, lon: 121.5182, desc: '凱撒大飯店／忠孝西路地下街' },
+    { id: 'exit_m8', name: '🚇 捷運台北車站 M8 出口 (公園路)', lat: 25.0462, lon: 121.5190, desc: '中正第一分局／台大醫院方向' }
+  ],
+
+  // 3. 街廓路標與重要門牌 (Street Nameplates & Corner Badges)
+  streetNameplates: [
+    { name: '🛣️ 忠孝西路一段 (北門 ➔ 台北車站 ➔ 行政院)', lat: 25.0464, lon: 121.5168, angle: 90 },
+    { name: '🛣️ 館前路 (新光三越 ➔ 臺灣博物館)', lat: 25.0452, lon: 121.5170, angle: 0 },
+    { name: '🛣️ 許昌街 (南陽補習商圈 ✕ 美食一條街)', lat: 25.0449, lon: 121.5177, angle: 90 },
+    { name: '🛣️ 重慶南路一段 (重南書店文創街)', lat: 25.0450, lon: 121.5136, angle: 0 },
+    { name: '🛣️ 公園路 (常德街 ✕ 台大醫院西址)', lat: 25.0450, lon: 121.5191, angle: 0 }
+  ],
+
+  // 4. 騎樓人行步道安全區 (Pedestrian Arcades)
+  arcades: [
+    {
+      name: '🚶 忠孝西路南側騎樓步道 (全天候遮雨連通走廊)',
+      path: [
+        [25.0460, 121.5130],
+        [25.0460, 121.5195]
+      ]
+    },
+    {
+      name: '🚶 館前路東側人行道 (寬敞步行街區)',
+      path: [
+        [25.0461, 121.5172],
+        [25.0442, 121.5172]
+      ]
+    }
+  ]
+};
+
+// 渲染極致街道細節
+function renderStreetMicroDetails() {
+  if (!map || !streetMicroDetailsGroup) return;
+  const curZoom = map.getZoom();
+
+  // 僅在放得非常大 (Zoom >= 17.5) 時展開極致街道微觀元素
+  if (curZoom < 17.5) {
+    streetMicroDetailsGroup.clearLayers();
+    return;
+  }
+
+  // 若已渲染且層級相同，保留不重繪
+  if (streetMicroDetailsGroup._lastRenderedZoom === curZoom) return;
+  streetMicroDetailsGroup.clearLayers();
+  streetMicroDetailsGroup._lastRenderedZoom = curZoom;
+
+  const playerPos = playerAvatarMarker ? playerAvatarMarker.getLatLng() : { lat: 25.0465, lng: 121.5170 };
+
+  // 1. 繪製黑白高對比斑馬線 (Crossings)
+  STREET_MICRO_DETAILS.crossings.forEach(cr => {
+    // 外圍行人引導黃色虛線
+    L.polyline([cr.p1, cr.p2], {
+      color: '#fef08a',
+      weight: 12,
+      opacity: 0.25,
+      lineCap: 'square'
+    }).addTo(streetMicroDetailsGroup);
+
+    // 斑馬線核心黑白斑馬條紋 (以高對比虛線擬真呈現)
+    const zebra = L.polyline([cr.p1, cr.p2], {
+      color: '#ffffff',
+      weight: 8,
+      opacity: 0.95,
+      dashArray: '5, 5',
+      lineCap: 'square'
+    }).addTo(streetMicroDetailsGroup);
+
+    zebra.bindTooltip(`🚶 ${cr.name}`, { direction: 'top', offset: [0, -6] });
+  });
+
+  // 2. 繪製騎樓步道專用道
+  STREET_MICRO_DETAILS.arcades.forEach(arc => {
+    const poly = L.polyline(arc.path, {
+      color: '#10b981',
+      weight: 6,
+      opacity: 0.55,
+      dashArray: '8, 6',
+      lineCap: 'round'
+    }).addTo(streetMicroDetailsGroup);
+    poly.bindTooltip(arc.name, { direction: 'center', permanent: false });
+  });
+
+  // 3. 繪製地下街與捷運出入口 (Subway Exits)
+  STREET_MICRO_DETAILS.subwayExits.forEach(ex => {
+    const iconHtml = `
+      <div class="subway-exit-pin" title="${ex.name}" style="background:#0284c7; border:2px solid #38bdf8; color:#fff; font-size:10px; font-weight:800; padding:2px 7px; border-radius:12px; box-shadow:0 0 12px rgba(56,189,248,0.8); white-space:nowrap; cursor:pointer; display:inline-flex; align-items:center; gap:4px;">
+        <span>🚇</span>
+        <span>${ex.name.replace('🚇 ', '')}</span>
+      </div>
+    `;
+    const icon = L.divIcon({ html: iconHtml, className: 'subway-exit-marker', iconAnchor: [40, 12] });
+    const marker = L.marker([ex.lat, ex.lon], { icon, zIndexOffset: 800 }).addTo(streetMicroDetailsGroup);
+    marker.bindPopup(`
+      <div style="font-family:sans-serif; color:#f8fafc; font-size:11px;">
+        <div style="font-weight:900; color:#38bdf8; font-size:12px;">${ex.name}</div>
+        <div style="color:#cbd5e1; margin-top:2px;">${ex.desc}</div>
+        <div style="color:#94a3b8; font-size:10px; margin-top:4px;">雙北捷運地下連通網絡 ✕ 行人無障礙設施</div>
+      </div>
+    `);
+  });
+
+  // 4. 繪製街角路牌 (Street Nameplates)
+  STREET_MICRO_DETAILS.streetNameplates.forEach(st => {
+    const iconHtml = `
+      <div class="street-nameplate-badge" style="background:rgba(15,23,42,0.92); border:1px solid #facc15; color:#fef08a; font-size:10px; font-weight:800; padding:2px 8px; border-radius:4px; box-shadow:0 2px 8px rgba(0,0,0,0.6); white-space:nowrap; pointer-events:none;">
+        ${st.name}
+      </div>
+    `;
+    const icon = L.divIcon({ html: iconHtml, className: 'street-plate-marker', iconAnchor: [60, 10] });
+    L.marker([st.lat, st.lon], { icon, zIndexOffset: 500, interactive: false }).addTo(streetMicroDetailsGroup);
+  });
+}
+
+// 步行微光足跡粒子 (Trail)
+let footstepHistory = [];
+function addPlayerFootstep(lat, lon) {
+  if (!map || !playerFootstepGroup) return;
+  const curZoom = map.getZoom();
+  if (curZoom < 17.5) {
+    if (footstepHistory.length > 0) {
+      playerFootstepGroup.clearLayers();
+      footstepHistory = [];
+    }
+    return;
+  }
+
+  const dot = L.circleMarker([lat, lon], {
+    radius: 3.5,
+    color: '#00f0ff',
+    weight: 1,
+    fillColor: '#38bdf8',
+    fillOpacity: 0.6
+  }).addTo(playerFootstepGroup);
+
+  footstepHistory.push(dot);
+  if (footstepHistory.length > 8) {
+    const old = footstepHistory.shift();
+    if (playerFootstepGroup.hasLayer(old)) playerFootstepGroup.removeLayer(old);
   }
 }

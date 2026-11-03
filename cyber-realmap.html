@@ -51,7 +51,7 @@
     </div>
 
     <!-- 雙軌與偵探切換按鈕 -->
-    <div style="display:flex; gap:8px;">
+    <div class="top-nav-actions" style="display:flex; gap:8px;">
       <a href="cases.html" target="_blank" class="dual-track-btn" id="btnCasesAll" style="border-color:rgba(251,191,36,0.5); color:#fbbf24; background:rgba(217,119,6,0.18);" title="開啟 50 宗歷史風情與生活科學案件全集展示手冊">
         <span>📂 50 宗科學案件全集</span>
       </a>
@@ -98,12 +98,19 @@
     <button class="filter-chip-btn" data-filter="cases" onclick="filterStoreMarkers('cases', this)">🚨 10大示範案件</button>
   </div>
 
-  <!-- 🛰️ 雙北四軌即時出入境通報跑馬燈 HUD (Live Transit Dispatch Ticker HUD) -->
+  <!-- 🛰️ 雙北四軌動態通報跑馬燈 HUD (Live Transit Dispatch Ticker HUD) -->
   <div class="transit-ticker-bar" id="transitTickerBar">
-    <div class="ticker-badge">🛰️ 雙北四軌即時出入境通報</div>
+    <div class="ticker-badge">🛰️ 雙北四軌動態通報</div>
     <div class="ticker-content-track" id="tickerContentTrack">
-      <span class="ticker-marquee-text" id="tickerMarqueeText">📡 即時交通走廊連線中：高鐵出入境走廊、台鐵縱貫線北段、捷運66列在線列車、307幹線真實車隊同步運轉中...</span>
+      <span class="ticker-marquee-text" id="tickerMarqueeText">📡 動態交通走廊連線中：高鐵出入境走廊、台鐵縱貫線北段、捷運在線列車、大臺北公車車隊動態運轉中...</span>
     </div>
+  </div>
+
+  <!-- 🎯 公車專注過濾指示浮動膠囊 (按 F 鍵或點擊隨時解除過濾) -->
+  <div id="busFilterActivePill" class="bus-filter-active-pill" style="display:none;">
+    <span class="pill-dot">🎯</span>
+    <span id="busFilterPillText">專注過濾中：僅顯示公車 <b>--</b>（其餘公車已關閉）</span>
+    <button onclick="clearBusFilterOnlySelected()" class="pill-clear-btn" title="恢復全雙北所有公車">✕ 恢復全公車</button>
   </div>
 
   
@@ -143,15 +150,15 @@
       <span class="telemetry-val highlight" id="hudLiveBusCount" style="color:#22c55e;">連線同步中</span>
     </div>
     <div class="telemetry-row">
-      <span class="telemetry-label">即時捷運列車 MRT:</span>
+      <span class="telemetry-label">捷運推算列車 MRT:</span>
       <span class="telemetry-val highlight" id="hudLiveMrtCount" style="color:#38bdf8;">連線同步中</span>
     </div>
     <div class="telemetry-row">
-      <span class="telemetry-label">即時臺鐵列車 TRA:</span>
+      <span class="telemetry-label">臺鐵推算列車 TRA:</span>
       <span class="telemetry-val highlight" id="hudLiveTraCount" style="color:#60a5fa;">連線同步中</span>
     </div>
     <div class="telemetry-row">
-      <span class="telemetry-label">即時高鐵列車 THSR:</span>
+      <span class="telemetry-label">高鐵推算列車 THSR:</span>
       <span class="telemetry-val highlight" id="hudLiveThsrCount" style="color:#f97316;">連線同步中</span>
     </div>
     <div class="telemetry-row">
@@ -292,6 +299,11 @@
       <button class="tactical-tool-btn" id="btnShuangbeiBusOverview" onclick="zoomToShuangbeiBusOverview()" title="一鍵俯瞰雙北全境 2,000+ 輛奔馳公車" style="background:rgba(2,132,199,0.3); border-color:#38bdf8;">
         <span>🎯 雙北公車全覽</span><span style="color:#38bdf8; font-size:10px;">ALL</span>
       </button>
+      <!-- 🌟 專注過濾鍵 (快捷鍵 F：關閉其餘公車，只剩下我選擇的公車) -->
+      <button class="tactical-tool-btn" id="btnToggleBusFilter" onclick="toggleBusFilterOnlySelected()" title="過濾鍵（快捷鍵 F）：關閉全雙北其餘公車，僅保留我選擇的公車">
+        <span>🎯 專注過濾鍵 (按 F)</span>
+        <span id="busFilterStatusTag" style="color:#94a3b8;">ALL</span>
+      </button>
       <button class="tactical-tool-btn active" id="btnToggleBusFleet" onclick="toggleBusFleetLayer()">
         <span>🚍 公車巡航 (紅燈強制停等)</span>
         <span style="color:#f59e0b;">DISPATCH</span>
@@ -320,9 +332,9 @@
         <span>📡 全息雷達掃描</span>
         <span style="color:#94a3b8;">STANDBY</span>
       </button>
-      <button class="tactical-tool-btn" id="btnFocusPlayer" onclick="togglePlayerFocusMode()">
-        <span>👤 超微觀角色特寫 20x</span>
-        <span style="color:#00f0ff;">ZOOM</span>
+      <button class="tactical-tool-btn" id="btnFocusPlayer" onclick="togglePlayerFocusMode()" title="🎯 街廓親臨模式 (按 Z)：放大至 19.5x 微觀街廓，鏡頭自動跟隨人物與周遭街道">
+        <span>🎯 街廓親臨 (按 Z)</span>
+        <span style="color:#00f0ff;">19.5x</span>
       </button>
       <button class="tactical-tool-btn" id="btnFitBounds" onclick="resetShuangbeiBounds()">
         <span>🔭 雙北全景居中</span>
@@ -410,8 +422,8 @@
 
   <!-- 底部操作提示 (Bottom Hint Bar) -->
   <div class="bottom-hint-bar">
+    <span><span class="hint-key">[WASD 漫遊 / Z 街廓親臨 / F 公車過濾]</span> 鏡頭鎖定人物與附近巷弄街道</span>
     <span><span class="hint-key">[滑鼠滾輪 / 雙指縮放]</span> 1:1 無級縮放到雙北真實巷弄門牌</span>
-    <span><span class="hint-key">[拖曳平移]</span> 自由探索雙北 41 行政特區</span>
     <span><span class="hint-key">[點擊門市 / 站牌 / 🚨警報]</span> 即時調取真實門牌、公車到站預報與自然科學案情</span>
   </div>
 
