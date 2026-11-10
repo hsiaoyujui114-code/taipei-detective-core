@@ -2,7 +2,8 @@
 
 > 國小六年級獨立研究專題：《雙北漫遊：都會行蹤》✕《城市脈動：通勤偵探》  
 > 專屬偵探系統核心獨立倉庫（由 Agent `code` 獨立研發與維護）  
-> 獨立測試台運行位址：`http://localhost:3001` ✕ 主地圖伺服器聯調：`http://localhost:3000/detective`
+> 獨立測試台運行位址：`http://localhost:3001` ✕ 主地圖伺服器聯調：`http://localhost:3000/detective`  
+> 🎮 **全倉庫統一線上試玩遊戲**：[https://hsiaoyujui114-code.github.io/city-pulse-detective/cyber-realmap.html](https://hsiaoyujui114-code.github.io/city-pulse-detective/cyber-realmap.html)
 
 ---
 
