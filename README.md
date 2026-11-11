@@ -1,5 +1,9 @@
 # 🕵️《雙北漫遊：都會行蹤》都會調查員偵探核心系統 (Taipei Detective Core)
 
+> 🌐 **【跨電腦 AI 開發必讀】如果你是在其他電腦接手本專案的 AI**：  
+> 請立即閱讀 [REMOTE_AI_INSTRUCTIONS.md](REMOTE_AI_INSTRUCTIONS.md)，內含 3 大模組（1. 地圖、2. 故事、3. 偵探代碼）之核心檔案速查表、四大憲法紅線與一鍵調度規範！
+
+
 > 國小六年級獨立研究專題：《雙北漫遊：都會行蹤》✕《城市脈動：通勤偵探》  
 > 專屬偵探系統核心獨立倉庫（由 Agent `code` 獨立研發與維護）  
 > 獨立測試台運行位址：`http://localhost:3001` ✕ 主地圖伺服器聯調：`http://localhost:3000/detective`  
