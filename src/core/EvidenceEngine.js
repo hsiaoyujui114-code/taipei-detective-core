@@ -10,6 +10,7 @@
  * 5. 聲學與傳播速率（常溫聲速 340m/s、長廊回音時差演算）
  * 6. 力學與運動定律（牛頓第一運動定律慣性力矩、轉彎向心加速度向量、壓強公式 P = F / A）
  * 7. 凝結與光學散射（低溫玻璃遇熱水汽露點凝結顯影油脂指紋）
+ * 8. 植物氰苷酵素解水解催化與雙重致病途徑（苦杏仁苷為天然雙糖植物氰苷，受 65°C 熱咖啡蒸氣與 Emulsin 活化催化水解）
  */
 
 class EvidenceEngine {
@@ -372,6 +373,60 @@ class EvidenceEngine {
         ? '玻璃表面迅速布滿微露珠產生漫散射（白濁），疏水性指紋油脂不沾水滴保持透明，反差顯現清晰指紋脊線！'
         : '表面溫度高於露點，水汽無法過飽和凝結，無法顯影！',
       scientificPrinciple: '108 課綱氣態與相變熱學：飽和水汽壓隨溫度降低而急遽下降；熱水汽遇低於露點之冷藏玻璃過飽和凝結成微米水滴，疏水性皮脂與親水玻璃表面張力差異形成光學散射對比。'
+    };
+  }
+
+  /**
+   * 9. 苦杏仁苷雙糖植物氰苷酵素解水解催化與雙重致病途徑演算 (CASE-01 鑑識核心)
+   * 苦杏仁苷 (Amygdalin, C20H27NO11) 為天然「雙糖植物氰苷 (Cyanogenic glycoside)」。
+   * 室溫中性或弱酸下分子結構極為安定，必須依賴苦杏仁酵素 (Emulsin，含 β-葡萄糖苷酶與扁桃腈裂解酶) 催化。
+   * @param {number} beverageTempC - 熱飲溫度 (°C，招牌熱焦糖瑪奇朵約 65°C)
+   * @param {boolean} hasEmulsinEnzyme - 是否存在苦杏仁伴生酵素 Emulsin (含 β-葡萄糖苷酶)
+   * @param {string} carrierMatrix - 載體介質 ('vaseline_lipid_base' 凡士林脂質疏水膜)
+   * @param {number} tlcSpotRf - 4 號桌杯蓋飲用孔凡士林殘渣 TLC 薄層層析展開比 Rf (標準值 0.42)
+   */
+  runAmygdalinHydrolysisAnalysis(beverageTempC = 65, hasEmulsinEnzyme = true, carrierMatrix = 'vaseline_lipid_base', tlcSpotRf = 0.42) {
+    // 酵素催化活性溫度區間：45°C ~ 75°C 為理想催化水解區間；>85°C 酵素受熱變性失活；<25°C 酵素反應遲緩
+    const isTempOptimal = beverageTempC >= 45 && beverageTempC <= 75;
+    const isEnzymeActive = hasEmulsinEnzyme && isTempOptimal;
+
+    // 凡士林熱融乳化判定：凡士林熔點約 38°C~60°C，遇 65°C 招牌熱焦糖瑪奇朵熱蒸氣迅速軟化並微乳化釋出酵素
+    const isLipidBaseEmulsified = carrierMatrix.includes('vaseline') && beverageTempC >= 55;
+
+    // 水解產物：氣體揮發相 (HCN 氣體 + 苯甲醛) 與未反應母體吸吮相 (苦杏仁苷雙糖氰苷)
+    const hcnGasReleased = isEnzymeActive && isLipidBaseEmulsified;
+    const benzaldehydeAroma = hcnGasReleased
+      ? '釋出特異苦杏仁芳香苯甲醛（因招牌熱焦糖瑪奇朵淋上厚重焦糖甜香網格掩飾未被及時察覺）'
+      : '未產生顯著揮發氣體';
+
+    // TLC 檢驗母體殘留判定
+    const isTlcMatched = Math.abs(tlcSpotRf - 0.42) <= 0.03;
+
+    return {
+      beverage: '招牌熱焦糖瑪奇朵',
+      substanceClass: '雙糖植物氰苷 (Cyanogenic Glycoside)',
+      chemicalClassification: '雙糖植物氰苷 (Cyanogenic Glycoside)',
+      beverageTempC,
+      carrierMatrix,
+      hasEmulsinEnzyme,
+      isEnzymeActive,
+      isLipidBaseEmulsified,
+      benzaldehydeAroma,
+      pathway: {
+        gasInhalation: hcnGasReleased,
+        gasPhaseProduct: hcnGasReleased ? '氰化氫氣體 (HCN Gas) + 苯甲醛 (Benzaldehyde)' : '無',
+        oralIngestion: '吸吮時 65°C 熱焦糖瑪奇朵奶泡沖刷吞入未完全水解之苦杏仁苷雙糖氰苷母體',
+        dualToxicityMechanism: hcnGasReleased
+          ? '吸吮第一時間吸入 4 號桌杯蓋狹窄氣室累積之高濃度 HCN 氣體，隨後吞入凡士林疏水膜沖刷之苦杏仁苷母體，造成氣體吸入與口腔吞嚥雙重急性中毒！'
+          : '水解條件不滿足，無法產生致死反應。'
+      },
+      tlcVerification: {
+        measuredRf: tlcSpotRf,
+        standardRf: 0.42,
+        isMatched: isTlcMatched,
+        residualSubstance: '4 號桌外帶杯蓋飲用孔凡士林殘渣中檢出未完全水解之苦杏仁苷氰苷母體'
+      },
+      scientificPrinciple: '108 課綱生物化學反應與酵素催化：苦杏仁苷為雙糖植物氰苷。苦杏仁酵素（Emulsin，含 β-葡萄糖苷酶）受 65°C 招牌熱焦糖瑪奇朵弱酸熱蒸氣活化催化水解，在杯蓋狹窄氣室釋放揮發性 HCN 氣體與苯甲醛；未完全反應母體由凡士林疏水保護並經 TLC（Rf=0.42）定性確證，形成完整因果閉環。'
     };
   }
 }

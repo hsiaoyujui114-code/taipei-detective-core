@@ -87,6 +87,16 @@ const tlcSim = engine.evidenceEngine.runTlcRfAnalysis(21.0, 50.0, 0.42); // 21mm
 assert(tlcSim.isMatched, 'Rf 0.42 應與標準品吻合');
 console.log(`✅ [3.4] TLC 薄層層析展開比對成功：${tlcExamine.result} (Rf演算值：${tlcSim.calculatedRf})`);
 
+// 3.4b 苦杏仁苷雙糖植物氰苷（正名植物氰苷）酵素水解催化與雙重致病途徑 (Case 01 鑑識核心)
+const hydrolysisSim = engine.evidenceEngine.runAmygdalinHydrolysisAnalysis(65, true, 'vaseline_lipid_base', 0.42);
+assert.strictEqual(hydrolysisSim.chemicalClassification, '雙糖植物氰苷 (Cyanogenic Glycoside)', '苦杏仁苷必須正名為植物氰苷');
+assert.strictEqual(hydrolysisSim.beverage, '招牌熱焦糖瑪奇朵', '飲品名稱必須為招牌熱焦糖瑪奇朵');
+assert(hydrolysisSim.isEnzymeActive, '65°C 熱咖啡熱蒸氣應能有效活化 Emulsin 苦杏仁酵素催化水解');
+assert(hydrolysisSim.isLipidBaseEmulsified, '65°C 熱焦糖瑪奇朵應能乳化凡士林脂質保護膜');
+assert(hydrolysisSim.pathway.gasInhalation, '應釋出氰化氫氣體揮發');
+assert(hydrolysisSim.tlcVerification.isMatched, '凡士林殘渣 TLC Rf 0.42 應與未水解苦杏仁苷母體吻合');
+console.log(`✅ [3.4b] 苦杏仁苷植物氰苷酵素解水解機制驗證成功：${hydrolysisSim.chemicalClassification}、${hydrolysisSim.beverage}、雙重致病途徑閉環`);
+
 // 3.5 阿基米德浮力與密度測定 (Case 08 中空砝碼)
 const densitySim = engine.evidenceEngine.runArchimedesDensity(50.0, 7.58);
 assert(densitySim.isHollowSuspected, '密度 6.6 g/cm³ 應被判定為中空掏空');
@@ -473,9 +483,11 @@ function callApi(method, pathName, body = null) {
       }
     };
 
-    handleDetectiveRequest(req, res, engine).then(() => {
+    handleDetectiveRequest(req, res, engine);
+
+    process.nextTick(() => {
       if (body) {
-        req.emit('data', JSON.stringify(body));
+        req.emit('data', Buffer.from(JSON.stringify(body)));
       }
       req.emit('end');
     });
@@ -519,7 +531,19 @@ assert.strictEqual(case50ApiRes.code, 200);
 assert.strictEqual(case50ApiRes.data.case.id, 'CASE-50');
 assert(case50ApiRes.data.suspects.length >= 3, 'CASE-50 應動態關聯涉案人名單');
 
-console.log('✅ [9.12] 偵探核心 REST API 路由器全面無縫對接驗證通過 (100% 覆蓋，含 50 案全集)');
+// 驗證苦杏仁苷水解演算 API 端點
+const hydroApiRes = await callApi('POST', '/api/detective/science/amygdalin-hydrolysis', {
+  beverageTempC: 65,
+  hasEmulsinEnzyme: true,
+  carrierMatrix: 'vaseline_lipid_base',
+  tlcSpotRf: 0.42
+});
+assert.strictEqual(hydroApiRes.code, 200);
+assert.strictEqual(hydroApiRes.data.chemicalClassification, '雙糖植物氰苷 (Cyanogenic Glycoside)');
+assert.strictEqual(hydroApiRes.data.beverage, '招牌熱焦糖瑪奇朵');
+assert(hydroApiRes.data.isEnzymeActive);
+
+console.log('✅ [9.12] 偵探核心 REST API 路由器全面無縫對接驗證通過 (100% 覆蓋，含 50 案全集與苦杏仁苷水解演算)');
 
 console.log('✅ [9] 地圖系統 (Leaflet / Web) 雙向 Pub/Sub 事件協議與 MapPairingCoordinator 協同調度 100% 正常');
 
@@ -534,7 +558,8 @@ function scanDirForForbiddenWords(dir) {
     { pattern: new RegExp('\u76ca\u78a9'), name: '姓名規範驗證2' },
     { pattern: new RegExp('\u5de5\u8b80\u751f'), name: '職稱規範驗證1' },
     { pattern: new RegExp('\u5be6\u7fd2\u751f'), name: '職稱規範驗證2' },
-    { pattern: new RegExp('\u5c0f\u5e6b\u624b'), name: '職稱規範驗證3' }
+    { pattern: new RegExp('\u5c0f\u5e6b\u624b'), name: '職稱規範驗證3' },
+    { pattern: new RegExp('\u751f\u7269\u9e7c'), name: '化學毒物正名驗證 (0生物鹼，苦杏仁苷為植物氰苷)' }
   ];
 
   const files = fs.readdirSync(dir);

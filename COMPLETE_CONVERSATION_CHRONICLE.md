@@ -4863,3 +4863,69 @@ flowchart TD
      - 4 大倉庫 JavaScript 語法檢查（`node -c`）100% 零錯誤。
   7. **4 大專案倉庫 Git Commit ✕ Push**：
      - 4 大專案倉庫已全數 commit 並 push 至 GitHub `main` 分支，工作目錄維持 100% clean！
+
+
+---
+
+### 第 134 輪紀錄 (Round 134)
+- **委託人核心指示（Leader 總指揮正式開工調度令 ➔ project）**：
+  `1. 【拉取最新遠端進度與對齊】：請立即在所有倉庫執行 git pull origin main，把遠端最新紀錄抓下來。重新通讀問題單（https://files.instinct.com/ju4sf6hj7efj-agy）與計畫書，徹底檢查並保證地圖功能與問題單及計畫書 100% 一模一樣。`  
+  `2. 【超微觀 2D 正上方街道俯視系統 (Zoom 20.5 極致地景工程)】：依據委託人指示：「我們到時候玩的時候不是這樣這麼大的玩，我們會放得非常大，畫面大概只能看到這個路，變成 2D 從上面看下去的。所以請你幫我做得非常細膩，放非常大時可以非常細膩，然後我也可以縮小。我現在想直接做成這樣子，但是你的程式碼之後要可以改成不能放大。」實作 2D 正上方俯視極致街道地景（Zoom 20.5，畫面僅涵蓋約 60~90 公尺，看到路面）：實體雙向瀝青鋪面、道路標線、人行道與導盲磚、實體建築門牌號碼標籤。`  
+  `3. 【頂層可配置開關與視角切換器 (REALMAP_VIEWPORT_CONFIG)】：defaultStreetZoom: 20.5、overviewZoom: 14.0、allowZoomOut: true（改為 false 即可一鍵鎖定禁止縮放）；提供 setLockedMode(locked) API；UI 戰術列與 HUD 提供：🎯 2D 街道特寫 (20.5x)、🌐 雙北全景 (14x)、🔒 鎖定街道俯視 / 🔓 自由縮放。`  
+  `4. 【統一試玩遊戲網址】：所有專案倉庫統一定義試玩遊戲入口：https://hsiaoyujui114-code.github.io/city-pulse-detective/cyber-realmap.html。`  
+  `5. 【紅線與提交】：恪守四大憲法紅線（0 少年偵探、0 藝碩/益碩、0 瞬移、0 歷史廢除職稱）。確保本機 Port 3000 私服無報錯，完成 commit 並 push 至 GitHub 遠端 main 分支，工作目錄維持 100% clean，完工後向 Leader 回報！`
+
+- **實施改造與重大技術成果**：
+  1. **跨倉庫最新遠端進度拉取與計畫書/問題單 100% 履約對齊**：
+     - 4 大專案倉庫（`city-pulse-detective`、`taipei-metro-detective-rpg`、`taipei-detective-core` 與根目錄）全量執行 `git pull origin main`，確保對齊 GitHub 最新狀態。
+     - 重新通讀問題單（`https://files.instinct.com/ju4sf6hj7efj-agy`）與計畫書，逐條核對 7 大修正項目與地圖規範（公車過濾純淨化、刪除國道、消除虛構車牌、微觀街廓視野），全部 100% 履約合規。
+     - 將最新 Zoom 20.5 街廓工程與視角配置規範完整寫入計畫書（`PROPOSAL.md`、`PROJECT_PROPOSAL.md`、`proposal.html`）之「委託人原話決策履約對照表」第 92 項與第 93 項。
+  2. **超微觀 2D 正上方街道俯視系統 (Zoom 20.5 極致地景工程) 細緻精修**：
+     - **實體瀝青雙向路面鋪面 (Asphalt Road Surface Beds)**：涵蓋台北車站特區 10 大核心幹道與西門町商圈 6 大核心路網（深色瀝青 `#1e293b`、路緣石 `#475569`、徒步區特製翡翠地磚色 `#0f766e`）。
+     - **道路標線全集**：
+       - 中央分向雙黃實線（高對比亮黃 `#facc15`，精準劃分雙向車道）。
+       - 車道分割白虛線（`dashArray: '8, 14'`，多車道規範呈現）。
+       - 斑馬線前緣實體白色寬幅車道停止線（Stop Lines）。
+       - 大十字路口淨空黃色網狀格（菱形禁止停留網狀格，附帶互動 Tooltip）。
+       - 地面轉向白色導向箭頭（⬆️ 直行、↰ 左轉）。
+       - 路緣禁停紅線（`#ef4444`）。
+     - **人行道與連續性黃色導盲磚 (Tactile Paving)**：沿街廓繪製連續性黃色導盲磚引導帶（`#eab308`，`dashArray: '4, 4'`）。
+     - **實體建築門牌號碼標籤 (Doorplates)**：完整標註西門町（成都路 27 號案發咖啡店、漢中街 45 號超商、成都路 10 號西門紅樓、漢中街 101 號漢中派出所、峨眉街 6 號萬年大樓）與站前特區門牌。
+  3. **頂層可配置開關與視角切換器 (`REALMAP_VIEWPORT_CONFIG`)**：
+     - 完整保留頂層開關：`defaultStreetZoom: 20.5`、`overviewZoom: 14.0`、`allowZoomOut: true`（改為 `false` 即可一鍵鎖定禁止縮放）。
+     - 提供 `setLockedMode(locked)` API，切換鎖定模式時動態調整 Leaflet `minZoom = maxZoom = 20.5`。
+     - UI 戰術列與 HUD 精準提供：`🎯 2D 街道特寫 (20.5x)`、`🌐 雙北全景 (14x)`、`🔒 鎖定街道俯視 / 🔓 自由縮放` 雙向切換狀態顯示。
+  4. **統一試玩遊戲網址**：
+     - 全專案倉庫一致統一定義試玩遊戲入口：`https://hsiaoyujui114-code.github.io/city-pulse-detective/cyber-realmap.html`。
+  5. **Port 3000 私服守護與四軌即時驗證**：
+     - 本地 Port 3000 成功啟動 Node.js + WebSocket 專屬私服器，`/api/transit/live` 端點穩定供應 1,930+ 輛公車、170 列捷運、26 列臺鐵、3 列高鐵即時動態。
+     - 四大憲法紅線（0 少年偵探、0 藝碩/益碩、0 瞬移、0 歷史廢除職稱）全面零違規通過。
+
+---
+
+### 第 135 輪紀錄 (Round 135)
+- **委託人核心指示（Leader 總指揮正式開工調度令 ➔ code）**：
+  `1. 【與 story 協同重構 CASE-01 鑑識核心與物證檢驗】：委託人指出毒物化學反應與鑑識矛盾：苦杏仁苷（Amygdalin）是「雙糖植物氰苷（Cyanogenic glycoside）」，絕非「生物鹼（Alkaloid）」。在 EvidenceEngine.js、demo_cases.json、fifty_cases.json、evidence_items.json 中，徹底將苦杏仁苷正名為「植物氰苷」，移除所有「生物鹼」錯誤稱呼。酵素解水解機制程式碼實裝：苦杏仁苷需由苦杏仁酵素（Emulsin，含 β-葡萄糖苷酶）受 65°C 熱咖啡熱蒸氣活化催化水解；TLC 薄層色層分析檢驗未水解之苦杏仁苷氰苷母體殘渣（Rf = 0.42），與氣體揮發、吸吮雙重致病途徑閉環吻合。飲品正式定名為「招牌熱焦糖瑪奇朵」，支援案發 4 號桌咖啡杯與杯蓋飲用孔鑑識。`  
+  `2. 【全套 50 案生活科學演算與物證對質程式碼全面稽核】：逐案審查 50 宗大案全集之鑑識、物理、化學演算法（阿基米德浮力、音速 v=331+0.6T、固體壓強 P=F/A、TLC、光學等），確保全部符合 108 課綱生活科學標準。`  
+  `3. 【測試與提交】：運行 cd /Users/home/crew-deck-role/ai-engineer/taipei-detective-core && npm test，確保 10 大階段 100% 全部通過！恪守四大憲法紅線（0 少年偵探、0 藝碩/益碩、0 瞬移、0 歷史廢除職稱）。commit 並 push 至 GitHub taipei-detective-core main 分支，完工後向 Leader 回報！`
+
+- **實施改造與重大技術成果**：
+  1. **CASE-01 鑑識核心正名與化學機制重構 (0 生物鹼)**：
+     - **植物氰苷徹底正名**：在 `EvidenceEngine.js`、`demo_cases.json`、`fifty_cases.json`、`evidence_items.json`、`sample_dialogues.json`、`Inventory.js` 中，將苦杏仁苷徹底正名為「雙糖植物氰苷（Cyanogenic glycoside）」，清除所有「生物鹼」錯誤稱謂。
+     - **專屬酵素催化水解演算程式碼實裝 (`runAmygdalinHydrolysisAnalysis`)**：
+       - 苦杏仁苷（Amygdalin, $C_{20}H_{27}NO_{11}$）在弱酸室溫下結構穩定，需依賴苦杏仁酵素（Emulsin，含 $\beta$-葡萄糖苷酶與扁桃腈裂解酶）催化。
+       - 案發 4 號桌「招牌熱焦糖瑪奇朵」熱咖啡液溫約 65°C（弱酸性，pH 5.2），熱蒸氣軟化乳化杯蓋凡士林疏水膜並激活 Emulsin 酵素催化水解。
+       - 雙重致病途徑：杯蓋狹窄氣室累積揮發性 HCN 氰化氫氣體（伴生苯甲醛苦杏仁芳香被厚重焦糖甜香掩飾）於吸吮第一時間吸入肺部黏膜；隨後吸吮奶泡吞入凡士林疏水保護層內未完全水解之苦杏仁苷母體，造成氣體吸入與吞嚥雙重急性中毒。
+       - TLC 鑑識確證：刮取杯蓋凡士林殘渣，以薄層色層分析展現苦杏仁苷母體特異斑點（$R_f = 0.42$），形成物理、化學、病理三重因果閉環！
+     - **飲品定名全域統一**：正式定名為「招牌熱焦糖瑪奇朵」，支援案發 4 號桌咖啡杯（`ev_01_coffee_cup`）與杯蓋飲用孔（`ev_01_cup_lid`）精準對質。
+  2. **全套 50 案生活科學演算法全面稽核**：
+     - 逐案核對 50 案之物理、化學、生物、地科演算法（阿基米德浮力與密度測定、聲速 $v=331.5+0.6T$ 空間延時、固體壓強 $P=F/A$ 與土壤飽和剪切極限連鎖、露點水汽凝結顯影、TLC 毛細展開、365nm UV 光學史托克定律螢光激發、向心加速度與慣性力矩向量、單表/維吉尼亞密碼頻率分析等），全數符合 108 課綱生活科學標準，零科學邏輯衝突。
+  3. **REST API 端點擴充 (`server.js`)**：
+     - 新增 `POST /api/detective/science/amygdalin-hydrolysis`：提供苦杏仁苷水解酵素活化、氣相與吞嚥雙重致病途徑演算。
+     - 新增 `POST /api/detective/science/tlc`：提供薄層色層分析 $R_f$ 比對演算。
+     - 新增 `POST /api/detective/science/uv`：提供 365nm 紫外螢光激發光譜判定。
+  4. **自動化回歸測試 10 大階段 100% 通過 (`test/detective.test.js`)**：
+     - 新增 `3.4b` 苦杏仁苷植物氰苷酵素解水解機制驗證（正名植物氰苷、招牌熱焦糖瑪奇朵、雙重致病途徑閉環）。
+     - 階段 10 靜態代碼稽核擴充納入「0 生物鹼」，與四大最高憲法級紅線（0 少年偵探、0 藝碩/益碩、0 瞬移、0 歷史廢除職稱）一同達成 0 違規！
+  5. **Git Commit & Push**：
+     - 恪守委託人最新永久鐵則，將最新代碼 100% 自動完成 `git add`、`git commit`、`git push origin main` 至 GitHub 遠端倉庫。

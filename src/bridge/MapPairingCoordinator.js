@@ -57,7 +57,7 @@ class MapPairingCoordinator {
     this.casePerimeters = {
       case_01: {
         caseId: 'case_01',
-        title: '西門町連鎖咖啡店拿鐵中毒案',
+        title: '西門町連鎖咖啡店招牌熱焦糖瑪奇朵中毒案',
         center: [25.0425, 121.5072],
         radiusMeters: 80,
         sector: '萬華特區 (西門商圈)',

@@ -213,7 +213,7 @@ class Inventory {
       id: 'tool_uv_torch',
       name: '365nm 專業紫外光鑑識手電筒',
       type: 'fluorescence',
-      desc: '激發隱形防偽螢光油墨、微量生物鹼色帶與螢光纖維反應。'
+      desc: '激發隱形防偽螢光油墨、植物氰苷色帶、汗液指紋與螢光纖維反應。'
     });
   }
 

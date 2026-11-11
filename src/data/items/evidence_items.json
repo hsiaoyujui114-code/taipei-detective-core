@@ -58,7 +58,7 @@
     "name": "365nm 專業紫外光鑑識手電筒",
     "track": "tool",
     "type": "fluorescence",
-    "description": "激發隱形防偽螢光油墨、微量生物鹼色帶與螢光纖維反應。"
+    "description": "激發隱形防偽螢光油墨、植物氰苷色帶、汗液指紋與螢光纖維反應。"
   },
   {
     "id": "tool_tlc_scanner",
@@ -181,26 +181,26 @@
   },
   {
     "id": "ev_01_coffee_cup",
-    "name": "翻倒的雙層熱拿鐵咖啡杯",
+    "name": "翻倒的雙層熱焦糖瑪奇朵咖啡杯",
     "track": "evidence",
     "caseId": "case_01",
-    "description": "西門町咖啡館 4 號桌翻倒的咖啡杯，杯底有未化開的泡沫與苦杏仁氣息。",
+    "description": "西門町咖啡館 4 號桌翻倒的招牌熱焦糖瑪奇朵咖啡杯，杯底殘留半融化焦糖奶泡，散發微弱苦杏仁味。",
     "scienceAspect": "酸鹼滴定與水溶液性質"
   },
   {
     "id": "ev_01_cup_lid",
-    "name": "4 號桌專用外帶杯蓋",
+    "name": "4 號桌專用外帶杯蓋與飲用孔",
     "track": "evidence",
     "caseId": "case_01",
-    "description": "黑色耐熱杯蓋，飲用口內緣有微量白色反光油脂與乾涸液滴。",
+    "description": "黑色耐熱塑膠杯蓋，飲用孔內緣有微薄凡士林脂質疏水膜與乾涸液滴。",
     "scienceAspect": "365nm UV 螢光激發與微量汗液指紋"
   },
   {
     "id": "ev_01_tlc_strip",
-    "name": "杯蓋刮取物薄層色層分析片 (TLC)",
+    "name": "4 號桌杯蓋刮取物薄層色層分析片 (TLC)",
     "track": "evidence",
     "caseId": "case_01",
-    "description": "矽膠薄層層析片，顯示植物氰苷在展開劑中的毛細分離。",
+    "description": "矽膠薄層層析片，顯示凡士林殘渣中植物氰苷母體在展開劑中的毛細分離 (Rf=0.42)。",
     "scienceAspect": "薄層層析毛細分離"
   },
   {

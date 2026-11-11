@@ -548,6 +548,37 @@ async function handleDetectiveRequest(req, res, customEngine = null) {
     return true;
   }
 
+  if (pathname === '/api/detective/science/amygdalin-hydrolysis' && req.method === 'POST') {
+    const body = await parseBody(req);
+    sendJson(res, 200, engine.evidenceEngine.runAmygdalinHydrolysisAnalysis(
+      body.beverageTempC !== undefined ? Number(body.beverageTempC) : 65,
+      body.hasEmulsinEnzyme !== undefined ? Boolean(body.hasEmulsinEnzyme) : true,
+      body.carrierMatrix || 'vaseline_lipid_base',
+      body.tlcSpotRf !== undefined ? Number(body.tlcSpotRf) : 0.42
+    ));
+    return true;
+  }
+
+  if (pathname === '/api/detective/science/tlc' && req.method === 'POST') {
+    const body = await parseBody(req);
+    sendJson(res, 200, engine.evidenceEngine.runTlcRfAnalysis(
+      Number(body.spotDistanceMm) || 21,
+      Number(body.solventFrontMm) || 50,
+      Number(body.standardRf) || 0.42,
+      Number(body.tolerance) || 0.05
+    ));
+    return true;
+  }
+
+  if (pathname === '/api/detective/science/uv' && req.method === 'POST') {
+    const body = await parseBody(req);
+    sendJson(res, 200, engine.evidenceEngine.runUvFluorescenceAnalysis(
+      Number(body.wavelengthNm) || 365,
+      body.substanceKey || 'amygdalin'
+    ));
+    return true;
+  }
+
   // ─── 9. 地圖協同調度與地理圖層 API (Map Pairing & Geo Overlays) ───
 
   if (pathname === '/api/detective/map/pairing-status' && req.method === 'GET') {
