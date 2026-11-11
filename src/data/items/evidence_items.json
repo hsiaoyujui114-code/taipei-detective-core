@@ -65,7 +65,7 @@
     "name": "薄層色層分析展開鏡 (TLC)",
     "track": "tool",
     "type": "chemical",
-    "description": "利用毛細管現象與展開劑分離有機生物鹼，精準測量 Rf 滯留值。"
+    "description": "利用毛細管現象與展開劑分離植物氰苷與有機化合物，精準測量 Rf 滯留值。"
   },
   {
     "id": "tool_sound_timer",
@@ -200,7 +200,7 @@
     "name": "杯蓋刮取物薄層色層分析片 (TLC)",
     "track": "evidence",
     "caseId": "case_01",
-    "description": "矽膠薄層層析片，顯示有機生物鹼在展開劑中的毛細分離。",
+    "description": "矽膠薄層層析片，顯示植物氰苷在展開劑中的毛細分離。",
     "scienceAspect": "薄層層析毛細分離"
   },
   {

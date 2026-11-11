@@ -59,7 +59,7 @@ class EvidenceEngine {
     if (checkSpec.tool !== toolId) {
       const hints = {
         tool_ph_paper: '此物證需檢測酸鹼水溶液性質，請使用廣用 pH 試紙組！',
-        tool_uv_torch: '此物證含有微量螢光防偽劑或生物鹼，需使用 365nm 紫外燈激發！',
+        tool_uv_torch: '此物證含有微量螢光防偽劑或植物氰苷，需使用 365nm 紫外燈激發！',
         tool_magnifier: '此物證細微處有刮痕或纖維斷裂，請使用光學放大鏡進行微痕觀察！',
         tool_thermal_oven: '此物證需受熱脫水顯影，請使用溫泉蒸氣顯影烘箱！',
         tool_water_cylinder: '此物證需測定體積與密度，請使用精密排水量筒！',
@@ -294,7 +294,7 @@ class EvidenceEngine {
   runUvFluorescenceAnalysis(wavelengthNm, substanceKey) {
     const uvStandards = {
       amygdalin: {
-        name: '苦杏仁苷 (有機生物鹼)',
+        name: '苦杏仁苷 (植物氰苷)',
         excitationNm: 365,
         fluorescenceColor: '亮黃綠色',
         visibleUnderNormalLight: false,
