@@ -307,6 +307,23 @@ assert.strictEqual(confessionRes.psychologicalDefense, 0, '最終心理防線應
 assert(confessionRes.isDefenseBroken, '防線全面瓦解標記應為 true');
 console.log(`✅ [6.3] 嫌疑人心理防線崩潰坦承作案，筆錄閉環 (防線歸零：0%)`);
 
+// 6.4 示範案 03 (case_03，對應全集 CASE-07 淡水海關碼頭跳舞小人航海磚案) 江語晨對話樹驗證 (ISSUE-05)
+engine.investigator.inventory.addEvidence({ id: 'ev_03_cipher_brick', name: '淡水紅毛城航海旗語代碼磚' });
+engine.investigator.inventory.updateEvidenceStatus('ev_03_cipher_brick', '字母頻率 E/T 破譯完成：TIDE 2.8M WATCH HEIRLOOM');
+engine.investigator.inventory.addEvidence({ id: 'ev_03_tide_chart', name: '江語晨手寫潮汐差計算便箋' });
+engine.investigator.inventory.updateEvidenceStatus('ev_03_tide_chart', '確認手寫滿退潮落差 2.8 公尺記錄');
+engine.investigator.inventory.addEvidence({ id: 'ev_03_pocket_watch', name: '保溫杯底座暗格搜出之純銀懷錶' });
+engine.investigator.inventory.updateEvidenceStatus('ev_03_pocket_watch', '旋鈕檢出玫瑰護手霜精油與江語晨指紋微痕');
+const startDiag03 = engine.dialogueEngine.startDialogue('session_case03', 'suspect_03_jiang');
+assert(startDiag03.success, 'CASE-03 江語晨對話樹應能順利開啟');
+const c3Step1 = engine.dialogueEngine.selectOption('session_case03', 1, engine.investigator);
+assert(c3Step1.success, '出示航海旗語代碼磚應推進至 node_cipher_confront');
+const c3Step2 = engine.dialogueEngine.selectOption('session_case03', 1, engine.investigator);
+assert(c3Step2.success, '出示潮汐差便箋應推進至 node_tide_press');
+const c3Confess = engine.dialogueEngine.selectOption('session_case03', 0, engine.investigator);
+assert(c3Confess.success && c3Confess.caseClosed, '出示純銀懷錶鐵證後 CASE-03 江語晨應認罪閉環');
+console.log('✅ [6.4] CASE-03（江語晨）對話樹完整對質閉環驗證通過！');
+
 // ─── 階段 7：思維推理板評等與動森特產收藏 ───
 const solveRes = engine.caseManager.resolveCase(
   'case_01',

@@ -11,6 +11,20 @@
 
 ---
 
+## 📦 四倉庫分工定位與 SSOT 權威來源對照表
+
+| GitHub 倉庫 | 定位與職責 | 權威維護內容 (SSOT) |
+| :--- | :--- | :--- |
+| **`city-pulse-detective`** | **線上試玩與地圖主站** | `cyber-realmap.*`、`index.html`、`game.js`、`shared-data.js`、`server.js`（鏡像勿於他倉單邊改） |
+| **`taipei-metro-detective-rpg`** | **地圖／多人在線鏡像倉** | 鏡像同步主站雙軌地圖、`shared-data.js`、`cases.json`、`PROPOSAL.md` 與 `server.js` |
+| **`taipei-detective-rpg`** | **故事劇本與 50 案件展示倉** | 50 案件資料、`cases.html`、`cases.json`、`CASES_50_FULL_SPEC.md`、`PROPOSAL.md`、`proposal.html`（鏡像勿於他倉單邊改） |
+| **`taipei-detective-core`** | **獨立偵探系統核心引擎（本倉為 SSOT）** | JSON 驅動案件／NPC／對話樹、`EcoWallet` 真實運價、`MapBridge`、`/detective` 工作台（Port 3001） |
+
+> ⚙️ **現行實作 vs 未來規劃 (`ISSUE-09`)**：地圖端現行實作採用 **HTML5 Canvas 2D ＋ Leaflet 1.9.4 ＋ Node.js ＋ `ws`**；`PixiJS` 與 `Socket.io` 屬 Phase 2+ 未來擴充規劃，勿重寫引擎。GitHub Pages 靜態頁皆直接從 `main` 分支根目錄 (`/`) 部署，無 `.github/workflows/deploy.yml` (`ISSUE-07`)。  
+> 🔧 **本機雙倉庫並排與雙服務前置條件 (`ISSUE-08`)**：若要從地圖端（`http://localhost:3000/detective` 與 `/api/detective/*`）聯調本核心，須在同一父目錄並排 `git clone` `city-pulse-detective` 與 `taipei-detective-core`，並分別啟動主站 (`3000`) 與本核心 (`3001`)；若未並排，地圖端 `/detective` 會回傳 `503` 友善安裝指引。本倉根目錄的 `cyber-realmap.*` 與 `shared-data.js` 為 `city-pulse-detective` 之鏡像副本，勿直接單邊修改 (`ISSUE-11`)。
+
+---
+
 ## 📌 一、 專案核心特色與企劃書規格落實
 
 1. **【100% 非寫死資料驅動架構 (Data-Driven)】**：
@@ -52,7 +66,7 @@
 
 7. **【地圖系統 (Antigravity) 雙向協同事件橋樑】**：
    - 依據 `src/bridge/EventContracts.js` 與 `src/bridge/MapBridge.js` 實現 Pub/Sub 事件解耦。
-   - 支援警戒搜查圈派發、地圖閃爍物證生成與移除、防嚇馬賽克狀態同步。
+   - 支援警戒搜查圈派發與地圖閃爍物證生成移除（註：防嚇馬賽克已依委託人指示取消，案件現場一律自然清晰呈現）。
 
 ---
 

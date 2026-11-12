@@ -372,5 +372,60 @@
       "caseClosed": true,
       "options": []
     }
+  },
+  "suspect_03_jiang": {
+    "root": {
+      "npcText": "都會調查員你好，我只是海關故事館的文獻翻譯助理，英文雖然不錯，但那些磚牆上像小人跳舞一樣的怪符號我完全看不懂，更別提什麼清代純銀懷錶了！",
+      "options": [
+        {
+          "text": "我們發現這組 26 尊跳舞小人屬於單表替換密碼，只要對比英文出現頻率（E、T、A 最高）就能破譯，你難道沒翻譯出來？",
+          "next": "node_alibi_claim"
+        },
+        {
+          "text": "出示【淡水紅毛城航海旗語代碼磚】破譯結果（「TIDE 2.8M WATCH HEIRLOOM」）",
+          "requiredEvidence": "ev_03_cipher_brick",
+          "next": "node_cipher_confront"
+        }
+      ]
+    },
+    "node_alibi_claim": {
+      "npcText": "怎麼可能？館長只請我拍照建檔，我中午就離開研究室了，而且暗格還有淡水潮汐機關鎖，沒測過水位的人根本打不開吧！",
+      "options": [
+        {
+          "text": "你提到潮汐機關鎖——那這份精確計算 2.8 公尺滿退潮落的便箋是怎麼回事？",
+          "next": "root"
+        }
+      ]
+    },
+    "node_cipher_confront": {
+      "npcText": "（臉色一沉）就算……就算上面寫的是英文暗號『TIDE 2.8M WATCH HEIRLOOM』又怎樣？我又沒拿懷錶！",
+      "options": [
+        {
+          "text": "出示【江語晨手寫潮汐差計算便箋】與【保溫杯底座暗格搜出之純銀懷錶】（旋鈕殘留與妳完全吻合的玫瑰護手霜精油微痕）！",
+          "requiredEvidence": "ev_03_pocket_watch",
+          "next": "node_confession"
+        },
+        {
+          "text": "先出示【江語晨手寫潮汐差計算便箋】對質 2.8 公尺水位記錄",
+          "requiredEvidence": "ev_03_tide_chart",
+          "next": "node_tide_press"
+        }
+      ]
+    },
+    "node_tide_press": {
+      "npcText": "那只是我幫展覽準備的河口水文參考資料罷了……沒有實物證據，你不能隨便指控我！",
+      "options": [
+        {
+          "text": "出示【保溫杯底座暗格搜出之純銀懷錶】（微距放大鏡檢出妳特有的玫瑰精油指紋微痕）！",
+          "requiredEvidence": "ev_03_pocket_watch",
+          "next": "node_confession"
+        }
+      ]
+    },
+    "node_confession": {
+      "npcText": "……原來保溫杯底座和旋鈕上的玫瑰護手霜味道還是留下了痕跡……我原本想借研究之便，把這只先祖留下的清代通商純銀懷錶偷偷帶回去……是我解開了跳舞小人密碼，我認罪。",
+      "caseClosed": true,
+      "options": []
+    }
   }
 }

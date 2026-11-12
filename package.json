@@ -16,5 +16,9 @@
     "taipei-metro"
   ],
   "author": "Taipei Metro Detective RPG Team",
-  "license": "MIT"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hsiaoyujui114-code/taipei-detective-core.git"
+  }
 }
