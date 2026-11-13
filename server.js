@@ -579,6 +579,34 @@ async function handleDetectiveRequest(req, res, customEngine = null) {
     return true;
   }
 
+  if (pathname === '/api/detective/science/thermal-iron' && req.method === 'POST') {
+    const body = await parseBody(req);
+    sendJson(res, 200, engine.evidenceEngine.runThermalIronCarbonizationAnalysis(
+      body.ironTempC !== undefined ? Number(body.ironTempC) : 140,
+      body.durationSeconds !== undefined ? Number(body.durationSeconds) : 30,
+      Boolean(body.hasMoisture)
+    ));
+    return true;
+  }
+
+  if (pathname === '/api/detective/science/sea-cipher' && req.method === 'POST') {
+    const body = await parseBody(req);
+    sendJson(res, 200, engine.evidenceEngine.runSeaCipherFrequencyAnalysis(
+      body.totalSymbols !== undefined ? Number(body.totalSymbols) : 128,
+      body.topSymbolCount !== undefined ? Number(body.topSymbolCount) : 16
+    ));
+    return true;
+  }
+
+  if (pathname === '/api/detective/science/pycnometer' && req.method === 'POST') {
+    const body = await parseBody(req);
+    sendJson(res, 200, engine.evidenceEngine.runPycnometerDensityAnalysis(
+      body.sampleMassGrams !== undefined ? Number(body.sampleMassGrams) : 62.5,
+      body.pycnometerVolumeMl !== undefined ? Number(body.pycnometerVolumeMl) : 50.0
+    ));
+    return true;
+  }
+
   // ─── 9. 地圖協同調度與地理圖層 API (Map Pairing & Geo Overlays) ───
 
   if (pathname === '/api/detective/map/pairing-status' && req.method === 'GET') {

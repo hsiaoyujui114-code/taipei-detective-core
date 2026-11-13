@@ -62,8 +62,9 @@ class EvidenceEngine {
         tool_ph_paper: '此物證需檢測酸鹼水溶液性質，請使用廣用 pH 試紙組！',
         tool_uv_torch: '此物證含有微量螢光防偽劑或植物氰苷，需使用 365nm 紫外燈激發！',
         tool_magnifier: '此物證細微處有刮痕或纖維斷裂，請使用光學放大鏡進行微痕觀察！',
-        tool_thermal_oven: '此物證需受熱脫水顯影，請使用溫泉蒸氣顯影烘箱！',
-        tool_water_cylinder: '此物證需測定體積與密度，請使用精密排水量筒！',
+        tool_thermal_oven: '此物證需 140℃ 乾熱脫水低溫炭化顯影（排除潮濕水蒸氣），請使用鑑識專用乾熱熨斗組！',
+        tool_water_cylinder: '此物證需測定體積與密度，請使用廣口高精度 500ml 鑑識玻璃量筒！',
+        tool_cipher_table: '此物證為 1860 年代英國皇家海軍海事旗語代碼，請使用旗語字母頻率對照表破譯 ANCHOR！',
         tool_inertia_gauge: '此物證需分析緊急煞車之受力向量，請使用慣性力矩向量儀！',
         tool_accel_sensor: '此物證涉及公車轉彎向心加速度，請使用向心力加速度感測計！',
         tool_metal_detector: '此物證內部可能暗藏金屬貴重物，請使用便攜金屬探測器！',
@@ -314,6 +315,34 @@ class EvidenceEngine {
         fluorescenceColor: '鮮橙紅色',
         visibleUnderNormalLight: false,
         desc: '央行特種螢光防偽纖維與油墨激發。'
+      },
+      counterfeit_paper: {
+        name: '假鈔普通木漿紙 (含螢光增白劑)',
+        excitationNm: 365,
+        fluorescenceColor: '刺眼亮藍白色',
+        visibleUnderNormalLight: false,
+        desc: '假鈔普通木漿紙添加螢光增白劑，在 365nm 紫外燈下整張泛出刺眼亮藍白色螢光。'
+      },
+      genuine_currency_cotton: {
+        name: '真鈔高級純棉長纖維紙漿',
+        excitationNm: 365,
+        fluorescenceColor: '暗黑吸光底色 (死黑無螢光)',
+        visibleUnderNormalLight: false,
+        desc: '真鈔高級純棉長纖維無螢光增白劑，在 365nm 紫外燈下呈現暗黑吸光底色（死黑）。'
+      },
+      lipophilic_microcapsule_ink: {
+        name: '脂溶性微膠囊隱形防偽螢光油墨',
+        excitationNm: 365,
+        fluorescenceColor: '高濃度黃綠色螢光',
+        visibleUnderNormalLight: false,
+        desc: '脂溶性微膠囊深入指腹脊紋凹槽，擦拭無效，在 365nm 紫光下激發刺眼黃綠色螢光。'
+      },
+      dammar_varnish: {
+        name: '達瑪天然光油 (Dammar Varnish) 殘膠',
+        excitationNm: 365,
+        fluorescenceColor: '特異米黃微弱螢光',
+        visibleUnderNormalLight: false,
+        desc: '1870 年代古典油畫達瑪光油與熟核桃油在 365nm 紫光下顯露特征黏痕。'
       }
     };
 
@@ -427,6 +456,115 @@ class EvidenceEngine {
         residualSubstance: '4 號桌外帶杯蓋飲用孔凡士林殘渣中檢出未完全水解之苦杏仁苷氰苷母體'
       },
       scientificPrinciple: '108 課綱生物化學反應與酵素催化：苦杏仁苷為雙糖植物氰苷。苦杏仁酵素（Emulsin，含 β-葡萄糖苷酶）受 65°C 招牌熱焦糖瑪奇朵弱酸熱蒸氣活化催化水解，在杯蓋狹窄氣室釋放揮發性 HCN 氣體與苯甲醛；未完全反應母體由凡士林疏水保護並經 TLC（Rf=0.42）定性確證，形成完整因果閉環。'
+    };
+  }
+
+  /**
+   * 10. 弱有機酸乾熱脫水炭化與 140℃ 乾熱熨斗顯影演算 (CASE-08 北投溫泉老旅店空白遺書案)
+   * 排除 75℃ 潮濕水蒸氣（水蒸氣提供水分會逆向抑制脫水反應）；
+   * 修正為：365nm 紫光無損初檢（柑橘類黃酮淡黃綠色自體螢光）+ 140℃ 乾熱熨斗隔吸墨紙低溫乾熨 30 秒（檸檬酸催化植物纖維脫水炭化）。
+   * @param {number} ironTempC - 熨斗溫度 (°C，標準 140°C)
+   * @param {number} durationSeconds - 熨燙時間 (秒，標準 30s)
+   * @param {boolean} hasMoisture - 是否存在大量潮濕水蒸氣 (如 75°C 溫泉蒸氣)
+   */
+  runThermalIronCarbonizationAnalysis(ironTempC = 140, durationSeconds = 30, hasMoisture = false) {
+    if (hasMoisture) {
+      return {
+        ironTempC,
+        durationSeconds,
+        hasMoisture,
+        success: false,
+        isCarbonized: false,
+        isDeveloped: false,
+        error: '75℃ 潮濕水蒸氣富含水分，逆向抑制檸檬酸分子間脫水炭化反應，無法顯影！必須使用 140℃ 乾熱熨斗。',
+        chemicalNote: '75℃ 水蒸氣逆向抑制脫水反應',
+        scientificPrinciple: '化學脫水反應平衡：弱有機酸受熱脫水生成碳質（深褐色）為失水反應；高濕度水蒸氣逆向抑制失水，唯有隔吸墨紙之乾熱高溫（135°C~150°C）方能促成植物纖維素催化炭化。'
+      };
+    }
+
+    const isTempAdequate = ironTempC >= 130 && ironTempC <= 160;
+    const isDurationAdequate = durationSeconds >= 20 && durationSeconds <= 45;
+    const isCarbonized = isTempAdequate && isDurationAdequate;
+
+    return {
+      ironTempC,
+      durationSeconds,
+      hasMoisture: false,
+      success: isCarbonized,
+      isCarbonized,
+      isDeveloped: isCarbonized,
+      uvPreCheck: '365nm 紫外燈無損初檢：顯現柑橘類黃酮淡黃綠色微弱自體螢光，初步圈定隱形字跡分佈！',
+      carbonizationVisual: isCarbonized
+        ? '隔吸墨紙均勻乾熨 30 秒後，檸檬酸催化宣紙植物纖維素脫水炭化，浮現清晰深褐色毛筆字跡！'
+        : '乾熨溫度或時間不足，炭化未完成。',
+      chemicalNote: isCarbonized
+        ? '140℃ 乾熱隔吸墨紙低溫乾熨 30 秒使宣紙纖維素脫水炭化'
+        : '乾熨溫度或時間不足',
+      legalEvidenceIntegrity: '全程錄影見證紫光初檢與乾熨顯影全過程，宣紙纖維完好無損，具備完整法定自書遺囑效力！',
+      scientificPrinciple: '108 課綱有機酸熱分解與脫水反應：天然檸檬酸（Citric Acid）為三元弱有機酸，在 140°C 乾熱條件下失去結晶水並催化紙張纖維素分子間脫水炭化，生成共軛不飽和深褐色聚合碳鏈。'
+    };
+  }
+
+  /**
+   * 11. 1860 年代英國皇家海事旗語字母頻率破譯演算 (CASE-07 淡水海關碼頭皇家海事旗語航海箱案)
+   * 128 符號航海日誌草稿，最高頻出現 16 次（佔 12.5%）對應字母「E」，破譯核心關鍵字「ANCHOR（鐵錨）」。
+   * @param {number} totalSymbols - 總符號數 (128)
+   * @param {number} topSymbolCount - 出現頻率最高之旗語符號次數 (16)
+   */
+  runSeaCipherFrequencyAnalysis(totalSymbols = 128, topSymbolCount = 16) {
+    const frequencyPercent = Number(((topSymbolCount / totalSymbols) * 100).toFixed(1));
+    const isMatchedToE = Math.abs(frequencyPercent - 12.7) <= 1.5; // 英文文本中 E 的統計頻率約為 12.7%
+
+    return {
+      totalSymbols,
+      topSymbolCount,
+      frequencyPercent: `${frequencyPercent}%`,
+      frequencyMatchesLetter: isMatchedToE ? 'E (英文最高頻字母，統計頻率 12.7%)' : '非典型頻率',
+      isSolved: isMatchedToE,
+      decodedKeyword: 'ANCHOR',
+      keywordUnlocked: 'ANCHOR',
+      cipherType: '1860 年代英國皇家海事旗語',
+      mechanismUnlocked: '解開 1860 年代英國寶順洋行雙動簧片死鎖阻鐵機構，滑動拼出 A-N-C-H-O-R！',
+      subsoilTrace: '嫌犯沈正德涉水鞋底嵌滿淡水河上游「竹圍至紅樹林自然保護區」特有之水筆仔胚軸纖維與微鹹黑泥，戳破不在場證明！',
+      scientificPrinciple: '108 課綱資訊科技與古典密碼學：單表替換式密碼保留了自然語言的統計字母頻率特徵；在長度 128 符號之西方海事密文中，出現率 12.5% 之符號精確鎖定最高頻母音字母 E，以此為破譯錨點破解關鍵字。'
+    };
+  }
+
+  /**
+   * 12. 實驗室金屬定量比重瓶 (Pycnometer) 恆溫秤重密度演算 (CASE-12 淡水阿給老店醬汁比重案)
+   * 測得真原汁 1.25 g/cm³ vs 假醬汁（自來水調和焦糖色素）1.04 g/cm³。
+   * @param {number} sampleMassGrams - 50ml 比重瓶內樣品淨重 (g)
+   * @param {number} pycnometerVolumeMl - 比重瓶校準容積 (ml，標準 50ml)
+   */
+  runPycnometerDensityAnalysis(sampleMassGrams, pycnometerVolumeMl = 50.0) {
+    if (pycnometerVolumeMl <= 0) return { error: '比重瓶容積必須大於 0' };
+    const density = Number((sampleMassGrams / pycnometerVolumeMl).toFixed(2));
+
+    let sampleType = '未知液體';
+    let isCounterfeitDiluted = false;
+    let isGenuine = false;
+
+    if (Math.abs(density - 1.25) <= 0.03) {
+      sampleType = '阿給老店正宗獨門濃稠原汁 (含釀造糯米醬與天然味噌，密度 1.25 g/cm³)';
+      isGenuine = true;
+    } else if (Math.abs(density - 1.04) <= 0.03) {
+      sampleType = '稀釋假醬汁 (自來水調和焦糖色素，密度僅 1.04 g/cm³)';
+      isCounterfeitDiluted = true;
+    }
+
+    return {
+      sampleMassGrams,
+      pycnometerVolumeMl,
+      calculatedDensity: `${density} g/cm³`,
+      densityGPerMl: density,
+      sampleType,
+      isGenuine,
+      isCounterfeitDiluted,
+      formula: 'ρ = m / V (密度 = 質量 ÷ 體積)',
+      conclusion: isCounterfeitDiluted
+        ? `比重瓶測得密度僅 ${density} g/cm³，與真原汁 1.25 g/cm³ 存在巨大比重差，當場戳破自來水混充焦糖色素之偽裝！`
+        : `比重瓶測得密度 ${density} g/cm³，確認為真原汁！`,
+      scientificPrinciple: '108 課綱溶液與密度測定：高精度比重瓶利用精密毛細孔溢流排除氣泡，精準秤量固定體積下之液體淨重；高濃度發酵醬汁與稀釋色素水之微觀溶質質量差形成顯著密度對比。'
     };
   }
 }

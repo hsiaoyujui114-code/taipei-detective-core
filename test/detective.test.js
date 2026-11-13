@@ -124,6 +124,37 @@ const soundDelay = engine.evidenceEngine.runAcousticDelayCalculation(300, 20);
 assert(soundDelay.travelTimeSeconds < 1.0, '300m 聲速傳播應在 1 秒以內');
 console.log(`✅ [3.7] 常溫聲速計算成功：300 公尺僅需 ${soundDelay.travelTimeSeconds} 秒，戳破 20 分鐘延遲謊言`);
 
+// 3.8 弱有機酸 140℃ 乾熱熨斗脫水低溫炭化驗證 (Case 08 北投溫泉空白遺書案)
+const steamSuppressedRes = engine.evidenceEngine.runThermalIronCarbonizationAnalysis(75, 30, true);
+assert(!steamSuppressedRes.isDeveloped, '75°C 水蒸氣富含水分應抑制檸檬酸脫水炭化');
+const ironSuccessRes = engine.evidenceEngine.runThermalIronCarbonizationAnalysis(140, 30, false);
+assert(ironSuccessRes.isDeveloped, '140°C 隔吸墨紙乾熨 30 秒應成功催化脫水炭化顯影');
+console.log(`✅ [3.8] 乾熱熨斗低溫炭化顯影驗證成功：${ironSuccessRes.chemicalNote} (排除水蒸氣干擾)`);
+
+// 3.9 1860 年代皇家海事旗語字母頻率統計破譯驗證 (Case 07 淡水海關碼頭旗語日誌案)
+const cipherRes = engine.evidenceEngine.runSeaCipherFrequencyAnalysis(128, 16);
+assert(cipherRes.isSolved, '128 符號中最高頻率 12.5% 對應母音 E 應成功破譯');
+assert.strictEqual(cipherRes.keywordUnlocked, 'ANCHOR', '破譯核心關鍵字必須為 ANCHOR (鐵錨)');
+console.log(`✅ [3.9] 海事旗語字母頻率破譯驗證成功：${cipherRes.cipherType} 破譯核心詞 [${cipherRes.keywordUnlocked}]`);
+
+// 3.10 比重瓶恆溫秤重法密度檢驗 (Case 12 淡水阿給醬汁比重案)
+const genuineSauceRes = engine.evidenceEngine.runPycnometerDensityAnalysis(125.0, 100.0);
+assert(genuineSauceRes.isGenuine, '1.25 g/cm³ 應判定為真品老店原汁');
+const fakeSauceRes = engine.evidenceEngine.runPycnometerDensityAnalysis(104.0, 100.0);
+assert(!fakeSauceRes.isGenuine, '1.04 g/cm³ 應判定為稀釋造假醬汁');
+console.log(`✅ [3.10] 金屬定量比重瓶密度檢驗成功：真原汁 ${genuineSauceRes.densityGPerMl} g/cm³ vs 假醬汁 ${fakeSauceRes.densityGPerMl} g/cm³`);
+
+// 3.11 365nm UV 紫外光防偽與微膠囊油墨檢驗 (Case 03, Case 11, Case 13)
+const uvPaperCounterfeit = engine.evidenceEngine.runUvFluorescenceAnalysis(365, 'counterfeit_paper');
+assert(uvPaperCounterfeit.observedFluorescence.includes('刺眼亮藍白'), '木漿假鈔在 365nm 下應激發刺眼亮藍白螢光');
+const uvCottonGenuine = engine.evidenceEngine.runUvFluorescenceAnalysis(365, 'genuine_currency_cotton');
+assert(uvCottonGenuine.observedFluorescence.includes('死黑'), '純棉真鈔紙在 365nm 下應呈現吸光死黑');
+const uvMicrocapsule = engine.evidenceEngine.runUvFluorescenceAnalysis(365, 'lipophilic_microcapsule_ink');
+assert(uvMicrocapsule.isExcited, '脂溶性微膠囊油墨應激發黃綠色螢光');
+const uvDammar = engine.evidenceEngine.runUvFluorescenceAnalysis(365, 'dammar_varnish');
+assert(uvDammar.isExcited, '達瑪天然光油應激發特異螢光');
+console.log(`✅ [3.11] 365nm 紫外光防偽與微膠囊鑑識驗證成功：木漿亮藍白螢光、純棉吸光死黑、微膠囊黃綠色`);
+
 // ─── 階段 4：三軌背包與親赴現場驗證機制 (Round 100 規格) ───
 // 4.1 💰 門市購買親赴驗證 (<= 60m 享 85 折到店優惠，> 60m 拒絕並提示距離)
 // 4.1.1 距離門市 > 60m 嘗試購買：必須被拒絕並回傳不能購買與距離提示
@@ -560,7 +591,32 @@ assert.strictEqual(hydroApiRes.data.chemicalClassification, '雙糖植物氰苷 
 assert.strictEqual(hydroApiRes.data.beverage, '招牌熱焦糖瑪奇朵');
 assert(hydroApiRes.data.isEnzymeActive);
 
-console.log('✅ [9.12] 偵探核心 REST API 路由器全面無縫對接驗證通過 (100% 覆蓋，含 50 案全集與苦杏仁苷水解演算)');
+// 驗證 140℃ 乾熱熨燙顯影 API 端點
+const ironApiRes = await callApi('POST', '/api/detective/science/thermal-iron', {
+  ironTempC: 140,
+  durationSeconds: 30,
+  hasMoisture: false
+});
+assert.strictEqual(ironApiRes.code, 200);
+assert(ironApiRes.data.isDeveloped);
+
+// 驗證海事旗語頻率分析 API 端點
+const cipherApiRes = await callApi('POST', '/api/detective/science/sea-cipher', {
+  totalSymbols: 128,
+  topSymbolCount: 16
+});
+assert.strictEqual(cipherApiRes.code, 200);
+assert.strictEqual(cipherApiRes.data.keywordUnlocked, 'ANCHOR');
+
+// 驗證比重瓶密度檢驗 API 端點
+const pycApiRes = await callApi('POST', '/api/detective/science/pycnometer', {
+  sampleMassGrams: 125,
+  pycnometerVolumeMl: 100
+});
+assert.strictEqual(pycApiRes.code, 200);
+assert(pycApiRes.data.isGenuine);
+
+console.log('✅ [9.12] 偵探核心 REST API 路由器全面無縫對接驗證通過 (100% 覆蓋，含 50 案全集、苦杏仁苷水解、乾熱熨燙、海事旗語與比重瓶演算)');
 
 console.log('✅ [9] 地圖系統 (Leaflet / Web) 雙向 Pub/Sub 事件協議與 MapPairingCoordinator 協同調度 100% 正常');
 

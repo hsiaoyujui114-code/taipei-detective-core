@@ -83,10 +83,10 @@
   },
   {
     "id": "tool_cipher_table",
-    "name": "十九世紀英文旗語頻率對照表",
+    "name": "1860 年代英國皇家海軍海事旗語字母頻率對照表",
     "track": "tool",
     "type": "cipher",
-    "description": "單表替換式密碼解碼專用，依英文字母出現頻率（E, T, A）統計解密。"
+    "description": "單表替換式密碼解碼專用，依 128 符號中最高頻率 12.5% 鎖定字母 E，破譯關鍵字 ANCHOR。"
   },
   {
     "id": "tool_tide_gauge",
@@ -97,17 +97,17 @@
   },
   {
     "id": "tool_thermal_oven",
-    "name": "溫泉蒸氣微溫安全顯影烘箱",
+    "name": "140℃ 鑑識專用乾熱熨斗與隔熱吸墨紙組",
     "track": "tool",
     "type": "thermal",
-    "description": "提供 75°C~85°C 溫泉蒸氣微溫烘烤環境，促使弱有機酸脫水炭化。"
+    "description": "排除潮濕水蒸氣，以 140°C 乾熱熨燙 30 秒使弱有機酸（檸檬酸）催化纖維素低溫脫水炭化顯影。"
   },
   {
     "id": "tool_bamboo_tongs",
     "name": "加長防燙竹夾與隔熱鑷子",
     "track": "tool",
     "type": "apparatus",
-    "description": "安全夾持紙張證物置於蒸氣上方，避免手部燙傷或污染紙質。"
+    "description": "安全夾持宣紙與吸墨紙證物，避免手部燙傷或污染紙質。"
   },
   {
     "id": "tool_shadow_rod",
@@ -128,35 +128,35 @@
     "name": "便攜微霧熱水蒸氣罐",
     "track": "tool",
     "type": "physical",
-    "description": "噴灑細微熱水霧，在低溫玻璃表面遇冷凝結成微露珠顯現指紋油脂。"
+    "description": "噴灑細微熱水霧，在冷藏櫃正面展示拉門外緣與專用透明壓克力展示側檔板表面遇冷凝結顯影油脂指紋。"
   },
   {
     "id": "tool_inertia_gauge",
     "name": "三軸慣性力矩向量儀",
     "track": "tool",
     "type": "mechanics",
-    "description": "分析車輛緊急煞車時之加速度向量與人體慣性撲倒方向。"
+    "description": "分析捷運 -1.3 m/s² ATP 急煞及轉彎時之受力向量與反作用力支點平衡。"
   },
   {
     "id": "tool_accel_sensor",
     "name": "高精度加速度與轉彎向心力計",
     "track": "tool",
     "type": "mechanics",
-    "description": "記錄捷運及公車轉彎時的向心加速度與靜摩擦係數。"
+    "description": "記錄 307 公車右轉與煞車合成向量（指向左前方約 45 度）及靜摩擦係數。"
   },
   {
     "id": "tool_equal_balance",
-    "name": "傳統中藥等臂天平與標準砝碼組",
+    "name": "祖傳雙盤純銅等臂天平與標準砝碼組",
     "track": "tool",
     "type": "measurement",
-    "description": "利用力矩平衡槓桿原理精密秤量微克藥材與金屬配重。"
+    "description": "依力矩平衡槓桿原理（L1·m1 = L2·m2）精密秤量藥材與 500g 實心銅砝碼配重。"
   },
   {
     "id": "tool_water_cylinder",
-    "name": "精密玻璃排水量筒 (100ml)",
+    "name": "廣口高精度 500ml 鑑識玻璃量筒 (口徑 6.5cm)",
     "track": "tool",
     "type": "measurement",
-    "description": "阿基米德排水法測量不規則固體體積，換算精確密度 D=M/V。"
+    "description": "口徑 6.5cm 可順暢容納 500g 實心銅砝碼，以阿基米德排水法測量體積並換算密度 D=M/V。"
   },
   {
     "id": "tool_metal_detector",
@@ -170,7 +170,7 @@
     "name": "受力面積與壓強測定計算板",
     "track": "tool",
     "type": "mechanics",
-    "description": "依物理壓強公式 P=F/A 計算接地面積、重量與土壤飽和剪切屈服值。"
+    "description": "依物理壓強公式 P=F/A 計算特製大排泥板鞋（65cm×35cm）壓強 3.2 kPa < 3.5 kPa 土壤剪切極限。"
   },
   {
     "id": "tool_soil_sampler",
@@ -229,43 +229,43 @@
   },
   {
     "id": "ev_03_cipher_brick",
-    "name": "淡水紅毛城航海旗語代碼磚",
+    "name": "1860 年代英國皇家海軍海事旗語航海日誌草稿",
     "track": "evidence",
     "caseId": "case_03",
-    "description": "燒製黏土磚面上刻有 26 尊跳舞旗語小人。",
-    "scienceAspect": "替換式密碼頻率分析"
+    "description": "保險箱正面 128 符號航海草稿，最高頻出現 16 次（佔 12.5%）對應字母 E，破譯關鍵字 ANCHOR（鐵錨）。",
+    "scienceAspect": "古典單表替換密碼頻率分析"
   },
   {
     "id": "ev_03_tide_chart",
-    "name": "江語晨手寫潮汐差計算便箋",
+    "name": "沈正德涉水鞋底嵌泥與胚軸纖維鑑識報告",
     "track": "evidence",
     "caseId": "case_03",
-    "description": "計算淡水河口乾潮與滿潮落差 2.8 公尺的水位記錄，散發玫瑰香氣。",
-    "scienceAspect": "淡水河口潮汐深度計算"
+    "description": "防滑涉水鞋底嵌滿淡水河上游竹圍至紅樹林自然保護區特有之水筆仔胚軸纖維與微鹹黑泥。",
+    "scienceAspect": "河口潮間帶地質與植物微物鑑識"
   },
   {
     "id": "ev_03_pocket_watch",
-    "name": "保溫杯底座暗格搜出之純銀懷錶",
+    "name": "寶順洋行雙動簧片死鎖保險箱與純銀懷錶",
     "track": "evidence",
     "caseId": "case_03",
-    "description": "清代開港英國純銀雕花懷錶，旋鈕帶有玫瑰護手霜精油微痕。",
-    "scienceAspect": "光學微痕與精油光譜比對"
+    "description": "1860 年代英國雙動簧片死鎖阻鐵機構（因砂輪機切傷卡死），內藏開港純銀雕花懷錶。",
+    "scienceAspect": "機械鎖阻鐵力學與金屬微痕比對"
   },
   {
     "id": "ev_04_blank_will",
-    "name": "紅木書桌上的空白宣紙遺書",
+    "name": "夾於《周易》內頁之未裝封空白宣紙遺囑",
     "track": "evidence",
     "caseId": "case_04",
-    "description": "看似空白的宣紙，局部纖維有微量弱有機酸硬化。",
-    "scienceAspect": "弱有機酸熱脫水炭化顯影"
+    "description": "老先生沾檸檬汁書寫之宣紙遺書，365nm 紫光顯現淡黃綠自體螢光，140℃ 乾熨 30 秒脫水炭化浮現字跡。",
+    "scienceAspect": "弱有機酸 140℃ 乾熱脫水炭化顯影"
   },
   {
     "id": "ev_04_steam_tray",
-    "name": "庭院溫泉天然蒸氣出風口",
+    "name": "陳阿財侍奉五十年火漆完好信封與見證錄影",
     "track": "evidence",
     "caseId": "case_04",
-    "description": "北投青磺泉 85°C 天然蒸氣，帶有微量硫磺味。",
-    "scienceAspect": "蒸氣熱對流溫度控制"
+    "description": "陳阿財（68 歲，侍奉整整五十年）按火漆完好交付之信封，見證律師全程錄影確認自書遺囑效力。",
+    "scienceAspect": "印鑑火漆完整性與法律鑑識證明"
   },
   {
     "id": "ev_04_secret_contract",
@@ -301,11 +301,11 @@
   },
   {
     "id": "ev_06_cold_glass_print",
-    "name": "冷藏櫃低溫玻璃門水汽散射指紋",
+    "name": "冷藏櫃正面展示拉門外緣與壓克力側檔板水汽指紋",
     "track": "evidence",
     "caseId": "case_06",
-    "description": "4°C 玻璃遇外界熱水汽凝結成微細露珠顯影的指紋痕跡。",
-    "scienceAspect": "露點水汽凝結光學散射"
+    "description": "4℃ 壓克力側檔板遇溫濕空氣露點凝結漫散射，反手支撐皮脂阻隔水膜顯現清晰指紋。",
+    "scienceAspect": "露點水汽凝結光學折射與皮脂疏水性"
   },
   {
     "id": "ev_06_uv_glove",
@@ -317,51 +317,51 @@
   },
   {
     "id": "ev_06_gold_card",
-    "name": "孫韻婷大衣袖口內襯起獲之特典金卡",
+    "name": "展示盒扣環脂溶性微膠囊隱形防偽螢光殘留",
     "track": "evidence",
     "caseId": "case_06",
-    "description": "限量動漫特典金卡，印有螢光防偽印章。",
-    "scienceAspect": "365nm UV 螢光激發"
+    "description": "脂溶性微膠囊油墨深入指腹脊紋凹槽擦拭無效，365nm 紫光激發高濃度黃綠色螢光。",
+    "scienceAspect": "365nm UV 脂溶性微膠囊螢光激發"
   },
   {
     "id": "ev_07_wrist_strain",
-    "name": "彭曉嵐右腕逆向抗加速度深紅勒痕",
+    "name": "周啟凡反扣固定鋼柱反作用力抗衡拉傷勒痕",
     "track": "evidence",
     "caseId": "case_07",
-    "description": "右腕由前向後反向抓握立柱產生的逆向摩擦挫傷。",
-    "scienceAspect": "牛頓第一運動定律慣性力矩"
+    "description": "雙手反扣固定鋼柱作為反作用力支點，以手臂拉力與立柱槓桿抗拒 -1.3 m/s² ATP 急煞前衝。",
+    "scienceAspect": "牛頓第一運動定律與反作用力槓桿"
   },
   {
     "id": "ev_07_anti_slip_shoes",
-    "name": "彭曉嵐特殊高摩擦力防滑登山鞋底",
+    "name": "車門 EED 手動排氣閥檢修槽起獲之磷銅導電短路片",
     "track": "evidence",
     "caseId": "case_07",
-    "description": "深齒輪吸盤橡膠，靜摩擦係數高達 0.85。",
-    "scienceAspect": "摩擦力與加速度平衡"
+    "description": "車廂門側緊急手動排氣閥檢修槽插入磷銅導電短路片，人為誘發 ATP 系統 -1.3 m/s² 保護急煞。",
+    "scienceAspect": "電路短路與號誌保護機制"
   },
   {
     "id": "ev_07_chip_briefcase",
-    "name": "彭曉嵐大號手提袋暗格內的兩奈米晶片",
+    "name": "周啟凡調包公事包起獲之先進製程晶片",
     "track": "evidence",
     "caseId": "case_07",
-    "description": "刻有專利科技雷射標籤之防靜電封裝晶圓盒。",
-    "scienceAspect": "光學微標雷射防偽比對"
+    "description": "長版風衣與長傘遮擋行車 CCTV 下盤 3 秒死角，低位翻滾勾出調包之兩奈米專利晶片。",
+    "scienceAspect": "光學微標雷射防偽與監視器視角死角分析"
   },
   {
     "id": "ev_08_hollow_weight",
-    "name": "天平右盤配套之 50g 銅砝碼",
+    "name": "祖傳雙盤純銅等臂天平配套之 500g 掏空銅砝碼",
     "track": "evidence",
     "caseId": "case_08",
-    "description": "外表完好但內部被車床掏空的黃銅砝碼。",
-    "scienceAspect": "排水量筒測量體積換算密度 D=M/V"
+    "description": "外表完好但內部被車床掏空的 500g 黃銅砝碼，置於 500ml 廣口量筒測出密度僅 6.6 g/cm³ < 8.5 g/cm³。",
+    "scienceAspect": "500ml 廣口量筒阿基米德排水法測量密度 D=M/V"
   },
   {
     "id": "ev_08_graduated_cylinder",
-    "name": "調包假山蔘內部注鉛痕跡",
+    "name": "假山蔘無水酒精與防腐樹脂微膠囊超聲波定型痕",
     "track": "evidence",
     "caseId": "case_08",
-    "description": "曬乾山蘿蔔根中心鑽孔注入金屬鉛補重。",
-    "scienceAspect": "工具微痕與植物組織切片"
+    "description": "白蘿蔔經無水酒精脫水與防腐樹脂微膠囊超聲波定型，注鉛補重以維持 190g 假人蔘不腐。",
+    "scienceAspect": "生化防腐樹脂微膠囊與超聲波定型鑑識"
   },
   {
     "id": "ev_08_wild_ginseng",
@@ -373,19 +373,19 @@
   },
   {
     "id": "ev_09_bus_turn_vector",
-    "name": "307 公車右轉向心加速度運動軌跡圖",
+    "name": "307 公車右轉急煞合成加速度向量圖 (指向左前 45 度)",
     "track": "evidence",
     "caseId": "case_09",
-    "description": "陀螺儀記錄右轉彎離心力必指向左側，馬致遠反向朝右跨步。",
-    "scienceAspect": "向心力與轉彎慣性向量"
+    "description": "右轉向左離心力 + 急煞向前慣性力合成向量指向左前方約 45 度；胡振興右上臂肌肉相向收縮抗力。",
+    "scienceAspect": "向心加速度與合成慣性力學向量"
   },
   {
     "id": "ev_09_heel_hidden_slot",
-    "name": "馬致遠右腳特製加厚皮鞋鞋跟",
+    "name": "4K 全景俯瞰鏡頭錄下之右臂石膏施力調包影像",
     "track": "evidence",
     "caseId": "case_09",
-    "description": "厚度 4.5 公分的皮鞋鞋跟，暗藏旋轉卡榫暗槽。",
-    "scienceAspect": "高靈敏金屬探測感應"
+    "description": "胡振興身高 183cm 且石膏右手高舉頂住橫桿高於人流，走道中央 4K 俯瞰鏡頭清晰錄下發力與調包。",
+    "scienceAspect": "4K 廣角俯瞰影像分析與生物力學"
   },
   {
     "id": "ev_09_grandma_wallet",
@@ -397,26 +397,26 @@
   },
   {
     "id": "ev_10_cork_snowshoe",
-    "name": "排水大管隱蔽起獲之特製超大受力面積軟木套鞋",
+    "name": "特製超輕碳纖維滑行大排泥板鞋 (65cm×35cm)",
     "track": "evidence",
     "caseId": "case_10",
-    "description": "長 55cm、寬 36cm，接地面積達 2000cm² 之軟木底板。",
-    "scienceAspect": "物理壓強 P=F/A 與剪切強度"
+    "description": "底層疏水特氟龍，接地面積達 4550cm²，壓強分散至 3.2 kPa < 3.5 kPa 土壤剪切極限，壓折草葉角質層。",
+    "scienceAspect": "物理壓強 P=F/A 與草葉角質層紫外線漫反射折射差"
   },
   {
     "id": "ev_10_soil_pressure_gauge",
-    "name": "草坪微痕步幅幾何測定報告",
+    "name": "草坪微痕步幅與涉水跳石時序測定報告",
     "track": "evidence",
     "caseId": "case_10",
-    "description": "草葉倒伏光學掃描，顯示 85 公分規律步態折痕。",
-    "scienceAspect": "土壤力學與草葉彈性變形"
+    "description": "趙宏博穿越涉水跳石去公廁器材棚拿雨套（來回 6 至 8 分鐘），草葉留下特氟龍壓折漫反射痕跡。",
+    "scienceAspect": "土壤剪切力學與步態幾何分析"
   },
   {
     "id": "ev_10_stolen_telescope",
-    "name": "孫耀輝景觀修剪小貨車防水帆布底起獲之望遠鏡筒",
+    "name": "堆肥桶起獲之 600mm F4 巨砲鏡頭與 CFexpress 記憶卡",
     "track": "evidence",
     "caseId": "case_10",
-    "description": "德國頂級消色差天文望遠鏡筒，帶有專用手套麻纖維。",
-    "scienceAspect": "光學微痕比對"
+    "description": "堆肥桶起獲 600mm F4 巨砲鏡頭、旗艦機身與 CFexpress Type B 高速記憶卡（含 8K RAW 原始檔）。",
+    "scienceAspect": "現代數位全片幅攝影器材與高速儲存鑑識"
   }
 ]
