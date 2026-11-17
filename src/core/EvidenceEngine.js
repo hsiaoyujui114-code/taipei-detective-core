@@ -317,18 +317,18 @@ class EvidenceEngine {
         desc: '央行特種螢光防偽纖維與油墨激發。'
       },
       counterfeit_paper: {
-        name: '假鈔普通木漿紙 (含螢光增白劑)',
+        name: '假鈔普通木漿紙 (含化學螢光增白劑)',
         excitationNm: 365,
-        fluorescenceColor: '刺眼亮藍白色',
+        fluorescenceColor: '刺眼亮藍白色 (主波長 420~460nm)',
         visibleUnderNormalLight: false,
-        desc: '假鈔普通木漿紙添加螢光增白劑，在 365nm 紫外燈下整張泛出刺眼亮藍白色螢光。'
+        desc: '假鈔普通木漿紙添加螢光增白劑，在 365nm 紫外燈下整張泛出刺眼亮藍白色螢光 (420~460nm)，與真鈔棉漿暗黑底色（死黑）對比強烈。'
       },
       genuine_currency_cotton: {
         name: '真鈔高級純棉長纖維紙漿',
         excitationNm: 365,
         fluorescenceColor: '暗黑吸光底色 (死黑無螢光)',
         visibleUnderNormalLight: false,
-        desc: '真鈔高級純棉長纖維無螢光增白劑，在 365nm 紫外燈下呈現暗黑吸光底色（死黑）。'
+        desc: '真鈔高級純棉長纖維無化學螢光增白劑，在 365nm 紫外燈下呈現暗黑吸光底色（死黑）。'
       },
       lipophilic_microcapsule_ink: {
         name: '脂溶性微膠囊隱形防偽螢光油墨',
@@ -338,11 +338,18 @@ class EvidenceEngine {
         desc: '脂溶性微膠囊深入指腹脊紋凹槽，擦拭無效，在 365nm 紫光下激發刺眼黃綠色螢光。'
       },
       dammar_varnish: {
-        name: '達瑪天然光油 (Dammar Varnish) 殘膠',
+        name: '達瑪天然樹脂光油 (Dammar Varnish) 殘膠',
         excitationNm: 365,
-        fluorescenceColor: '特異米黃微弱螢光',
+        fluorescenceColor: '天青色特異螢光 (主波長 460~490nm)',
         visibleUnderNormalLight: false,
-        desc: '1870 年代古典油畫達瑪光油與熟核桃油在 365nm 紫光下顯露特征黏痕。'
+        desc: '1870 年代古典油畫達瑪光油 (Dammar Varnish) 與熟核桃油在 365nm 紫光下顯露特征天青色螢光，殘留於嫌犯指縫與微距鏡頭遮光罩外緣。'
+      },
+      grass_cuticle_diffuse: {
+        name: '禾本科草葉角質層受壓光學漫反射折射差',
+        excitationNm: 365,
+        fluorescenceColor: '角質層受壓光學漫反射折射差 (無凹陷泥印)',
+        visibleUnderNormalLight: false,
+        desc: '草葉角質層受 65cm×35cm 碳纖大排泥板鞋 3.2 kPa 壓強分攤（低於 3.5 kPa 土壤剪切極限）單向倒伏，在 365nm 紫光斜射下顯現漫反射折射差，浮現 85cm 步幅。'
       }
     };
 
@@ -532,7 +539,9 @@ class EvidenceEngine {
 
   /**
    * 12. 實驗室金屬定量比重瓶 (Pycnometer) 恆溫秤重密度演算 (CASE-12 淡水阿給老店醬汁比重案)
-   * 測得真原汁 1.25 g/cm³ vs 假醬汁（自來水調和焦糖色素）1.04 g/cm³。
+   * 糊狀高黏度流體與金屬定量比重瓶恆溫秤重法：
+   * 測得真原汁 1.25 g/cm³ vs 假稀釋水（自來水調和焦糖色素）1.04 g/cm³。
+   * 高震東偷換假水後浮力感應閥卡死。
    * @param {number} sampleMassGrams - 50ml 比重瓶內樣品淨重 (g)
    * @param {number} pycnometerVolumeMl - 比重瓶校準容積 (ml，標準 50ml)
    */
@@ -552,19 +561,183 @@ class EvidenceEngine {
       isCounterfeitDiluted = true;
     }
 
+    const floatValveStuck = isCounterfeitDiluted;
+    const floatValveMechanics = isCounterfeitDiluted
+      ? '高震東偷換假稀釋水（1.04 g/cm³）後，原本殘留的高黏稠非牛頓流體原汁糊住閥門，加上假水密度不足，導致耐高壓金屬球型浮標之浮力感應閥卡死！'
+      : '正宗原汁黏稠度與浮力平衡，耐高壓金屬球型浮標抗黏滯密碼槽正常運作。';
+
     return {
       sampleMassGrams,
       pycnometerVolumeMl,
       calculatedDensity: `${density} g/cm³`,
       densityGPerMl: density,
+      fluidProperty: '高黏稠非牛頓流體 (含釀造糯米醬、味噌與紅糟澱粉勾芡)',
       sampleType,
       isGenuine,
       isCounterfeitDiluted,
+      floatValveStuck,
+      floatValveMechanics,
       formula: 'ρ = m / V (密度 = 質量 ÷ 體積)',
       conclusion: isCounterfeitDiluted
-        ? `比重瓶測得密度僅 ${density} g/cm³，與真原汁 1.25 g/cm³ 存在巨大比重差，當場戳破自來水混充焦糖色素之偽裝！`
+        ? `比重瓶測得密度僅 ${density} g/cm³，與真原汁 1.25 g/cm³ 存在巨大比重差，且引發浮力感應閥卡死，當場戳破自來水混充焦糖色素之偽裝！`
         : `比重瓶測得密度 ${density} g/cm³，確認為真原汁！`,
       scientificPrinciple: '108 課綱溶液與密度測定：高精度比重瓶利用精密毛細孔溢流排除氣泡，精準秤量固定體積下之液體淨重；高濃度發酵醬汁與稀釋色素水之微觀溶質質量差形成顯著密度對比。'
+    };
+  }
+
+  /**
+   * 13. 國際標準海事雙旗旗語角度幾何解碼演算 (CASE-11 淡水紅毛城英國領事官邸旗語案)
+   * 標準海事旗語角度定義：
+   * - C: 45° / 270°
+   * - R: 90° / 270°
+   * - O: 90° / 45°
+   * - W: 270° / 315°
+   * - P: 270° / 0°
+   * 破譯密碼關鍵字：C-R-O-W (渡鴉)
+   * 割畫動機：湮滅旗語解碼圖案，防止壁爐渡鴉暗格機關被破解！
+   * 達瑪樹脂光油：遮光罩外緣與指縫殘留天青色螢光。
+   * @param {Array<Array<number>>} anglePairs - 各信號角度組合 [[45, 270], [90, 270], [90, 45], [270, 315]]
+   */
+  runSemaphoreFlagAngleAnalysis(anglePairs = [[45, 270], [90, 270], [90, 45], [270, 315]]) {
+    const semaphoreMap = [
+      { letter: 'C', angles: [45, 270], desc: '右手斜上 45° / 左手水準左 270°' },
+      { letter: 'R', angles: [90, 270], desc: '右手水準右 90° / 左手水準左 270°' },
+      { letter: 'O', angles: [90, 45], desc: '右手水準右 90° / 左手斜上 45°' },
+      { letter: 'W', angles: [270, 315], desc: '左手水準左 270° / 右手斜左上 315°' },
+      { letter: 'P', angles: [270, 0], desc: '左手水準左 270° / 右手垂直上 0°' }
+    ];
+
+    function matchAnglePair(pair) {
+      if (!Array.isArray(pair) || pair.length < 2) return '?';
+      const [a1, a2] = pair;
+      for (const entry of semaphoreMap) {
+        const [targetA, targetB] = entry.angles;
+        const directMatch = Math.abs(a1 - targetA) <= 5 && Math.abs(a2 - targetB) <= 5;
+        const reverseMatch = Math.abs(a1 - targetB) <= 5 && Math.abs(a2 - targetA) <= 5;
+        if (directMatch || reverseMatch) return entry.letter;
+      }
+      return '?';
+    }
+
+    const decodedLetters = anglePairs.map(p => matchAnglePair(p));
+    const decodedWord = decodedLetters.join('');
+    const isCrowMatched = decodedWord === 'CROW';
+
+    return {
+      anglePairsInput: anglePairs,
+      decodedLetters,
+      decodedWord,
+      isCrowMatched,
+      targetMechanism: '英國領事官邸二樓主臥壁爐純銅渡鴉（CROW）暗格機關',
+      motiveAnalysis: '割畫動機判定：真兇割開《淡水夕照》油畫旨在「湮滅旗語解碼圖案」，企圖掩蓋渡鴉暗格開啟順序！',
+      dammarVarnishEvidence: '嫌犯右手食指指縫與單眼相機微距鏡頭遮光罩外緣，檢出 1870 年代古典達瑪樹脂光油 (Dammar Varnish) 天青色特異螢光 (460~490nm)！',
+      keyRecovered: '自嫌犯隨身起獲訂製三稜暗格銅鑰匙，與壁爐渡鴉暗格鎖孔 100% 嚙合！',
+      scientificPrinciple: '108 課綱幾何向量與古典通訊編碼：國際海事旗語利用人體雙臂以身體中垂線為基準之極坐標離散角度（45度為增量單位）建立 26 個字母之一對一雙射映射。'
+    };
+  }
+
+  /**
+   * 14. 新台幣千元鈔券純棉長纖維 vs 假鈔木漿螢光鑑識演算 (CASE-13 艋舺夜市偽鈔案)
+   * 真鈔：100% 頂級純長纖維棉漿，無化學螢光增白劑，365nm 下暗黑吸光（死黑底色）。
+   * 假鈔：普通木漿紙添加化學螢光增白劑，365nm 下激發刺眼亮藍白螢光 (主波長 420~460nm)。
+   * 流水號：同版印刷偽造流水號 FL882888UB。
+   * 人物口供與身分鏈：周文彬（外送腰包無千元大鈔，送餐收到零錢）、受害人林金土（胡椒餅老店主）、真兇郭朝陽（成衣加工廠兼職打雜工）。
+   */
+  runCurrencyForensicAnalysis({
+    paperMaterial = 'wood_pulp',
+    hasOpticalBrightener = true,
+    serialNumber = 'FL882888UB',
+    suspectId = 'guo_chaoyang'
+  } = {}) {
+    const isCounterfeit = paperMaterial.includes('wood') || hasOpticalBrightener || serialNumber === 'FL882888UB';
+
+    const fluorescenceDescription = isCounterfeit
+      ? '365nm 紫光照射下，整張券面強烈激發刺眼亮藍白色螢光 (主波長 420~460nm)，電子自激發態退激發發射高能量藍白光！'
+      : '365nm 紫光照射下，紙張呈現暗黑吸光底色 (死黑底色)，無任何化學螢光增白劑殘留，僅防偽纖維點狀激發！';
+
+    return {
+      paperMaterial,
+      hasOpticalBrightener,
+      serialNumber,
+      isCounterfeit,
+      fluorescenceDescription,
+      serialNumberStatus: serialNumber === 'FL882888UB'
+        ? '同版印刷偽造流水號【FL882888UB】，墨水無磁性無凹版印刷凸起感！'
+        : '正常流水號序',
+      alibiVerification: {
+        courierStatement: '外送員周文彬送餐僅收取零錢，其隨身外送腰包內經搜查完全無千元大鈔，口供自洽！',
+        victimStore: '艋舺廣州街夜市胡椒餅老店主林金土，於找零 900 元交易時收取該偽鈔',
+        culpritIdentity: '郭朝陽（成衣加工廠兼職打雜工），利用職務之便燙印裁切偽鈔',
+        incidentLocation: '萬華龍山寺後巷與青草巷徒步區'
+      },
+      scientificPrinciple: '108 課綱有機光化學與分子激發：化學螢光增白劑（雙二苯乙烯類化合物）分子吸收 365nm 近紫外光電子躍遷至第一激發單重態，退激發時在 420~460nm 藍光區釋放強烈螢光；真鈔純長纖維棉漿不含共軛發色增白基團，保持光學死黑吸光性。'
+    };
+  }
+
+  /**
+   * 15. 古典 5×5 漢字矩陣與五行相生置換旋轉解碼演算 (CASE-14 剝皮寮歷史街區藥籤暗語案)
+   * 五行相生次序：木 ➔ 火 ➔ 土 ➔ 金 ➔ 水 ➔ 木。
+   * 依五行相生置換旋轉提取，解碼 12 字藏寶座標：『福祥街三進中柱雀替斗栱下』！
+   * 暗格現場狀態：高處雀替暗格昨夜未被開啟，封塵未動！
+   * 指紋遺留：展櫃玻璃、去光水瓶身、黃紙抄錄草稿背面。
+   */
+  runFiveElementsMatrixAnalysis(matrix5x5, elementSequence = ['木', '火', '土', '金', '水']) {
+    // 預設 5x5 藥籤漢字矩陣（依《本草綱目》藥材五行性味分類排列）
+    const defaultGrid = [
+      ['福', '青', '柴', '黃', '祥'],
+      ['當', '街', '連', '三', '歸'],
+      ['厚', '進', '中', '柱', '朴'],
+      ['白', '芍', '雀', '替', '朮'],
+      ['斗', '栱', '下', '甘', '草']
+    ];
+
+    const targetCoordinate = '福祥街三進中柱雀替斗栱下';
+
+    return {
+      matrixDimension: '5 × 5 漢字矩陣 (25 字)',
+      elementSequenceRule: '五行相生次序：木生火、火生土、土生金、金生水、水生木',
+      decodedCoordinate: targetCoordinate,
+      characterCount: 12,
+      hiddenChamberStatus: {
+        location: '剝皮寮歷史街區福祥街老中藥行三進木構造高處雀替斗栱暗格',
+        isOpenedLastNight: false,
+        dustIntegrity: '暗格位於離地 3.5 米高處，昨夜未被開啟！暗格邊縫陳年積塵與蛛網完全完好未動，內部《青草防癘驗方手札》完好未失！',
+        rationale: '真兇受限於作案時間與高度工具不足，昨夜僅成功用去光水溶膠抄錄展櫃內的藥籤密碼草稿，尚未動手開啟高處雀替暗格！'
+      },
+      latentFingerprints: [
+        '展櫃玻璃外框下緣左手支撐掌紋',
+        '丟棄於洗手槽之乙酸乙酯去光水瓶身指紋',
+        '嫌犯隨身起獲之黃紙抄錄草稿背面右手食指清晰脊紋'
+      ],
+      scientificPrinciple: '108 課綱矩陣轉換與古典密碼學：二維矩陣置換密碼透過預設置換向量（Permutation Vector）打亂字元空間分佈；結合傳統五行性味分類法作為公鑰，唯有掌握五行生剋運算子方能還原空間幾何座標。'
+    };
+  }
+
+  /**
+   * 16. 乙酸乙酯 (Ethyl Acetate) 揮發殘留質譜氣相鑑識 (CASE-14 去光水溶劑殘留)
+   * 乙酸乙酯 (CH3COOCH2CH3，沸點 77.1°C，去光水主要溶劑)。
+   * 嫌犯使用去光水溶解藥籤展櫃封膠。
+   * 取樣部位：風衣右袖口內襯、右手食指與無名指尖。
+   */
+  runEthylAcetateResidueAnalysis(sampleLocation = 'coat_cuff_and_fingertips') {
+    return {
+      substance: '乙酸乙酯 (Ethyl Acetate, CH3COOCH2CH3)',
+      solventType: '化妝品指甲油去光水主要有機溶劑 (沸點 77.1°C，強揮發性與特異果香)',
+      sampleLocation,
+      samplingPoints: [
+        '嫌犯黑色長版風衣右袖口內襯纖維',
+        '嫌犯右手食指指腹表皮皮脂凹槽',
+        '嫌犯右手無名指指尖微痕'
+      ],
+      retentionTimeMinutes: 2.35,
+      characteristicMassPeaks: [
+        { mz: 43, fragment: 'CH3CO+ (乙醯基碎片峰，基峰 100%)' },
+        { mz: 61, fragment: 'CH3C(OH)2+ (質子化乙酸峰)' },
+        { mz: 88, fragment: 'C4H8O2+ (分子離子峰 M+)' }
+      ],
+      isIdentified: true,
+      forensicConclusion: '風衣右袖口內襯與右手食指、無名指尖均檢出高濃度乙酸乙酯揮發殘留，與現場遺棄之去光水瓶成分 100% 吻合，證實嫌犯親手塗抹溶劑軟化展櫃壓克力膠封！',
+      scientificPrinciple: '108 課綱有機化合物與色譜質譜分析：酯類低分子量化合物具備特徵沸點與質譜斷裂特徵；氣相色譜（GC-MS）藉由保留時間與特徵碎片質荷比（m/z 43, 61, 88）達成超微量有機溶劑絕對定性。'
     };
   }
 }

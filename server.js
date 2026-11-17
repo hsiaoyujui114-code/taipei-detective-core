@@ -607,6 +607,42 @@ async function handleDetectiveRequest(req, res, customEngine = null) {
     return true;
   }
 
+  if (pathname === '/api/detective/science/semaphore-angles' && req.method === 'POST') {
+    const body = await parseBody(req);
+    sendJson(res, 200, engine.evidenceEngine.runSemaphoreFlagAngleAnalysis(
+      body.anglePairs || [[45, 270], [90, 270], [90, 45], [270, 315]]
+    ));
+    return true;
+  }
+
+  if (pathname === '/api/detective/science/currency-forensic' && req.method === 'POST') {
+    const body = await parseBody(req);
+    sendJson(res, 200, engine.evidenceEngine.runCurrencyForensicAnalysis({
+      paperMaterial: body.paperMaterial || 'wood_pulp',
+      hasOpticalBrightener: body.hasOpticalBrightener !== false,
+      serialNumber: body.serialNumber || 'FL882888UB',
+      suspectId: body.suspectId || 'guo_chaoyang'
+    }));
+    return true;
+  }
+
+  if (pathname === '/api/detective/science/five-elements-matrix' && req.method === 'POST') {
+    const body = await parseBody(req);
+    sendJson(res, 200, engine.evidenceEngine.runFiveElementsMatrixAnalysis(
+      body.matrix5x5 || null,
+      body.elementSequence || ['木', '火', '土', '金', '水']
+    ));
+    return true;
+  }
+
+  if (pathname === '/api/detective/science/ethyl-acetate' && req.method === 'POST') {
+    const body = await parseBody(req);
+    sendJson(res, 200, engine.evidenceEngine.runEthylAcetateResidueAnalysis(
+      body.sampleLocation || 'coat_cuff_and_fingertips'
+    ));
+    return true;
+  }
+
   // ─── 9. 地圖協同調度與地理圖層 API (Map Pairing & Geo Overlays) ───
 
   if (pathname === '/api/detective/map/pairing-status' && req.method === 'GET') {

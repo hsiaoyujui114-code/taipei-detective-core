@@ -153,7 +153,68 @@ const uvMicrocapsule = engine.evidenceEngine.runUvFluorescenceAnalysis(365, 'lip
 assert(uvMicrocapsule.isExcited, '脂溶性微膠囊油墨應激發黃綠色螢光');
 const uvDammar = engine.evidenceEngine.runUvFluorescenceAnalysis(365, 'dammar_varnish');
 assert(uvDammar.isExcited, '達瑪天然光油應激發特異螢光');
-console.log(`✅ [3.11] 365nm 紫外光防偽與微膠囊鑑識驗證成功：木漿亮藍白螢光、純棉吸光死黑、微膠囊黃綠色`);
+assert(uvDammar.observedFluorescence.includes('天青色'), '達瑪天然樹脂光油在 365nm 下應激發天青色特異螢光');
+const uvGrassCuticle = engine.evidenceEngine.runUvFluorescenceAnalysis(365, 'grass_cuticle_diffuse');
+assert(uvGrassCuticle.isExcited, '草葉角質層受壓折痕應在 365nm 下顯現漫反射折射差');
+console.log(`✅ [3.11] 365nm 紫外光防偽與微膠囊鑑識驗證成功：木漿亮藍白螢光 (420~460nm)、純棉吸光死黑、達瑪光油天青色螢光、草葉漫反射折射差`);
+
+// 3.12 國際標準海事雙旗幾何角度解碼與割畫動機 (CASE-11 淡水紅毛城旗語案)
+const semaphoreRes = engine.evidenceEngine.runSemaphoreFlagAngleAnalysis([
+  [45, 270],  // C: 45°/270°
+  [90, 270],  // R: 90°/270°
+  [90, 45],   // O: 90°/45°
+  [270, 315]  // W: 270°/315°
+]);
+assert.strictEqual(semaphoreRes.decodedWord, 'CROW', '標準海事旗語角度必須精確解碼為單字 CROW (渡鴉)');
+assert(semaphoreRes.isCrowMatched, '應成功命中渡鴉暗格密碼');
+assert(semaphoreRes.motiveAnalysis.includes('湮滅旗語解碼圖案'), '割畫動機必須判定為湮滅旗語解碼圖案');
+assert(semaphoreRes.dammarVarnishEvidence.includes('天青色特異螢光'), '遮光罩與指縫必須驗出天青色特異螢光');
+console.log(`✅ [3.12] 海事旗語角度幾何解碼驗證成功：解碼 [${semaphoreRes.decodedWord}]、割畫動機判定為湮滅旗語解碼、檢出達瑪光油天青色螢光`);
+
+// 3.13 新台幣千元鈔券純棉長纖維 vs 假鈔木漿螢光鑑識 (CASE-13 艋舺夜市偽鈔案)
+const fakeCashRes = engine.evidenceEngine.runCurrencyForensicAnalysis({
+  paperMaterial: 'wood_pulp',
+  hasOpticalBrightener: true,
+  serialNumber: 'FL882888UB'
+});
+assert(fakeCashRes.isCounterfeit, '木漿紙與同版流水號應判定為偽鈔');
+assert(fakeCashRes.fluorescenceDescription.includes('420~460nm'), '木漿假鈔螢光主波長應為 420~460nm');
+assert(fakeCashRes.alibiVerification.courierStatement.includes('完全無千元大鈔'), '外送員周文彬口供必須統一為腰包無千元大鈔');
+assert(fakeCashRes.alibiVerification.culpritIdentity.includes('成衣加工廠兼職打雜工'), '郭朝陽身份必須統一為工廠兼職打雜工');
+assert(fakeCashRes.alibiVerification.victimStore.includes('林金土'), '受害者必須為胡椒餅店主林金土');
+
+const realCashRes = engine.evidenceEngine.runCurrencyForensicAnalysis({
+  paperMaterial: 'cotton_pulp',
+  hasOpticalBrightener: false,
+  serialNumber: 'AB123456CD'
+});
+assert(!realCashRes.isCounterfeit, '純棉紙無增白劑應判定為真鈔');
+assert(realCashRes.fluorescenceDescription.includes('死黑底色'), '真鈔應呈現暗黑吸光死黑底色');
+console.log(`✅ [3.13] 新台幣鈔券防偽鑑識驗證成功：木漿亮藍白螢光 (420~460nm) vs 純棉死黑、流水號 FL882888UB、周文彬腰包無千元鈔、郭朝陽兼職打雜工`);
+
+// 3.14 古典 5×5 漢字五行相生置換旋轉解碼與高處雀替暗格未開啟 (CASE-14 剝皮寮歷史街區藥籤案)
+const matrixRes = engine.evidenceEngine.runFiveElementsMatrixAnalysis();
+assert.strictEqual(matrixRes.decodedCoordinate, '福祥街三進中柱雀替斗栱下', '五行相生矩陣必須精確解碼 12 字藏寶座標');
+assert.strictEqual(matrixRes.hiddenChamberStatus.isOpenedLastNight, false, '高處雀替暗格昨夜必須判定為未被開啟');
+assert(matrixRes.hiddenChamberStatus.dustIntegrity.includes('陳年積塵與蛛網完全完好未動'), '暗格積塵蛛網必須完好無動');
+assert(matrixRes.latentFingerprints.some(f => f.includes('草稿背面')), '黃紙抄錄草稿背面必須採集到指紋');
+console.log(`✅ [3.14] 5×5 漢字五行相生置換旋轉解碼成功：座標 [${matrixRes.decodedCoordinate}]、高處雀替暗格昨夜未被開啟 (封塵完好未失)、草稿背面留存指紋`);
+
+// 3.15 乙酸乙酯有機溶劑揮發殘留質譜定性鑑識 (CASE-14 去光水溶劑殘留)
+const ethylRes = engine.evidenceEngine.runEthylAcetateResidueAnalysis('coat_cuff_and_fingertips');
+assert(ethylRes.isIdentified, '乙酸乙酯定性應判定成功');
+assert(ethylRes.characteristicMassPeaks.some(p => p.mz === 43), '質譜碎片必須包含 m/z 43 乙醯基基峰');
+assert(ethylRes.samplingPoints.some(p => p.includes('風衣右袖口內襯')), '取樣點必須涵蓋風衣右袖口內襯');
+assert(ethylRes.samplingPoints.some(p => p.includes('食指')), '取樣點必須涵蓋右手食指與無名指尖');
+console.log(`✅ [3.15] 乙酸乙酯揮發殘留質譜定性成功：風衣右袖口內襯與食指無名指尖檢出 m/z 43 特徵碎片峰，證實去光水溶膠`);
+
+// 3.16 糊狀高黏度紅糟原汁比重瓶測定與假水浮力感應閥卡死 (CASE-12 淡水阿給醬汁比重案)
+const pycSauceReal = engine.evidenceEngine.runPycnometerDensityAnalysis(62.5, 50.0); // 1.25 g/cm³
+assert(pycSauceReal.isGenuine && !pycSauceReal.floatValveStuck, '真原汁 1.25 g/cm³ 浮力閥正常運作');
+const pycSauceFake = engine.evidenceEngine.runPycnometerDensityAnalysis(52.0, 50.0); // 1.04 g/cm³
+assert(pycSauceFake.isCounterfeitDiluted && pycSauceFake.floatValveStuck, '假水 1.04 g/cm³ 浮力感應閥必須卡死');
+assert(pycSauceFake.floatValveMechanics.includes('卡死'), '必須明確說明偷換假水後浮力感應閥卡死機制');
+console.log(`✅ [3.16] 糊狀高黏度比重瓶測定成功：真原汁 1.25 g/cm³ vs 假水 1.04 g/cm³、高震東偷換假水後浮力感應閥卡死`);
 
 // ─── 階段 4：三軌背包與親赴現場驗證機制 (Round 100 規格) ───
 // 4.1 💰 門市購買親赴驗證 (<= 60m 享 85 折到店優惠，> 60m 拒絕並提示距離)
@@ -616,7 +677,40 @@ const pycApiRes = await callApi('POST', '/api/detective/science/pycnometer', {
 assert.strictEqual(pycApiRes.code, 200);
 assert(pycApiRes.data.isGenuine);
 
-console.log('✅ [9.12] 偵探核心 REST API 路由器全面無縫對接驗證通過 (100% 覆蓋，含 50 案全集、苦杏仁苷水解、乾熱熨燙、海事旗語與比重瓶演算)');
+// 驗證標準海事旗語角度解碼 API 端點 (CASE-11)
+const semaApiRes = await callApi('POST', '/api/detective/science/semaphore-angles', {
+  anglePairs: [[45, 270], [90, 270], [90, 45], [270, 315]]
+});
+assert.strictEqual(semaApiRes.code, 200);
+assert.strictEqual(semaApiRes.data.decodedWord, 'CROW');
+assert(semaApiRes.data.motiveAnalysis.includes('湮滅旗語解碼圖案'));
+
+// 驗證鈔券防偽鑑識 API 端點 (CASE-13)
+const currApiRes = await callApi('POST', '/api/detective/science/currency-forensic', {
+  paperMaterial: 'wood_pulp',
+  hasOpticalBrightener: true,
+  serialNumber: 'FL882888UB'
+});
+assert.strictEqual(currApiRes.code, 200);
+assert(currApiRes.data.isCounterfeit);
+assert(currApiRes.data.alibiVerification.courierStatement.includes('完全無千元大鈔'));
+assert(currApiRes.data.alibiVerification.culpritIdentity.includes('成衣加工廠兼職打雜工'));
+
+// 驗證五行相生置換矩陣解碼 API 端點 (CASE-14)
+const matrixApiRes = await callApi('POST', '/api/detective/science/five-elements-matrix', {});
+assert.strictEqual(matrixApiRes.code, 200);
+assert.strictEqual(matrixApiRes.data.decodedCoordinate, '福祥街三進中柱雀替斗栱下');
+assert.strictEqual(matrixApiRes.data.hiddenChamberStatus.isOpenedLastNight, false);
+
+// 驗證乙酸乙酯質譜殘留 API 端點 (CASE-14)
+const ethylApiRes = await callApi('POST', '/api/detective/science/ethyl-acetate', {
+  sampleLocation: 'coat_cuff_and_fingertips'
+});
+assert.strictEqual(ethylApiRes.code, 200);
+assert(ethylApiRes.data.isIdentified);
+assert(ethylApiRes.data.characteristicMassPeaks.some(p => p.mz === 43));
+
+console.log('✅ [9.12] 偵探核心 REST API 路由器全面無縫對接驗證通過 (100% 覆蓋，含 50 案全集、苦杏仁苷水解、乾熱熨燙、海事旗語、比重瓶、旗語角度、鈔券防偽、五行矩陣與乙酸乙酯質譜演算)');
 
 console.log('✅ [9] 地圖系統 (Leaflet / Web) 雙向 Pub/Sub 事件協議與 MapPairingCoordinator 協同調度 100% 正常');
 

@@ -418,5 +418,122 @@
     "caseId": "case_10",
     "description": "堆肥桶起獲 600mm F4 巨砲鏡頭、旗艦機身與 CFexpress Type B 高速記憶卡（含 8K RAW 原始檔）。",
     "scienceAspect": "現代數位全片幅攝影器材與高速儲存鑑識"
+  },
+  {
+    "id": "tool_semaphore_chart",
+    "name": "國際標準海事雙旗信號角度對照盤",
+    "track": "tool",
+    "type": "optical",
+    "description": "標準海事旗語角度對照（C: 45°/270°, R: 90°/270°, O: 90°/45°, W: 270°/315°, P: 270°/0°），破解渡鴉 C-R-O-W 暗格密碼。"
+  },
+  {
+    "id": "tool_pycnometer",
+    "name": "實驗室高精度金屬定量比重瓶 (Pycnometer)",
+    "track": "tool",
+    "type": "physical",
+    "description": "高精度毛細孔恆溫秤重比重瓶，精準測量糊狀高黏度流體（1.25 g/cm³ 真原汁 vs 1.04 g/cm³ 假稀釋水）。"
+  },
+  {
+    "id": "tool_five_elements_dial",
+    "name": "古典五行相生置換旋轉解密盤",
+    "track": "tool",
+    "type": "cryptographic",
+    "description": "結合《本草綱目》藥材五行性味分類與 5×5 漢字旋轉矩陣，還原古建築暗格 12 字空間座標。"
+  },
+  {
+    "id": "ev_11_dammar_cut",
+    "name": "油畫割痕邊緣與微距鏡頭遮光罩達瑪光油天青色螢光採樣",
+    "track": "evidence",
+    "caseId": "case_11",
+    "description": "割畫動機為湮滅旗語解碼圖案；微距鏡頭遮光罩外緣與右手食指指縫檢出達瑪樹脂光油 (Dammar Varnish) 天青色螢光。",
+    "scienceAspect": "達瑪光油 365nm 紫外線天青色螢光鑑識 (460~490nm)"
+  },
+  {
+    "id": "ev_11_triangular_key",
+    "name": "受訊人隨身起獲之訂製三稜暗格銅鑰匙",
+    "track": "evidence",
+    "caseId": "case_11",
+    "description": "純銅三稜鑰匙，與領事官邸二樓主臥壁爐渡鴉暗格鎖孔 100% 嚙合。",
+    "scienceAspect": "古董機械鎖具微痕與嚙合鑑識"
+  },
+  {
+    "id": "ev_11_crow_fireplace",
+    "name": "領事官邸壁爐渡鴉暗格機關印章拓本",
+    "track": "evidence",
+    "caseId": "case_11",
+    "description": "壁爐純銅渡鴉（CROW）暗格起獲之淡水稅關印章拓本。",
+    "scienceAspect": "海事旗語幾何向量角度破譯"
+  },
+  {
+    "id": "ev_12_sauce_pycnometer",
+    "name": "金屬定量比重瓶紅糟原汁與假稀釋水測定報告",
+    "track": "evidence",
+    "caseId": "case_12",
+    "description": "比重瓶恆溫秤重法測得真原汁 1.25 g/cm³ vs 稀釋假醬汁 1.04 g/cm³，形成巨大比重差。",
+    "scienceAspect": "糊狀高黏度非牛頓流體與定量比重瓶密度測定"
+  },
+  {
+    "id": "ev_12_stuck_float_valve",
+    "name": "高震東偷換假水後卡死之浮力感應閥",
+    "track": "evidence",
+    "caseId": "case_12",
+    "description": "換入假水後，原本殘留的高黏度原汁糊住閥門且假水密度不足，導致浮力感應閥卡死。",
+    "scienceAspect": "阿基米德浮力定律與流體黏滯阻力"
+  },
+  {
+    "id": "ev_12_stolen_sauce_barrel",
+    "name": "舢舨柴油桶夾層起獲之 20 公升特製紅糟原汁",
+    "track": "evidence",
+    "caseId": "case_12",
+    "description": "抽油泵偷抽 20 公升阿給老店特製紅糟原汁藏於舢舨柴油桶暗格。",
+    "scienceAspect": "物證化學光譜成分定量比對"
+  },
+  {
+    "id": "ev_13_counterfeit_cash",
+    "name": "流水號 FL882888UB 木漿紙偽鈔",
+    "track": "evidence",
+    "caseId": "case_13",
+    "description": "普通木漿紙含螢光增白劑，在 365nm 紫光下整張激發刺眼亮藍白螢光 (420~460nm)，流水號均為 FL882888UB。",
+    "scienceAspect": "紙張纖維棉漿吸光死黑 vs 木漿增白劑螢光"
+  },
+  {
+    "id": "ev_13_courier_waistbag",
+    "name": "外送員周文彬零錢腰包與林金土找零交易明細",
+    "track": "evidence",
+    "caseId": "case_13",
+    "description": "周文彬腰包搜查證實無千元大鈔，胡椒餅店主林金土指認找零交易，鎖定青草巷徒步區作案動線。",
+    "scienceAspect": "交易時間戳與不在場證明排除"
+  },
+  {
+    "id": "ev_13_iron_cutter_mould",
+    "name": "成衣加工廠兼職打雜工郭朝陽裁切燙印機模具",
+    "track": "evidence",
+    "caseId": "case_13",
+    "description": "郭朝陽兼職打雜工利用工廠燙印機壓印假鈔防偽線，模具微痕完全一致。",
+    "scienceAspect": "工業加工模具衝壓微痕比對"
+  },
+  {
+    "id": "ev_14_matrix_manuscript",
+    "name": "黃紙抄錄草稿背面食指指紋與 5×5 五行相生置換座標",
+    "track": "evidence",
+    "caseId": "case_14",
+    "description": "黃紙抄錄草稿背面起獲嫌犯食指指紋，五行相生置換出『福祥街三進中柱雀替斗栱下』12 字座標。",
+    "scienceAspect": "古典矩陣置換密碼與潛伏指紋顯影"
+  },
+  {
+    "id": "ev_14_ethyl_acetate_bottle",
+    "name": "風衣右袖口內襯與食指尖乙酸乙酯揮發殘留及去光水瓶",
+    "track": "evidence",
+    "caseId": "case_14",
+    "description": "風衣右袖口內襯與右手食指、無名指尖檢出高濃度乙酸乙酯質譜殘留，去光水瓶身有嫌犯指紋。",
+    "scienceAspect": "GC-MS 氣相色譜質譜儀酯類有機溶劑定性"
+  },
+  {
+    "id": "ev_14_quetit_dust_record",
+    "name": "剝皮寮三進高處雀替斗栱暗格完整蛛網封塵微物紀錄",
+    "track": "evidence",
+    "caseId": "case_14",
+    "description": "高處雀替暗格蛛網封塵完好未動，證實昨夜未被開啟，《青草防癘驗方手札》尚未被竊！",
+    "scienceAspect": "微物環境積塵完好度鑑識"
   }
 ]
