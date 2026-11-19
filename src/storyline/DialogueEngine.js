@@ -85,7 +85,21 @@ class DialogueEngine {
         return { success: false, error: '需要調查員背包以驗證證物！' };
       }
 
-      const evidenceItem = investigator.inventory.getEvidence(selectedOption.requiredEvidence);
+      const aliasMap = {
+        'ev_01_lid_caramel_grease': ['ev_01_cup_lid'],
+        'ev_01_cup_lid': ['ev_01_lid_caramel_grease'],
+        'ev_01_spoiled_milk_carton': ['ev_01_tlc_strip'],
+        'ev_01_tlc_strip': ['ev_01_spoiled_milk_carton'],
+        'ev_01_acidic_milk_foam': ['ev_01_coffee_cup'],
+        'ev_01_coffee_cup': ['ev_01_acidic_milk_foam']
+      };
+      let evidenceItem = investigator.inventory.getEvidence(selectedOption.requiredEvidence);
+      if (!evidenceItem && aliasMap[selectedOption.requiredEvidence]) {
+        for (const altId of aliasMap[selectedOption.requiredEvidence]) {
+          evidenceItem = investigator.inventory.getEvidence(altId);
+          if (evidenceItem) break;
+        }
+      }
       if (!evidenceItem) {
         // 出示無關或未取得之物證：嫌犯反唇相譏，防線上升
         session.psychologicalDefense = Math.min(100, (session.psychologicalDefense ?? 100) + 10);
@@ -222,7 +236,20 @@ class DialogueEngine {
     let currentNode = tree ? tree[session.currentNodeId] : null;
 
     if (currentNode && currentNode.options) {
-      matchedOptionIndex = currentNode.options.findIndex(opt => opt.requiredEvidence === evidenceId);
+      const aliasMap = {
+        'ev_01_lid_caramel_grease': ['ev_01_cup_lid'],
+        'ev_01_cup_lid': ['ev_01_lid_caramel_grease'],
+        'ev_01_spoiled_milk_carton': ['ev_01_tlc_strip'],
+        'ev_01_tlc_strip': ['ev_01_spoiled_milk_carton'],
+        'ev_01_acidic_milk_foam': ['ev_01_coffee_cup'],
+        'ev_01_coffee_cup': ['ev_01_acidic_milk_foam']
+      };
+      matchedOptionIndex = currentNode.options.findIndex(opt => {
+        if (!opt.requiredEvidence) return false;
+        if (opt.requiredEvidence === evidenceId) return true;
+        const aliases = aliasMap[opt.requiredEvidence] || [];
+        return aliases.includes(evidenceId);
+      });
     }
 
     if (matchedOptionIndex !== -1) {

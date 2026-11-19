@@ -58,44 +58,45 @@ console.log(`✅ [2] 調查員成功接案【${case01.title}】，地圖系統�
 
 // ─── 階段 3：生活科學鑑識實驗室全功能驗證 ───
 // 3.1 錯誤器材給予科學指引
-const ev01 = case01.evidenceChain[0]; // 拿鐵咖啡杯
+const ev01 = case01.evidenceChain[0]; // 打翻之酸敗咖啡奶泡殘液
 const mismatchTest = engine.caseManager.examineEvidence(ev01.id, 'tool_uv_torch', engine.investigator);
 assert(mismatchTest.isMismatch, '錯誤器材應提示不吻合');
 console.log('✅ [3.1] 鑑識器材不符時正確提示指引');
 
-// 3.2 廣用 pH 酸鹼試紙中和檢驗
-const phExamine = engine.caseManager.examineEvidence(ev01.id, 'tool_ph_paper', engine.investigator);
-assert(phExamine.success, '正確 pH 試紙化驗應成功');
-const phSim = engine.evidenceEngine.runPhTitration(5.2);
-assert.strictEqual(phSim.chemicalNature, '弱酸性');
+// 3.2 廣用 pH 酸鹼試紙檢驗打翻奶泡殘液 (pH 4.2 強酸橘紅色)
+engine.investigator.inventory.addTool({ id: 'tool_ph_strip', name: '化學廣用試紙與微量滴管組' });
+const phExamine = engine.caseManager.examineEvidence(ev01.id, 'tool_ph_strip', engine.investigator);
+assert(phExamine.success, '正確 pH 試紙化驗奶泡殘液應成功');
+const phSim = engine.evidenceEngine.runPhTitration(4.2);
+assert(phSim.colorBand.includes('橘紅'), 'pH 4.2 廣用試紙應呈現強酸橘紅色');
 console.log(`✅ [3.2] pH 酸鹼滴定成功：${phExamine.result}`);
 
-// 3.3 365nm UV 紫外光防偽與汗液印痕
-const ev02 = case01.evidenceChain[1]; // 杯蓋
-const uvExamine = engine.caseManager.examineEvidence(ev02.id, 'tool_uv_torch', engine.investigator);
-assert(uvExamine.success, '紫外光化驗杯蓋應成功');
-const uvSim = engine.evidenceEngine.runUvFluorescenceAnalysis(365, 'amygdalin');
-assert(uvSim.isExcited, '365nm 應能激發苦杏仁苷螢光');
-console.log(`✅ [3.3] 365nm 紫外光檢驗成功：${uvExamine.result} (演算法螢光激發：${uvSim.observedFluorescence})`);
+// 3.3 鑑識毛細層析濾紙分離杯蓋焦糖香精油脂與人工焦糖色素
+const ev02 = case01.evidenceChain[1]; // 杯蓋焦糖香精食用油脂
+engine.investigator.inventory.addTool({ id: 'tool_chromatography_paper', name: '鑑識毛細層析濾紙套件' });
+const chromExamine = engine.caseManager.examineEvidence(ev02.id, 'tool_chromatography_paper', engine.investigator);
+assert(chromExamine.success, '毛細層析濾紙檢驗杯蓋油脂應成功');
+console.log(`✅ [3.3] 毛細層析濾紙分離焦糖色素與香精成功：${chromExamine.result}`);
 
-// 3.4 薄層色層分析 (TLC) 毛細分離
-const ev03 = case01.evidenceChain[2]; // TLC 分析片
-engine.investigator.inventory.addTool({ id: 'tool_tlc_scanner', name: 'TLC 展開鏡' });
-const tlcExamine = engine.caseManager.examineEvidence(ev03.id, 'tool_tlc_scanner', engine.investigator);
-assert(tlcExamine.success, 'TLC 檢驗應成功');
-const tlcSim = engine.evidenceEngine.runTlcRfAnalysis(21.0, 50.0, 0.42); // 21mm / 50mm = 0.42
-assert(tlcSim.isMatched, 'Rf 0.42 應與標準品吻合');
-console.log(`✅ [3.4] TLC 薄層層析展開比對成功：${tlcExamine.result} (Rf演算值：${tlcSim.calculatedRf})`);
+// 3.4 108 課綱鮮乳 7~60℃ 危險溫度帶細菌酸敗變質演算法
+const milkRancidSim = engine.evidenceEngine.runMilkRancidityPHAnalysis(28, 4.2, 8);
+assert(milkRancidSim.isDangerZone && milkRancidSim.isBacterialSpoilage, '28℃ 暴露 8 小時應判定為細菌性食物酸敗');
+assert(milkRancidSim.phColorBand.includes('強酸橘紅'), '廣用試紙應為強酸橘紅');
+assert(milkRancidSim.curdlingPhenomenon.includes('酪蛋白'), '應呈現酪蛋白絮狀凝塊');
+console.log(`✅ [3.4] 108 課綱鮮乳 7~60℃ 危險溫度帶酸敗與 pH 橘紅顯色演算成功：${milkRancidSim.bacterialAssessment}`);
 
-// 3.4b 苦杏仁苷雙糖植物氰苷（正名植物氰苷）酵素水解催化與雙重致病途徑 (Case 01 鑑識核心)
-const hydrolysisSim = engine.evidenceEngine.runAmygdalinHydrolysisAnalysis(65, true, 'vaseline_lipid_base', 0.42);
-assert.strictEqual(hydrolysisSim.chemicalClassification, '雙糖植物氰苷 (Cyanogenic Glycoside)', '苦杏仁苷必須正名為植物氰苷');
-assert.strictEqual(hydrolysisSim.beverage, '招牌熱焦糖瑪奇朵', '飲品名稱必須為招牌熱焦糖瑪奇朵');
-assert(hydrolysisSim.isEnzymeActive, '65°C 熱咖啡熱蒸氣應能有效活化 Emulsin 苦杏仁酵素催化水解');
-assert(hydrolysisSim.isLipidBaseEmulsified, '65°C 熱焦糖瑪奇朵應能乳化凡士林脂質保護膜');
-assert(hydrolysisSim.pathway.gasInhalation, '應釋出氰化氫氣體揮發');
-assert(hydrolysisSim.tlcVerification.isMatched, '凡士林殘渣 TLC Rf 0.42 應與未水解苦杏仁苷母體吻合');
-console.log(`✅ [3.4b] 苦杏仁苷植物氰苷酵素解水解機制驗證成功：${hydrolysisSim.chemicalClassification}、${hydrolysisSim.beverage}、雙重致病途徑閉環`);
+// 3.4b 毛細現象層析分離焦糖香精油脂與人工焦糖色素演算法
+const caramelChromSim = engine.evidenceEngine.runCaramelCapillaryChromatography('cup_lid_grease', 'ethanol', 50);
+assert(caramelChromSim.isSeparated, '層析濾紙毛細分離應成功');
+assert(caramelChromSim.bands.some(b => b.name.includes('焦糖色素')), '應分離出人工焦糖色素');
+assert(caramelChromSim.bands.some(b => b.name.includes('焦糖香精')), '應分離出化學焦糖香精油脂');
+console.log(`✅ [3.4b] 毛細現象層析濾紙焦糖色素與香精分離成功：分離出焦糖色素 (Rf=0.40) 與香精油脂 (Rf=0.80)，揭穿掩飾動機！`);
+
+// 3.4c 放大鏡檢驗吧檯變質鮮奶空盒指紋微痕
+const ev03 = case01.evidenceChain[2]; // 變質鮮奶空盒
+const magExamine = engine.caseManager.examineEvidence(ev03.id, 'tool_magnifier', engine.investigator);
+assert(magExamine.success, '放大鏡檢驗變質鮮奶空盒應成功');
+console.log(`✅ [3.4c] 變質鮮奶空盒指紋與常溫時序鑑識成功：${magExamine.result}`);
 
 // 3.5 阿基米德浮力與密度測定 (Case 08 中空砝碼)
 const densitySim = engine.evidenceEngine.runArchimedesDensity(50.0, 7.58);
@@ -420,7 +421,7 @@ console.log('✅ [6.4] CASE-03（江語晨）對話樹完整對質閉環驗證�
 const solveRes = engine.caseManager.resolveCase(
   'case_01',
   'suspect_01_wu',
-  ['ev_01_coffee_cup', 'ev_01_cup_lid', 'ev_01_tlc_strip'],
+  ['ev_01_acidic_milk_foam', 'ev_01_lid_caramel_grease', 'ev_01_spoiled_milk_carton'],
   engine.investigator
 );
 assert(solveRes.success);
@@ -438,14 +439,14 @@ assert(coldRes.coldCaseRecord.spoilerGuarded, '必須嚴格零劇透');
 console.log(`✅ [7.3] 雙北歷史懸案檔案庫封存成功：加蓋「未破懸案」官印，100% 零劇透保護`);
 
 // 7.4 有向思維導圖網 (Deduction Graph) 邏輯閉環與 Eureka 頓悟事件 (Round 101 規格)
-engine.deductionBoard.addGraphNode('case_01', { id: 'ev_01_cup_lid', label: '外帶杯蓋', type: 'evidence', metadata: { isVerifiedByScience: true } });
-engine.deductionBoard.addGraphNode('case_01', { id: 'science_amygdalin', label: '365nm紫外光苦杏仁苷反應', type: 'science' });
-engine.deductionBoard.addGraphNode('case_01', { id: 'contra_broken_glove', label: '食指手套破洞汗印', type: 'contradiction' });
-engine.deductionBoard.addGraphNode('case_01', { id: 'suspect_01_wu', label: '吧台調配員吳冠宇', type: 'suspect' });
+engine.deductionBoard.addGraphNode('case_01', { id: 'ev_01_lid_caramel_grease', label: '杯蓋焦糖香精油脂', type: 'evidence', metadata: { isVerifiedByScience: true } });
+engine.deductionBoard.addGraphNode('case_01', { id: 'science_caramel_chromatography', label: '層析濾紙焦糖色素與香精分離', type: 'science' });
+engine.deductionBoard.addGraphNode('case_01', { id: 'contra_spoiled_milk', label: '吧檯變質酸敗鮮奶與食指指紋', type: 'contradiction' });
+engine.deductionBoard.addGraphNode('case_01', { id: 'suspect_01_wu', label: '吧檯調配員吳冠宇', type: 'suspect' });
 
-engine.deductionBoard.addGraphEdge('case_01', 'ev_01_cup_lid', 'science_amygdalin', '激發螢光');
-engine.deductionBoard.addGraphEdge('case_01', 'science_amygdalin', 'contra_broken_glove', '戳破戴手套謊言');
-const closureRes = engine.deductionBoard.addGraphEdge('case_01', 'contra_broken_glove', 'suspect_01_wu', '鎖定真凶動機');
+engine.deductionBoard.addGraphEdge('case_01', 'ev_01_lid_caramel_grease', 'science_caramel_chromatography', '分離出色素與香精');
+engine.deductionBoard.addGraphEdge('case_01', 'science_caramel_chromatography', 'contra_spoiled_milk', '揭露掩飾酸臭動機');
+const closureRes = engine.deductionBoard.addGraphEdge('case_01', 'contra_spoiled_milk', 'suspect_01_wu', '鎖定真凶動機');
 
 assert(closureRes.closureStatus.isClosed, '有向思維導圖應成功形成邏輯閉環');
 assert(closureRes.closureStatus.eurekaTriggered, '達成邏輯閉環應觸發 Eureka 頓悟事件');
@@ -453,9 +454,9 @@ console.log(`✅ [7.4] 有向思維導圖網閉環成功：${closureRes.closureS
 
 // 7.5 跨案件宏觀暗線思維導圖 (Grand Conspiracy DAG) 驗證 (契合 story 篇章伏筆)
 const crossEdgeRes = engine.deductionBoard.addCrossCaseEdge(
-  'CASE-01', 'ev_01_cup_lid',
+  'CASE-01', 'ev_01_lid_caramel_grease',
   'CASE-26', 'clue_taipei_rail_switch',
-  '西門町毒咖啡杯蓋塗料與北平西路鐵路局機房失竊晶片暗線伏筆'
+  '西門町酸敗咖啡掩飾香精與北平西路鐵路局機房失竊晶片暗線伏筆'
 );
 assert(crossEdgeRes.success, '建立跨案件思維引線應成功');
 const crossGraph = engine.deductionBoard.getCrossCaseGraph();
@@ -640,7 +641,28 @@ assert.strictEqual(case50ApiRes.code, 200);
 assert.strictEqual(case50ApiRes.data.case.id, 'CASE-50');
 assert(case50ApiRes.data.suspects.length >= 3, 'CASE-50 應動態關聯涉案人名單');
 
-// 驗證苦杏仁苷水解演算 API 端點
+// 驗證鮮奶 7~60℃ 危險溫度帶酸敗 pH 橘紅顯色 API 端點 (CASE-01)
+const milkApiRes = await callApi('POST', '/api/detective/science/milk-rancidity-ph', {
+  milkTempC: 28,
+  phValue: 4.2,
+  hoursExposed: 8
+});
+assert.strictEqual(milkApiRes.code, 200);
+assert(milkApiRes.data.isDangerZone);
+assert(milkApiRes.data.isBacterialSpoilage);
+assert(milkApiRes.data.phColorBand.includes('強酸橘紅'));
+
+// 驗證毛細層析濾紙分離焦糖色素與香精 API 端點 (CASE-01)
+const caramelApiRes = await callApi('POST', '/api/detective/science/caramel-chromatography', {
+  sampleMatrix: 'cup_lid_grease',
+  solventType: 'ethanol',
+  travelDistanceMm: 50
+});
+assert.strictEqual(caramelApiRes.code, 200);
+assert(caramelApiRes.data.isSeparated);
+assert(caramelApiRes.data.bands.length >= 2);
+
+// 驗證苦杏仁苷水解演算 API 端點 (歷史相容)
 const hydroApiRes = await callApi('POST', '/api/detective/science/amygdalin-hydrolysis', {
   beverageTempC: 65,
   hasEmulsinEnzyme: true,
@@ -710,7 +732,7 @@ assert.strictEqual(ethylApiRes.code, 200);
 assert(ethylApiRes.data.isIdentified);
 assert(ethylApiRes.data.characteristicMassPeaks.some(p => p.mz === 43));
 
-console.log('✅ [9.12] 偵探核心 REST API 路由器全面無縫對接驗證通過 (100% 覆蓋，含 50 案全集、苦杏仁苷水解、乾熱熨燙、海事旗語、比重瓶、旗語角度、鈔券防偽、五行矩陣與乙酸乙酯質譜演算)');
+console.log('✅ [9.12] 偵探核心 REST API 路由器全面無縫對接驗證通過 (100% 覆蓋，含 50 案全集、牛奶酸敗pH橘紅、層析焦糖分離、乾熱熨燙、海事旗語、比重瓶、旗語角度、鈔券防偽、五行矩陣與乙酸乙酯質譜演算)');
 
 console.log('✅ [9] 地圖系統 (Leaflet / Web) 雙向 Pub/Sub 事件協議與 MapPairingCoordinator 協同調度 100% 正常');
 

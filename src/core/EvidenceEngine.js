@@ -56,12 +56,21 @@ class EvidenceEngine {
       return { success: false, error: '該物證未配置科學化驗參數。' };
     }
 
+    // 器材相符判定（支援新舊科普工具別名相容）
+    const isToolMatched = checkSpec.tool === toolId ||
+      (checkSpec.tool === 'tool_ph_strip' && toolId === 'tool_ph_paper') ||
+      (checkSpec.tool === 'tool_ph_paper' && toolId === 'tool_ph_strip') ||
+      (checkSpec.tool === 'tool_chromatography_paper' && toolId === 'tool_tlc_scanner') ||
+      (checkSpec.tool === 'tool_tlc_scanner' && toolId === 'tool_chromatography_paper');
+
     // 器材不符時，提供科學提示引導
-    if (checkSpec.tool !== toolId) {
+    if (!isToolMatched) {
       const hints = {
+        tool_ph_strip: '此物證需檢測鮮奶細菌酸敗酸鹼度，請使用化學廣用試紙與微量滴管組！',
+        tool_chromatography_paper: '此物證需利用毛細現象分離焦糖香精油脂與色素，請使用鑑識毛細層析濾紙套件！',
         tool_ph_paper: '此物證需檢測酸鹼水溶液性質，請使用廣用 pH 試紙組！',
-        tool_uv_torch: '此物證含有微量螢光防偽劑或植物氰苷，需使用 365nm 紫外燈激發！',
-        tool_magnifier: '此物證細微處有刮痕或纖維斷裂，請使用光學放大鏡進行微痕觀察！',
+        tool_uv_torch: '此物證含有微量螢光防偽劑或光學漫反射，需使用 365nm 紫外燈激發！',
+        tool_magnifier: '此物證細微處有刮痕、指紋或纖維斷裂，請使用光學放大鏡進行微痕觀察！',
         tool_thermal_oven: '此物證需 140℃ 乾熱脫水低溫炭化顯影（排除潮濕水蒸氣），請使用鑑識專用乾熱熨斗組！',
         tool_water_cylinder: '此物證需測定體積與密度，請使用廣口高精度 500ml 鑑識玻璃量筒！',
         tool_cipher_table: '此物證為 1860 年代英國皇家海軍海事旗語代碼，請使用旗語字母頻率對照表破譯 ANCHOR！',
@@ -126,11 +135,25 @@ class EvidenceEngine {
   runPhTitration(pHValue) {
     let color = '綠色 (中性)';
     let nature = '中性';
-    if (pHValue < 3) { color = '深紅色 (強酸)'; nature = '強酸性'; }
-    else if (pHValue < 6.5) { color = '橙黃色 (弱酸)'; nature = '弱酸性'; }
-    else if (pHValue <= 7.5) { color = '鮮綠色 (中性)'; nature = '中性'; }
-    else if (pHValue <= 10) { color = '藍綠色 (弱鹼)'; nature = '弱鹼性'; }
-    else { color = '深紫藍色 (強鹼)'; nature = '強鹼性'; }
+    if (pHValue < 3) {
+      color = '深紅色 (強酸)';
+      nature = '強酸性';
+    } else if (pHValue <= 4.5) {
+      color = '橘紅色 (異常酸敗強酸性)';
+      nature = '強酸性酸敗';
+    } else if (pHValue < 6.5) {
+      color = '橙黃色 (弱酸)';
+      nature = '弱酸性';
+    } else if (pHValue <= 7.5) {
+      color = '鮮綠色 (中性)';
+      nature = '中性';
+    } else if (pHValue <= 10) {
+      color = '藍綠色 (弱鹼)';
+      nature = '弱鹼性';
+    } else {
+      color = '深紫藍色 (強鹼)';
+      nature = '強鹼性';
+    }
 
     return {
       pH: Number(pHValue.toFixed(1)),
@@ -413,7 +436,90 @@ class EvidenceEngine {
   }
 
   /**
-   * 9. 苦杏仁苷雙糖植物氰苷酵素解水解催化與雙重致病途徑演算 (CASE-01 鑑識核心)
+   * 9a. 108 課綱常見細菌性食物酸敗變質（7~60℃ 危險溫度帶）與 pH 橘紅顯色鑑識 (CASE-01 核心鑑識)
+   * 鮮奶在 7~60℃ 危險溫度帶（如吧檯常溫 28℃）暴露過久（超過 2~4 小時），細菌爆發性繁殖分解乳糖生成乳酸。
+   * 正常鮮乳 pH 為 6.6~6.8（弱酸微中性，廣用試紙呈黃綠色）；
+   * 細菌酸敗後 pH 驟降至 4.0~4.5（典型值 4.2，廣用試紙呈強酸橘紅色）；
+   * 牛奶中的酪蛋白（Casein）在等電點（pI ≈ 4.6）時靜電荷歸零形成絮狀凝結沉澱。
+   * @param {number} milkTempC - 鮮奶儲存/暴露溫度 (°C，標準危險溫度帶 7~60°C，常溫約 28°C)
+   * @param {number} phValue - 廣用試紙滴定測定之 pH 值 (標準酸敗值 4.2)
+   * @param {number} hoursExposed - 在常溫危險溫度帶之暴露時間 (小時，標準 8 小時)
+   */
+  runMilkRancidityPHAnalysis(milkTempC = 28, phValue = 4.2, hoursExposed = 8) {
+    const isDangerZone = milkTempC >= 7 && milkTempC <= 60;
+    const isProlongedExposure = hoursExposed >= 4;
+    const isBacterialSpoilage = phValue <= 4.5;
+    const isCaseinPrecipitated = phValue <= 4.6;
+
+    let phColorBand = '鮮綠色 (正常中性鮮乳 pH 6.6~6.8)';
+    if (phValue <= 4.5) {
+      phColorBand = '強酸橘紅色 (異常酸敗 pH 4.2)';
+    } else if (phValue < 6.0) {
+      phColorBand = '橙黃色 (輕微酸度偏高)';
+    }
+
+    const bacterialAssessment = (isDangerZone && isProlongedExposure && isBacterialSpoilage)
+      ? '鮮奶長時間置於 7~60℃ 危險溫度帶（吧檯常溫 28℃ 置放超過 8 小時），仙人掌桿菌、乳酸菌等微生物幾何級數爆發滋生，大量發酵乳糖產生乳酸，導致 pH 驟降至 4.2，引發急性細菌性食物中毒！'
+      : '未達急性細菌酸敗閾值。';
+
+    const curdlingPhenomenon = isCaseinPrecipitated
+      ? '酪蛋白（Casein）達到等電點（pH 4.6）分子靜電荷抵消，產生不可逆變性聚沉，形成奶泡殘液中肉眼可見的細微白色絮狀變質凝塊！'
+      : '酪蛋白膠體均勻分散，無凝塊。';
+
+    return {
+      milkTempC,
+      hoursExposed,
+      phValue: Number(phValue.toFixed(1)),
+      isDangerZone,
+      isProlongedExposure,
+      isBacterialSpoilage,
+      phColorBand,
+      curdlingPhenomenon,
+      bacterialAssessment,
+      foodSafetyDiagnosis: '急性細菌性食物酸敗中毒 (Acute Bacterial Food Spoilage Poisoning)',
+      scientificPrinciple: '108 課綱常見細菌性食物酸敗變質與食品安全：食品在 7~60℃ 危險溫度帶（Danger Zone）中細菌繁殖極速；鮮乳中微生物水解乳糖為乳酸使 pH 驟降至 4.2，廣用試紙呈現強酸橘紅色，且蛋白質等電點沉澱形成絮狀凝塊，證實受害者為急性食物中毒。'
+    };
+  }
+
+  /**
+   * 9b. 毛細現象層析濾紙分離焦糖香精油脂與人工焦糖色素 (CASE-01 核心鑑識)
+   * 兇手將高濃度化學焦糖香精食用油脂厚厚塗抹於外帶杯蓋飲用孔內外側，企圖以濃郁甜焦香掩飾鮮奶酸臭味。
+   * 利用鑑識毛細層析濾紙與酒精展開液，利用毛細現象與分配係數分離出人工焦糖色素與焦糖香精油脂。
+   * @param {string} sampleMatrix - 樣品來源 ('cup_lid_grease' 杯蓋飲用孔殘留油脂)
+   * @param {string} solventType - 展開溶劑 ('ethanol' 乙醇/水混合展開液)
+   * @param {number} travelDistanceMm - 溶劑前沿移動距離 (mm，標準 50mm)
+   */
+  runCaramelCapillaryChromatography(sampleMatrix = 'cup_lid_grease', solventType = 'ethanol', travelDistanceMm = 50) {
+    const isSampleValid = sampleMatrix.includes('cup_lid') || sampleMatrix.includes('grease');
+    const caramelDyeRf = 0.40; // 人工焦糖色素移動距離 20mm / 50mm = 0.40
+    const flavorOilRf = 0.80;  // 焦糖香精脂質移動距離 40mm / 50mm = 0.80
+
+    return {
+      sampleMatrix,
+      solventType,
+      travelDistanceMm,
+      isSeparated: isSampleValid,
+      bands: [
+        {
+          name: '人工焦糖色素 (Caramel Color III/IV)',
+          color: '深黃至深褐色沉積色帶',
+          rf: caramelDyeRf,
+          characteristics: '水溶性極性色素，移動較慢，Rf = 0.40'
+        },
+        {
+          name: '化學合成焦糖香精油脂 (含麥芽醇、乙基麥芽醇與脂質載體)',
+          color: '透明微亮半透明油斑',
+          rf: flavorOilRf,
+          characteristics: '弱極性脂溶性高，隨展開劑前沿快速推進，Rf = 0.80'
+        }
+      ],
+      maskingMotiveAnalysis: '掩飾動機確證：杯蓋飲用孔外側特意塗抹高濃度人工焦糖香精與色素油脂，利用濃郁甜焦香特異氣味在受害者吸吮瞬間麻痺嗅覺，刻意遮蔽酸敗鮮奶的強烈酸臭刺鼻氣息！',
+      scientificPrinciple: '108 課綱毛細現象與紙層析法（Paper Chromatography）：多孔性纖維素濾紙藉毛細管力驅動流動相上升；不同極性之色素與香精脂質因在固定相與流動相間的分配係數（Partition Coefficient）不同，形成速率差達到完全色層分離。'
+    };
+  }
+
+  /**
+   * 9c. 苦杏仁苷雙糖植物氰苷酵素解水解催化與雙重致病途徑演算 (CASE-01 歷史相容保留)
    * 苦杏仁苷 (Amygdalin, C20H27NO11) 為天然「雙糖植物氰苷 (Cyanogenic glycoside)」。
    * 室溫中性或弱酸下分子結構極為安定，必須依賴苦杏仁酵素 (Emulsin，含 β-葡萄糖苷酶與扁桃腈裂解酶) 催化。
    * @param {number} beverageTempC - 熱飲溫度 (°C，招牌熱焦糖瑪奇朵約 65°C)

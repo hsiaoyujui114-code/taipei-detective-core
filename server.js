@@ -548,6 +548,26 @@ async function handleDetectiveRequest(req, res, customEngine = null) {
     return true;
   }
 
+  if (pathname === '/api/detective/science/milk-rancidity-ph' && req.method === 'POST') {
+    const body = await parseBody(req);
+    sendJson(res, 200, engine.evidenceEngine.runMilkRancidityPHAnalysis(
+      body.milkTempC !== undefined ? Number(body.milkTempC) : 28,
+      body.phValue !== undefined ? Number(body.phValue) : 4.2,
+      body.hoursExposed !== undefined ? Number(body.hoursExposed) : 8
+    ));
+    return true;
+  }
+
+  if (pathname === '/api/detective/science/caramel-chromatography' && req.method === 'POST') {
+    const body = await parseBody(req);
+    sendJson(res, 200, engine.evidenceEngine.runCaramelCapillaryChromatography(
+      body.sampleMatrix || 'cup_lid_grease',
+      body.solventType || 'ethanol',
+      body.travelDistanceMm !== undefined ? Number(body.travelDistanceMm) : 50
+    ));
+    return true;
+  }
+
   if (pathname === '/api/detective/science/amygdalin-hydrolysis' && req.method === 'POST') {
     const body = await parseBody(req);
     sendJson(res, 200, engine.evidenceEngine.runAmygdalinHydrolysisAnalysis(

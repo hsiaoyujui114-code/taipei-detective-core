@@ -54,6 +54,20 @@
     "description": "快速檢驗水溶液酸鹼度，以標準比色卡判定酸性、中性或強鹼。"
   },
   {
+    "id": "tool_ph_strip",
+    "name": "化學廣用試紙與微量滴管組",
+    "track": "tool",
+    "type": "chemical",
+    "description": "高靈敏度廣用 pH 試紙與微量滴管，依變色範圍（pH 1~14）精準測定食品酸敗或強酸弱鹼度。"
+  },
+  {
+    "id": "tool_chromatography_paper",
+    "name": "鑑識毛細層析濾紙套件",
+    "track": "tool",
+    "type": "chemical",
+    "description": "高吸水毛細層析濾紙與展開劑，利用毛細現象分離食用色素、香精與混合油脂成分。"
+  },
+  {
     "id": "tool_uv_torch",
     "name": "365nm 專業紫外光鑑識手電筒",
     "track": "tool",
@@ -180,28 +194,52 @@
     "description": "微觀分析泥土含水飽和度及草葉受壓細胞壁彎折方向與步幅。"
   },
   {
+    "id": "ev_01_acidic_milk_foam",
+    "name": "打翻之酸敗咖啡奶泡殘液",
+    "track": "evidence",
+    "caseId": "case_01",
+    "description": "4 號桌打翻的招牌熱焦糖瑪奇朵殘液，奶泡呈現細微絮狀凝塊，散發刺鼻酸腐異味，pH 4.2 呈強酸橘紅色。",
+    "scienceAspect": "細菌酸敗與廣用試紙 pH 4.2 強酸橘紅色鑑識"
+  },
+  {
+    "id": "ev_01_lid_caramel_grease",
+    "name": "杯蓋飲用孔殘留之焦糖香精食用油脂",
+    "track": "evidence",
+    "caseId": "case_01",
+    "description": "4 號桌外帶杯蓋飲用孔內外側塗抹有微厚油脂，散發濃烈人工焦糖香精氣味，層析濾紙分離出人工焦糖色素。",
+    "scienceAspect": "毛細現象層析濾紙食用焦糖色素與香精油脂分離"
+  },
+  {
+    "id": "ev_01_spoiled_milk_carton",
+    "name": "吧檯垃圾桶變質鮮奶空盒",
+    "track": "evidence",
+    "caseId": "case_01",
+    "description": "深藏在吧檯下層垃圾袋底部的鮮乳空盒，批號顯示已於常溫 7~60℃ 危險溫度帶置放超過 8 小時，盒身採集到吳冠宇食指指紋。",
+    "scienceAspect": "常溫危險溫度帶細菌滋生與包裝微痕指紋鑑識"
+  },
+  {
     "id": "ev_01_coffee_cup",
     "name": "翻倒的雙層熱焦糖瑪奇朵咖啡杯",
     "track": "evidence",
     "caseId": "case_01",
-    "description": "西門町咖啡館 4 號桌翻倒的招牌熱焦糖瑪奇朵咖啡杯，杯底殘留半融化焦糖奶泡，散發微弱苦杏仁味。",
-    "scienceAspect": "酸鹼滴定與水溶液性質"
+    "description": "西門町咖啡館 4 號桌翻倒的招牌熱焦糖瑪奇朵咖啡杯，杯底殘留半融化酸敗奶泡，散發刺鼻酸腐異味。",
+    "scienceAspect": "酸鹼滴定與鮮奶細菌酸敗變質"
   },
   {
     "id": "ev_01_cup_lid",
     "name": "4 號桌專用外帶杯蓋與飲用孔",
     "track": "evidence",
     "caseId": "case_01",
-    "description": "黑色耐熱塑膠杯蓋，飲用孔內緣有微薄凡士林脂質疏水膜與乾涸液滴。",
-    "scienceAspect": "365nm UV 螢光激發與微量汗液指紋"
+    "description": "黑色耐熱塑膠杯蓋，飲用孔內緣塗抹有厚重焦糖香精油脂以掩蓋酸臭，卡榫處留有右手食指指紋。",
+    "scienceAspect": "毛細現象層析與微量指紋鑑識"
   },
   {
     "id": "ev_01_tlc_strip",
-    "name": "4 號桌杯蓋刮取物薄層色層分析片 (TLC)",
+    "name": "4 號桌杯蓋刮取物毛細層析濾紙 (Chromatography)",
     "track": "evidence",
     "caseId": "case_01",
-    "description": "矽膠薄層層析片，顯示凡士林殘渣中植物氰苷母體在展開劑中的毛細分離 (Rf=0.42)。",
-    "scienceAspect": "薄層層析毛細分離"
+    "description": "鑑識毛細層析濾紙，分離出下層人工焦糖色素深褐色色帶與上層化學焦糖香精油脂。",
+    "scienceAspect": "毛細現象色層分離"
   },
   {
     "id": "ev_02_siphon_tube",

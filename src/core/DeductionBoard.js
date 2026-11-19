@@ -292,9 +292,28 @@ class DeductionBoard {
       (caseDef.correctCulpritId === 'suspect_01_wu' && accusedSuspectId === 'suspect_01_barista');
 
     // 檢查證據鏈完整度：是否包含案件要求之關鍵物證，且全數經科學化驗
+    const aliasMap = {
+      'ev_01_lid_caramel_grease': ['ev_01_cup_lid'],
+      'ev_01_cup_lid': ['ev_01_lid_caramel_grease'],
+      'ev_01_spoiled_milk_carton': ['ev_01_tlc_strip'],
+      'ev_01_tlc_strip': ['ev_01_spoiled_milk_carton'],
+      'ev_01_acidic_milk_foam': ['ev_01_coffee_cup'],
+      'ev_01_coffee_cup': ['ev_01_acidic_milk_foam']
+    };
+
+    const hasSubmitted = (reqId) => {
+      if (submittedEvidenceIds.includes(reqId)) return true;
+      const alts = aliasMap[reqId] || [];
+      return alts.some(alt => submittedEvidenceIds.includes(alt));
+    };
+
     const requiredEvidenceIds = (caseDef.evidenceChain || []).map(e => e.id);
-    const missingEvidences = requiredEvidenceIds.filter(id => !submittedEvidenceIds.includes(id));
-    const unexaminedEvidences = submittedEvidenceIds.filter(id => !this.evidenceEngine.isEvidenceExamined(id));
+    const missingEvidences = requiredEvidenceIds.filter(id => !hasSubmitted(id));
+    const unexaminedEvidences = submittedEvidenceIds.filter(id => {
+      if (this.evidenceEngine.isEvidenceExamined(id)) return false;
+      const alts = aliasMap[id] || [];
+      return !alts.some(alt => this.evidenceEngine.isEvidenceExamined(alt));
+    });
 
     let score = 100;
     const deductions = [];
